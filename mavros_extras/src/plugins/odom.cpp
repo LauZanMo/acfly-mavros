@@ -154,6 +154,25 @@ private:
 		lpos.estimator_type = utils::enum_value(estimator_type);
 		ftf::covariance9d_urt_to_mavlink(cov_full, lpos.covariance);
 
+		// covariance simple hack
+		int count = 0;
+		for (int i=0; i<9; i++) {
+			for (int j=i; j<9; j++) {
+				if (i<2 && j<2) {
+					int swap = i;
+					i = j;
+					j = swap;
+				}
+				float val = 0;
+				if (i > 5 && i==j) {
+					val = 0.1;
+				} else {
+					val = odom->pose.covariance.data()[6*i + j];
+				}
+				lpos.covariance[count++] = val;
+			}
+		}
+
 		// [[[cog:
 		// for a, b in (('', 'pos_ned'), ('v', 'lin_vel_ned'), ('a', 'zerov3f')):
 		//     for f in 'xyz':
