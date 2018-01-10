@@ -123,14 +123,14 @@ private:
 			// position/ attitude
 			if (i==2) {
 				// z
-				odom->pose.covariance[i + 6*i] = 1e-2;
+				odom->pose.covariance[i + 6*i] = 1e-9;
 				// yaw
 				odom->pose.covariance[(i + 3) + 6*(i + 3)] = 1e-2;
 			} else {
 				// x, y
 				odom->pose.covariance[i + 6*i] = 1;
 				// roll, pitch
-				odom->pose.covariance[(i + 3) + 6*(i + 3)] = 1e-3;
+				odom->pose.covariance[(i + 3) + 6*(i + 3)] = 1e-9;
 			}
 		}
 
