@@ -42,7 +42,7 @@ using utils::enum_value;
 /**
  * @brief status publisher, based on diagnistic_updater::FrequencyStatus
  * @brief 心跳状态发布者，基于diagnistic_updater功能包中的diagnistic_updater::FrequencyStatus
- * @note 启动后，可使用rqt工具中的runtime monitor，进行飞控mavlink心跳状态诊断
+ * @note 启动后可使用rqt工具中的runtime monitor，进行飞控mavlink心跳状态诊断
  */
 class HeartbeatStatus : public diagnostic_updater::DiagnosticTask {
 public:
