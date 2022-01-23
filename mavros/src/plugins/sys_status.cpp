@@ -1,17 +1,14 @@
 /**
- * @brief System Status plugin
  * @file sys_status.cpp
+ * @author LauZanMo (LauZanMo@whu.edu.cn)
  * @author Vladimir Ermakov <vooon341@gmail.com>
+ * @brief This file is from mavros open source respository, thanks for their contribution.
+ * @version 1.0
+ * @date 2022-01-23
  *
- * @addtogroup plugin
- * @{
- */
-/*
- * Copyright 2013,2014,2015,2016 Vladimir Ermakov.
+ * @copyright Copyright (c) 2022 acfly
+ * @copyright Copyright 2014,2015,2016,2017 Vladimir Ermakov.
  *
- * This file is part of the mavros package and subject to the license terms
- * in the top-level LICENSE file of the mavros repository.
- * https://github.com/mavlink/mavros/tree/master/LICENSE.md
  */
 
 #include <mavros/mavros_plugin.h>
@@ -43,9 +40,9 @@ using mavlink::minimal::MAV_TYPE;
 using utils::enum_value;
 
 /**
- * Heartbeat status publisher
- *
- * Based on diagnistic_updater::FrequencyStatus
+ * @brief status publisher, based on diagnistic_updater::FrequencyStatus
+ * @brief 心跳状态发布者，基于diagnistic_updater功能包中的diagnistic_updater::FrequencyStatus
+ * @note 启动后，可使用rqt工具中的runtime monitor，进行飞控mavlink心跳状态诊断
  */
 class HeartbeatStatus : public diagnostic_updater::DiagnosticTask {
 public:
@@ -129,6 +126,8 @@ private:
 
 /**
  * @brief System status diagnostic updater
+ * @brief 系统状态诊断更新器
+ * @note 启动后可使用rqt工具中的runtime monitor，进行飞控系统状态诊断，如传感器状态，健康度等
  */
 class SystemStatusDiag : public diagnostic_updater::DiagnosticTask {
 public:
@@ -346,6 +345,8 @@ private:
 
 /**
  * @brief Battery diagnostic updater
+ * @brief 电池诊断更新器
+ * @note 启动后可使用rqt工具中的runtime monitor，进行电池状态诊断，设置并低于报警电压后会警示
  */
 class BatteryStatusDiag : public diagnostic_updater::DiagnosticTask {
 public:
@@ -389,89 +390,18 @@ private:
 };
 
 /**
- * @brief Memory usage diag (APM-only)
- */
-class MemInfo : public diagnostic_updater::DiagnosticTask {
-public:
-    MemInfo(const std::string &name)
-        : diagnostic_updater::DiagnosticTask(name), freemem(-1), brkval(0) {}
-
-    void set(uint16_t f, uint16_t b) {
-        freemem = f;
-        brkval  = b;
-    }
-
-    void run(diagnostic_updater::DiagnosticStatusWrapper &stat) {
-        ssize_t  freemem_ = freemem;
-        uint16_t brkval_  = brkval;
-
-        if (freemem < 0)
-            stat.summary(2, "No data");
-        else if (freemem < 200)
-            stat.summary(1, "Low mem");
-        else
-            stat.summary(0, "Normal");
-
-        stat.addf("Free memory (B)", "%zd", freemem_);
-        stat.addf("Heap top", "0x%04X", brkval_);
-    }
-
-private:
-    std::atomic<ssize_t>  freemem;
-    std::atomic<uint16_t> brkval;
-};
-
-/**
- * @brief Hardware status (APM-only)
- */
-class HwStatus : public diagnostic_updater::DiagnosticTask {
-public:
-    HwStatus(const std::string &name)
-        : diagnostic_updater::DiagnosticTask(name), vcc(-1.0), i2cerr(0), i2cerr_last(0) {}
-
-    void set(uint16_t v, uint8_t e) {
-        std::lock_guard<std::mutex> lock(mutex);
-        vcc    = v / 1000.0;
-        i2cerr = e;
-    }
-
-    void run(diagnostic_updater::DiagnosticStatusWrapper &stat) {
-        std::lock_guard<std::mutex> lock(mutex);
-
-        if (vcc < 0)
-            stat.summary(2, "No data");
-        else if (vcc < 4.5)
-            stat.summary(1, "Low voltage");
-        else if (i2cerr != i2cerr_last) {
-            i2cerr_last = i2cerr;
-            stat.summary(1, "New I2C error");
-        } else
-            stat.summary(0, "Normal");
-
-        stat.addf("Core voltage", "%f", vcc);
-        stat.addf("I2C errors", "%zu", i2cerr);
-    }
-
-private:
-    std::mutex mutex;
-    float      vcc;
-    size_t     i2cerr;
-    size_t     i2cerr_last;
-};
-
-/**
- * @brief System status plugin.
- *
- * Required by all plugins.
+ * @brief System status plugin, Required by all plugins.
+ * @brief 系统状态ROS插件，所有ROS插件都需要该插件的运行
+ * @note 该插件会把系统状态信息进行存储，以话题或服务形式发布
  */
 class SystemStatusPlugin : public plugin::PluginBase {
 public:
     SystemStatusPlugin()
-        : PluginBase(), nh("~"), hb_diag("Heartbeat", 10), mem_diag("APM Memory"),
-          hwst_diag("APM Hardware"), sys_diag("System"), batt_diag("Battery"),
+        : PluginBase(), nh("~"), hb_diag("Heartbeat", 10), sys_diag("System"), batt_diag("Battery"),
           conn_heartbeat_mav_type(MAV_TYPE::ONBOARD_CONTROLLER), version_retries(RETRIES_COUNT),
           disable_diag(false), has_battery_status(false), battery_voltage(0.0) {}
 
+    // ROS插件动态加载后会执行该函数，相当于构造函数
     void initialize(UAS &uas_) override {
         PluginBase::initialize(uas_);
 
@@ -487,16 +417,19 @@ public:
         nh.param("sys/disable_diag", disable_diag, false);
 
         // heartbeat rate parameter
+        // 心跳速率参数
         if (nh.getParam("conn/heartbeat_rate", conn_heartbeat_d) && conn_heartbeat_d != 0.0) {
             conn_heartbeat = ros::WallDuration(ros::Rate(conn_heartbeat_d));
         }
 
         // heartbeat mav type parameter
+        // 心跳mavlink格式参数
         if (nh.getParam("conn/heartbeat_mav_type", conn_heartbeat_mav_type_str)) {
             conn_heartbeat_mav_type = utils::mav_type_from_str(conn_heartbeat_mav_type_str);
         }
 
         // heartbeat diag always enabled
+        // 心跳诊断一直为使能状态
         UAS_DIAG(m_uas).add(hb_diag);
         if (!disable_diag) {
             UAS_DIAG(m_uas).add(sys_diag);
@@ -506,17 +439,17 @@ public:
         }
 
         // one-shot timeout timer
+        // 单次超时定时器(不会被自动重置)
         timeout_timer = nh.createWallTimer(ros::WallDuration(conn_timeout_d),
                                            &SystemStatusPlugin::timeout_cb, this, true);
-        // timeout_timer.start();
 
         if (!conn_heartbeat.isZero()) {
             heartbeat_timer =
                 nh.createWallTimer(conn_heartbeat, &SystemStatusPlugin::heartbeat_cb, this);
-            // heartbeat_timer.start();
         }
 
         // version request timer
+        // 版本请求定时器
         autopilot_version_timer = nh.createWallTimer(
             ros::WallDuration(1.0), &SystemStatusPlugin::autopilot_version_cb, this);
         autopilot_version_timer.stop();
@@ -530,24 +463,23 @@ public:
         statustext_sub =
             nh.subscribe("statustext/send", 10, &SystemStatusPlugin::statustext_cb, this);
         rate_srv = nh.advertiseService("set_stream_rate", &SystemStatusPlugin::set_rate_cb, this);
-        mode_srv = nh.advertiseService("set_mode", &SystemStatusPlugin::set_mode_cb, this);
         vehicle_info_get_srv =
             nh.advertiseService("vehicle_info_get", &SystemStatusPlugin::vehicle_info_get_cb, this);
         message_interval_srv = nh.advertiseService(
             "set_message_interval", &SystemStatusPlugin::set_message_interval_cb, this);
 
         // init state topic
+        // 初始化状态话题
         publish_disconnection();
         enable_connection_cb();
     }
 
+    // 相当于声明指定mavlink信息有回调函数，回调函数定义见下“信息回调句柄”
     Subscriptions get_subscriptions() override {
         return {
             make_handler(&SystemStatusPlugin::handle_heartbeat),
             make_handler(&SystemStatusPlugin::handle_sys_status),
             make_handler(&SystemStatusPlugin::handle_statustext),
-            make_handler(&SystemStatusPlugin::handle_meminfo),
-            make_handler(&SystemStatusPlugin::handle_hwstatus),
             make_handler(&SystemStatusPlugin::handle_autopilot_version),
             make_handler(&SystemStatusPlugin::handle_extended_sys_state),
             make_handler(&SystemStatusPlugin::handle_battery_status),
@@ -560,8 +492,6 @@ private:
     ros::NodeHandle nh;
 
     HeartbeatStatus   hb_diag;
-    MemInfo           mem_diag;
-    HwStatus          hwst_diag;
     SystemStatusDiag  sys_diag;
     BatteryStatusDiag batt_diag;
     ros::WallTimer    timeout_timer;
@@ -576,7 +506,6 @@ private:
     ros::Publisher     statustext_pub;
     ros::Subscriber    statustext_sub;
     ros::ServiceServer rate_srv;
-    ros::ServiceServer mode_srv;
     ros::ServiceServer vehicle_info_get_srv;
     ros::ServiceServer message_interval_srv;
 
@@ -590,12 +519,17 @@ private:
     using M_VehicleInfo = std::unordered_map<uint16_t, mavros_msgs::VehicleInfo>;
     M_VehicleInfo vehicles;
 
-    /* -*- mid-level helpers -*- */
+    /* mid-level helpers */
+    /* 中间件函数 */
 
     // Get vehicle key for the unordered map containing all vehicles
-    inline uint16_t get_vehicle_key(uint8_t sysid, uint8_t compid) { return sysid << 8 | compid; }
+    // 从包含所有载具的无序图中获取某个载具的索引
+    inline uint16_t get_vehicle_key(uint8_t sysid, uint8_t compid) {
+        return sysid << 8 | compid;
+    }
 
     // Find or create vehicle info
+    // 获取或创建载具信息
     inline M_VehicleInfo::iterator find_or_create_vehicle_info(uint8_t sysid, uint8_t compid) {
         auto                    key = get_vehicle_key(sysid, compid);
         M_VehicleInfo::iterator ret = vehicles.find(key);
@@ -615,11 +549,8 @@ private:
         return ret;
     }
 
-    /**
-     * Sent STATUSTEXT message to rosout
-     *
-     * @param[in] severity  Levels defined in common.xml
-     */
+    // Sent STATUSTEXT message to rosout
+    // 将STATUSTEXT信息转化成rosout进行命令行输出
     void process_statustext_normal(uint8_t severity, std::string &text) {
         using mavlink::common::MAV_SEVERITY;
 
@@ -661,6 +592,7 @@ private:
 
     static std::string custom_version_to_hex_string(std::array<uint8_t, 8> &array) {
         // should be little-endian
+        // 小端在前
         uint64_t b;
         memcpy(&b, array.data(), sizeof(uint64_t));
         b = le64toh(b);
@@ -688,27 +620,6 @@ private:
         ROS_INFO_NAMED("sys", "%s: UID:                 %016llx", prefix, (long long int)apv.uid);
     }
 
-    void process_autopilot_version_apm_quirk(mavlink::common::msg::AUTOPILOT_VERSION &apv,
-                                             uint8_t sysid, uint8_t compid) {
-        char prefix[16];
-        std::snprintf(prefix, sizeof(prefix), "VER: %d.%d", sysid, compid);
-
-        // Note based on current APM's impl.
-        // APM uses custom version array[8] as a string
-        ROS_INFO_NAMED("sys", "%s: Capabilities         0x%016llx", prefix,
-                       (long long int)apv.capabilities);
-        ROS_INFO_NAMED("sys", "%s: Flight software:     %08x (%*s)", prefix, apv.flight_sw_version,
-                       8, apv.flight_custom_version.data());
-        ROS_INFO_NAMED("sys", "%s: Middleware software: %08x (%*s)", prefix,
-                       apv.middleware_sw_version, 8, apv.middleware_custom_version.data());
-        ROS_INFO_NAMED("sys", "%s: OS software:         %08x (%*s)", prefix, apv.os_sw_version, 8,
-                       apv.os_custom_version.data());
-        ROS_INFO_NAMED("sys", "%s: Board hardware:      %08x", prefix, apv.board_version);
-        ROS_INFO_NAMED("sys", "%s: VID/PID:             %04x:%04x", prefix, apv.vendor_id,
-                       apv.product_id);
-        ROS_INFO_NAMED("sys", "%s: UID:                 %016llx", prefix, (long long int)apv.uid);
-    }
-
     void publish_disconnection() {
         auto state_msg           = boost::make_shared<mavros_msgs::State>();
         state_msg->header.stamp  = ros::Time::now();
@@ -721,19 +632,22 @@ private:
         state_pub.publish(state_msg);
     }
 
-    /* -*- message handlers -*- */
+    /* message handlers */
+    /* 信息回调句柄 */
 
     void handle_heartbeat(const mavlink::mavlink_message_t *msg,
                           mavlink::minimal::msg::HEARTBEAT &hb) {
         using mavlink::minimal::MAV_MODE_FLAG;
 
         // Store generic info of all heartbeats seen
+        // 保存所有已知心跳包的通用信息
         auto it = find_or_create_vehicle_info(msg->sysid, msg->compid);
 
         auto vehicle_mode = m_uas->str_mode_v10(hb.base_mode, hb.custom_mode);
         auto stamp        = ros::Time::now();
 
         // Update vehicle data
+        // 更新载具数据
         it->second.header.stamp = stamp;
         it->second.available_info |= mavros_msgs::VehicleInfo::HAVE_INFO_HEARTBEAT;
         it->second.autopilot     = hb.autopilot;
@@ -750,18 +664,21 @@ private:
         }
 
         // Continue from here only if vehicle is my target
+        // 如果载具不是mavros的目标则至此结束
         if (!m_uas->is_my_target(msg->sysid, msg->compid)) {
             ROS_DEBUG_NAMED("sys", "HEARTBEAT from [%d, %d] dropped.", msg->sysid, msg->compid);
             return;
         }
 
         // update context && setup connection timeout
+        // 更新信息并设置连接超时判断
         m_uas->update_heartbeat(hb.type, hb.autopilot, hb.base_mode);
         m_uas->update_connection_status(true);
         timeout_timer.stop();
         timeout_timer.start();
 
         // build state message after updating uas
+        // 更新无人机系统后，构建状态信息并发布
         auto state_msg          = boost::make_shared<mavros_msgs::State>();
         state_msg->header.stamp = stamp;
         state_msg->connected    = true;
@@ -776,7 +693,7 @@ private:
         hb_diag.tick(hb.type, hb.autopilot, state_msg->mode, hb.system_status);
     }
 
-    void handle_extended_sys_state(const mavlink::mavlink_message_t *        msg,
+    void handle_extended_sys_state(const mavlink::mavlink_message_t         *msg,
                                    mavlink::common::msg::EXTENDED_SYS_STATE &state) {
         auto state_msg          = boost::make_shared<mavros_msgs::ExtendedState>();
         state_msg->header.stamp = ros::Time::now();
@@ -789,8 +706,8 @@ private:
     void handle_sys_status(const mavlink::mavlink_message_t *msg,
                            mavlink::common::msg::SYS_STATUS &stat) {
         float volt = stat.voltage_battery / 1000.0f;  // mV
-        float curr = stat.current_battery / 100.0f;   // 10 mA or -1
-        float rem  = stat.battery_remaining / 100.0f; // or -1
+        float curr = stat.current_battery / 100.0f;   // 10 mA或-1
+        float rem  = stat.battery_remaining / 100.0f; // 或-1
 
         battery_voltage = volt;
         sys_diag.set(stat);
@@ -814,6 +731,7 @@ private:
         batt_msg->power_supply_technology = BatteryMsg::POWER_SUPPLY_TECHNOLOGY_UNKNOWN;
         batt_msg->present                 = true;
         batt_msg->cell_voltage.clear(); // not necessary. Cell count and Voltage unknown.
+                                        // 非必要，电池计数和电压未知
         batt_msg->location      = "";
         batt_msg->serial_number = "";
 #else // mavros_msgs::BatteryStatus
@@ -825,7 +743,7 @@ private:
         batt_pub.publish(batt_msg);
     }
 
-    void handle_battery2(const mavlink::mavlink_message_t *     msg,
+    void handle_battery2(const mavlink::mavlink_message_t      *msg,
                          mavlink::ardupilotmega::msg::BATTERY2 &batt) {
         float volt = batt.voltage / 1000.0f;        // mV
         float curr = batt.current_battery / 100.0f; // 10 mA or -1
@@ -851,34 +769,25 @@ private:
         statustext_pub.publish(st_msg);
     }
 
-    void handle_meminfo(const mavlink::mavlink_message_t *    msg,
-                        mavlink::ardupilotmega::msg::MEMINFO &mem) {
-        mem_diag.set(mem.freemem, mem.brkval);
-    }
-
-    void handle_hwstatus(const mavlink::mavlink_message_t *     msg,
-                         mavlink::ardupilotmega::msg::HWSTATUS &hwst) {
-        hwst_diag.set(hwst.Vcc, hwst.I2Cerr);
-    }
-
-    void handle_autopilot_version(const mavlink::mavlink_message_t *       msg,
+    void handle_autopilot_version(const mavlink::mavlink_message_t        *msg,
                                   mavlink::common::msg::AUTOPILOT_VERSION &apv) {
         // we want to store only FCU caps
+        // 仅存储飞行控制单元的兼容性上限
         if (m_uas->is_my_target(msg->sysid, msg->compid)) {
             autopilot_version_timer.stop();
             m_uas->update_capabilities(true, apv.capabilities);
         }
 
-        // but print all version responses
-        if (m_uas->is_ardupilotmega())
-            process_autopilot_version_apm_quirk(apv, msg->sysid, msg->compid);
-        else
-            process_autopilot_version_normal(apv, msg->sysid, msg->compid);
+        // print version responses
+        // 打印版本应答
+        process_autopilot_version_normal(apv, msg->sysid, msg->compid);
 
         // Store generic info of all autopilot seen
+        // 存储所有已知自驾仪的通用信息
         auto it = find_or_create_vehicle_info(msg->sysid, msg->compid);
 
         // Update vehicle data
+        // 更新载具数据
         it->second.header.stamp = ros::Time::now();
         it->second.available_info |= mavros_msgs::VehicleInfo::HAVE_INFO_AUTOPILOT_VERSION;
         it->second.capabilities          = apv.capabilities;
@@ -892,9 +801,9 @@ private:
         it->second.uid                   = apv.uid;
     }
 
-    void handle_battery_status(const mavlink::mavlink_message_t *    msg,
+    void handle_battery_status(const mavlink::mavlink_message_t     *msg,
                                mavlink::common::msg::BATTERY_STATUS &bs) {
-        // PX4.
+        // (ACFly或PX4的mavlink通信格式专有)
 #ifdef HAVE_SENSOR_MSGS_BATTERYSTATE_MSG
         using BT = mavlink::common::MAV_BATTERY_TYPE;
 
@@ -963,7 +872,7 @@ private:
 #endif
     }
 
-    void handle_estimator_status(const mavlink::mavlink_message_t *      msg,
+    void handle_estimator_status(const mavlink::mavlink_message_t       *msg,
                                  mavlink::common::msg::ESTIMATOR_STATUS &status) {
         using ESF = mavlink::common::ESTIMATOR_STATUS_FLAGS;
 
@@ -1015,17 +924,19 @@ private:
         estimator_status_pub.publish(est_status_msg);
     }
 
-    /* -*- timer callbacks -*- */
+    /* timer callbacks */
+    /* 定时器回调函数 */
 
-    void timeout_cb(const ros::WallTimerEvent &event) { m_uas->update_connection_status(false); }
+    void timeout_cb(const ros::WallTimerEvent &event) {
+        m_uas->update_connection_status(false);
+    }
 
     void heartbeat_cb(const ros::WallTimerEvent &event) {
         using mavlink::common::MAV_MODE;
 
         mavlink::minimal::msg::HEARTBEAT hb{};
 
-        hb.type = enum_value(conn_heartbeat_mav_type); //! @todo patch PX4 so it can also handle
-                                                       //! this type as datalink
+        hb.type          = enum_value(conn_heartbeat_mav_type);
         hb.autopilot     = enum_value(MAV_AUTOPILOT::INVALID);
         hb.base_mode     = enum_value(MAV_MODE::MANUAL_ARMED);
         hb.custom_mode   = 0;
@@ -1074,24 +985,17 @@ private:
         }
     }
 
+    // 继承于PluginBase，连接状态改变后会触发一次
     void connection_cb(bool connected) override {
         has_battery_status = false;
 
         // if connection changes, start delayed version request
+        // 如果连接改变，则开始延迟版本的请求
         version_retries = RETRIES_COUNT;
         if (connected)
             autopilot_version_timer.start();
         else
             autopilot_version_timer.stop();
-
-        // add/remove APM diag tasks
-        if (connected && disable_diag && m_uas->is_ardupilotmega()) {
-            UAS_DIAG(m_uas).add(mem_diag);
-            UAS_DIAG(m_uas).add(hwst_diag);
-        } else {
-            UAS_DIAG(m_uas).removeByName(mem_diag.getName());
-            UAS_DIAG(m_uas).removeByName(hwst_diag.getName());
-        }
 
         if (!connected) {
             // publish connection change
@@ -1102,13 +1006,15 @@ private:
         }
     }
 
-    /* -*- subscription callbacks -*- */
+    /* ros callbacks */
+    /* ROS回调函数 */
 
     void statustext_cb(const mavros_msgs::StatusText::ConstPtr &req) {
         mavlink::common::msg::STATUSTEXT statustext{};
         statustext.severity = req->severity;
 
         // Limit the length of the string by null-terminating at the 50-th character
+        // 通过在第50个字符处以null终止来限制字符串的长度
         ROS_WARN_COND_NAMED(req->text.length() >= statustext.text.size(), "sys",
                             "Status text too long: truncating...");
         mavlink::set_string_z(statustext.text, req->text);
@@ -1116,9 +1022,7 @@ private:
         UAS_FCU(m_uas)->send_message_ignore_drop(statustext);
     }
 
-    /* -*- ros callbacks -*- */
-
-    bool set_rate_cb(mavros_msgs::StreamRate::Request & req,
+    bool set_rate_cb(mavros_msgs::StreamRate::Request  &req,
                      mavros_msgs::StreamRate::Response &res) {
         mavlink::common::msg::REQUEST_DATA_STREAM rq = {};
 
@@ -1132,42 +1036,11 @@ private:
         return true;
     }
 
-    bool set_mode_cb(mavros_msgs::SetMode::Request &req, mavros_msgs::SetMode::Response &res) {
-        using mavlink::minimal::MAV_MODE_FLAG;
-
-        uint8_t  base_mode   = req.base_mode;
-        uint32_t custom_mode = 0;
-
-        if (req.custom_mode != "") {
-            if (!m_uas->cmode_from_str(req.custom_mode, custom_mode)) {
-                res.mode_sent = false;
-                return true;
-            }
-
-            /**
-             * @note That call may trigger unexpected arming change because
-             *       base_mode arming flag state based on previous HEARTBEAT
-             *       message value.
-             */
-            base_mode |= (m_uas->get_armed()) ? enum_value(MAV_MODE_FLAG::SAFETY_ARMED) : 0;
-            base_mode |= (m_uas->get_hil_state()) ? enum_value(MAV_MODE_FLAG::HIL_ENABLED) : 0;
-            base_mode |= enum_value(MAV_MODE_FLAG::CUSTOM_MODE_ENABLED);
-        }
-
-        mavlink::common::msg::SET_MODE sm = {};
-        sm.target_system                  = m_uas->get_tgt_system();
-        sm.base_mode                      = base_mode;
-        sm.custom_mode                    = custom_mode;
-
-        UAS_FCU(m_uas)->send_message_ignore_drop(sm);
-        res.mode_sent = true;
-        return true;
-    }
-
-    bool vehicle_info_get_cb(mavros_msgs::VehicleInfoGet::Request & req,
+    bool vehicle_info_get_cb(mavros_msgs::VehicleInfoGet::Request  &req,
                              mavros_msgs::VehicleInfoGet::Response &res) {
         if (req.get_all) {
             // Send all vehicles
+            // 发送给所有载具
             for (const auto &got : vehicles) {
                 res.vehicles.emplace_back(got.second);
             }
@@ -1199,7 +1072,7 @@ private:
         return res.success;
     }
 
-    bool set_message_interval_cb(mavros_msgs::MessageInterval::Request & req,
+    bool set_message_interval_cb(mavros_msgs::MessageInterval::Request  &req,
                                  mavros_msgs::MessageInterval::Response &res) {
         using mavlink::common::MAV_CMD;
 
@@ -1207,6 +1080,7 @@ private:
             auto client = nh.serviceClient<mavros_msgs::CommandLong>("cmd/command");
 
             // calculate interval
+            // 计算间隔
             float interval_us;
             if (req.message_rate < 0) {
                 interval_us = -1.0f;
