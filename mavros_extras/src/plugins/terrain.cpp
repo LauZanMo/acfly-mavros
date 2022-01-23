@@ -27,48 +27,43 @@ namespace extra_plugins {
  */
 class TerrainPlugin : public plugin::PluginBase {
 public:
-	TerrainPlugin() : PluginBase(),
-		terrain_nh("~terrain")
-	{ }
+    TerrainPlugin() : PluginBase(), terrain_nh("~terrain") {}
 
-	void initialize(UAS &uas_) override
-	{
-		PluginBase::initialize(uas_);
+    void initialize(UAS &uas_) override {
+        PluginBase::initialize(uas_);
 
-		terrain_report_pub = terrain_nh.advertise<mavros_msgs::TerrainReport>("report", 10);
-	}
+        terrain_report_pub = terrain_nh.advertise<mavros_msgs::TerrainReport>("report", 10);
+    }
 
-	Subscriptions get_subscriptions() override
-	{
-		return {
-			make_handler(&TerrainPlugin::handle_terrain_report)
-		};
-	}
+    Subscriptions get_subscriptions() override {
+        return {make_handler(&TerrainPlugin::handle_terrain_report)};
+    }
 
 private:
-	ros::NodeHandle terrain_nh;
+    ros::NodeHandle terrain_nh;
 
-	ros::Publisher terrain_report_pub;
+    ros::Publisher terrain_report_pub;
 
-	void handle_terrain_report(const mavlink::mavlink_message_t *msg, mavlink::common::msg::TERRAIN_REPORT &report) {
-		auto terrain_report_msg = boost::make_shared<mavros_msgs::TerrainReport>();
+    void handle_terrain_report(const mavlink::mavlink_message_t *    msg,
+                               mavlink::common::msg::TERRAIN_REPORT &report) {
+        auto terrain_report_msg = boost::make_shared<mavros_msgs::TerrainReport>();
 
-		terrain_report_msg->header.stamp = ros::Time::now();
-		terrain_report_msg->header.frame_id = "terrain";
+        terrain_report_msg->header.stamp    = ros::Time::now();
+        terrain_report_msg->header.frame_id = "terrain";
 
-		terrain_report_msg->latitude = (double) report.lat / 1e7;
-		terrain_report_msg->longitude = (double) report.lon / 1e7;
-		terrain_report_msg->spacing = report.spacing;
-		terrain_report_msg->terrain_height = report.terrain_height;
-		terrain_report_msg->current_height = report.current_height;
-		terrain_report_msg->pending = report.pending;
-		terrain_report_msg->loaded = report.loaded;
+        terrain_report_msg->latitude       = (double)report.lat / 1e7;
+        terrain_report_msg->longitude      = (double)report.lon / 1e7;
+        terrain_report_msg->spacing        = report.spacing;
+        terrain_report_msg->terrain_height = report.terrain_height;
+        terrain_report_msg->current_height = report.current_height;
+        terrain_report_msg->pending        = report.pending;
+        terrain_report_msg->loaded         = report.loaded;
 
-		terrain_report_pub.publish(terrain_report_msg);
-	}
+        terrain_report_pub.publish(terrain_report_msg);
+    }
 };
-}	// namespace extra_plugins
-}	// namespace mavros
+} // namespace extra_plugins
+} // namespace mavros
 
 #include <pluginlib/class_list_macros.h>
 PLUGINLIB_EXPORT_CLASS(mavros::extra_plugins::TerrainPlugin, mavros::plugin::PluginBase)

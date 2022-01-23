@@ -19,17 +19,17 @@
 
 #pragma once
 
-#include <array>
 #include <Eigen/Eigen>
 #include <Eigen/Geometry>
+#include <array>
 #include <ros/assert.h>
 
 // for Covariance types
-#include <sensor_msgs/Imu.h>
 #include <geometry_msgs/Point.h>
-#include <geometry_msgs/Vector3.h>
-#include <geometry_msgs/Quaternion.h>
 #include <geometry_msgs/PoseWithCovariance.h>
+#include <geometry_msgs/Quaternion.h>
+#include <geometry_msgs/Vector3.h>
+#include <sensor_msgs/Imu.h>
 
 namespace mavros {
 namespace ftf {
@@ -43,35 +43,39 @@ using Covariance6d = geometry_msgs::PoseWithCovariance::_covariance_type;
 using Covariance9d = boost::array<double, 81>;
 
 //! Eigen::Map for Covariance3d
-using EigenMapCovariance3d = Eigen::Map<Eigen::Matrix<double, 3, 3, Eigen::RowMajor> >;
-using EigenMapConstCovariance3d = Eigen::Map<const Eigen::Matrix<double, 3, 3, Eigen::RowMajor> >;
+using EigenMapCovariance3d      = Eigen::Map<Eigen::Matrix<double, 3, 3, Eigen::RowMajor>>;
+using EigenMapConstCovariance3d = Eigen::Map<const Eigen::Matrix<double, 3, 3, Eigen::RowMajor>>;
 
 //! Eigen::Map for Covariance6d
-using EigenMapCovariance6d = Eigen::Map<Eigen::Matrix<double, 6, 6, Eigen::RowMajor> >;
-using EigenMapConstCovariance6d = Eigen::Map<const Eigen::Matrix<double, 6, 6, Eigen::RowMajor> >;
+using EigenMapCovariance6d      = Eigen::Map<Eigen::Matrix<double, 6, 6, Eigen::RowMajor>>;
+using EigenMapConstCovariance6d = Eigen::Map<const Eigen::Matrix<double, 6, 6, Eigen::RowMajor>>;
 
 //! Eigen::Map for Covariance9d
-using EigenMapCovariance9d = Eigen::Map<Eigen::Matrix<double, 9, 9, Eigen::RowMajor> >;
-using EigenMapConstCovariance9d = Eigen::Map<const Eigen::Matrix<double, 9, 9, Eigen::RowMajor> >;
+using EigenMapCovariance9d      = Eigen::Map<Eigen::Matrix<double, 9, 9, Eigen::RowMajor>>;
+using EigenMapConstCovariance9d = Eigen::Map<const Eigen::Matrix<double, 9, 9, Eigen::RowMajor>>;
 
 /**
  * @brief Orientation transform options when applying rotations to data
  */
 enum class StaticTF {
-	NED_TO_ENU,		//!< will change orientation from being expressed WRT NED frame to WRT ENU frame
-	ENU_TO_NED,		//!< change from expressed WRT ENU frame to WRT NED frame
-	AIRCRAFT_TO_BASELINK,	//!< change from expressed WRT aircraft frame to WRT to baselink frame
-	BASELINK_TO_AIRCRAFT,	//!< change from expressed WRT baselnk to WRT aircraft
-	ABSOLUTE_FRAME_AIRCRAFT_TO_BASELINK,//!< change orientation from being expressed in aircraft frame to baselink frame in an absolute frame of reference.
-	ABSOLUTE_FRAME_BASELINK_TO_AIRCRAFT,//!< change orientation from being expressed in baselink frame to aircraft frame in an absolute frame of reference
+    NED_TO_ENU, //!< will change orientation from being expressed WRT NED frame to WRT ENU frame
+    ENU_TO_NED, //!< change from expressed WRT ENU frame to WRT NED frame
+    AIRCRAFT_TO_BASELINK, //!< change from expressed WRT aircraft frame to WRT to baselink frame
+    BASELINK_TO_AIRCRAFT, //!< change from expressed WRT baselnk to WRT aircraft
+    ABSOLUTE_FRAME_AIRCRAFT_TO_BASELINK, //!< change orientation from being expressed in aircraft
+                                         //!< frame to baselink frame in an absolute frame of
+                                         //!< reference.
+    ABSOLUTE_FRAME_BASELINK_TO_AIRCRAFT, //!< change orientation from being expressed in baselink
+                                         //!< frame to aircraft frame in an absolute frame of
+                                         //!< reference
 };
 
 /**
  * @brief Orientation transform options when applying rotations to data, for ECEF.
  */
 enum class StaticEcefTF {
-	ECEF_TO_ENU,		//!< change from expressed WRT ECEF frame to WRT ENU frame
-	ENU_TO_ECEF		//!< change from expressed WRT ENU frame to WRT ECEF frame
+    ECEF_TO_ENU, //!< change from expressed WRT ECEF frame to WRT ENU frame
+    ENU_TO_ECEF  //!< change from expressed WRT ENU frame to WRT ECEF frame
 };
 
 namespace detail {
@@ -146,9 +150,11 @@ Covariance9d transform_static_frame(const Covariance9d &cov, const StaticTF tran
  *
  * General function. Please use specialized variants.
  */
-Eigen::Vector3d transform_static_frame(const Eigen::Vector3d &vec, const Eigen::Vector3d &map_origin, const StaticEcefTF transform);
+Eigen::Vector3d transform_static_frame(const Eigen::Vector3d &vec,
+                                       const Eigen::Vector3d &map_origin,
+                                       const StaticEcefTF     transform);
 
-}	// namespace detail
+} // namespace detail
 
 // -*- frame tf -*-
 
@@ -156,91 +162,81 @@ Eigen::Vector3d transform_static_frame(const Eigen::Vector3d &vec, const Eigen::
  * @brief Transform from attitude represented WRT NED frame to attitude
  *		  represented WRT ENU frame
  */
-template<class T>
-inline T transform_orientation_ned_enu(const T &in) {
-	return detail::transform_orientation(in, StaticTF::NED_TO_ENU);
+template <class T> inline T transform_orientation_ned_enu(const T &in) {
+    return detail::transform_orientation(in, StaticTF::NED_TO_ENU);
 }
 
 /**
  * @brief Transform from attitude represented WRT ENU frame to
  *		  attitude represented WRT NED frame
  */
-template<class T>
-inline T transform_orientation_enu_ned(const T &in) {
-	return detail::transform_orientation(in, StaticTF::ENU_TO_NED);
+template <class T> inline T transform_orientation_enu_ned(const T &in) {
+    return detail::transform_orientation(in, StaticTF::ENU_TO_NED);
 }
 
 /**
  * @brief Transform from attitude represented WRT aircraft frame to
  *		  attitude represented WRT base_link frame
  */
-template<class T>
-inline T transform_orientation_aircraft_baselink(const T &in) {
-	return detail::transform_orientation(in, StaticTF::AIRCRAFT_TO_BASELINK);
+template <class T> inline T transform_orientation_aircraft_baselink(const T &in) {
+    return detail::transform_orientation(in, StaticTF::AIRCRAFT_TO_BASELINK);
 }
 
 /**
  * @brief Transform from attitude represented WRT baselink frame to
  *		  attitude represented WRT body frame
  */
-template<class T>
-inline T transform_orientation_baselink_aircraft(const T &in) {
-	return detail::transform_orientation(in, StaticTF::BASELINK_TO_AIRCRAFT);
+template <class T> inline T transform_orientation_baselink_aircraft(const T &in) {
+    return detail::transform_orientation(in, StaticTF::BASELINK_TO_AIRCRAFT);
 }
 
 /**
  * @brief Transform from attitude represented WRT aircraft frame to
- *		  attitude represented WRT base_link frame, treating aircraft frame 
+ *		  attitude represented WRT base_link frame, treating aircraft frame
  *		  as in an absolute frame of reference (local NED).
  */
-template<class T>
-inline T transform_orientation_absolute_frame_aircraft_baselink(const T &in) {
-	return detail::transform_orientation(in, StaticTF::ABSOLUTE_FRAME_AIRCRAFT_TO_BASELINK);
+template <class T> inline T transform_orientation_absolute_frame_aircraft_baselink(const T &in) {
+    return detail::transform_orientation(in, StaticTF::ABSOLUTE_FRAME_AIRCRAFT_TO_BASELINK);
 }
 
 /**
  * @brief Transform from attitude represented WRT baselink frame to
- *		  attitude represented WRT body frame, treating baselink frame 
+ *		  attitude represented WRT body frame, treating baselink frame
  *		  as in an absolute frame of reference (local NED).
  */
-template<class T>
-inline T transform_orientation_absolute_frame_baselink_aircraft(const T &in) {
-	return detail::transform_orientation(in, StaticTF::ABSOLUTE_FRAME_BASELINK_TO_AIRCRAFT);
+template <class T> inline T transform_orientation_absolute_frame_baselink_aircraft(const T &in) {
+    return detail::transform_orientation(in, StaticTF::ABSOLUTE_FRAME_BASELINK_TO_AIRCRAFT);
 }
 
 /**
  * @brief Transform data expressed in NED to ENU frame.
  */
-template<class T>
-inline T transform_frame_ned_enu(const T &in) {
-	return detail::transform_static_frame(in, StaticTF::NED_TO_ENU);
+template <class T> inline T transform_frame_ned_enu(const T &in) {
+    return detail::transform_static_frame(in, StaticTF::NED_TO_ENU);
 }
 
 /**
  * @brief Transform data expressed in ENU to NED frame.
  *
  */
-template<class T>
-inline T transform_frame_enu_ned(const T &in) {
-	return detail::transform_static_frame(in, StaticTF::ENU_TO_NED);
+template <class T> inline T transform_frame_enu_ned(const T &in) {
+    return detail::transform_static_frame(in, StaticTF::ENU_TO_NED);
 }
 
 /**
  * @brief Transform data expressed in Aircraft frame to Baselink frame.
  *
  */
-template<class T>
-inline T transform_frame_aircraft_baselink(const T &in) {
-	return detail::transform_static_frame(in, StaticTF::AIRCRAFT_TO_BASELINK);
+template <class T> inline T transform_frame_aircraft_baselink(const T &in) {
+    return detail::transform_static_frame(in, StaticTF::AIRCRAFT_TO_BASELINK);
 }
 
 /**
  * @brief Transform data expressed in Baselink frame to Aircraft frame.
  *
  */
-template<class T>
-inline T transform_frame_baselink_aircraft(const T &in) {
-	return detail::transform_static_frame(in, StaticTF::BASELINK_TO_AIRCRAFT);
+template <class T> inline T transform_frame_baselink_aircraft(const T &in) {
+    return detail::transform_static_frame(in, StaticTF::BASELINK_TO_AIRCRAFT);
 }
 
 /**
@@ -250,9 +246,8 @@ inline T transform_frame_baselink_aircraft(const T &in) {
  * @param map_origin  geodetic origin [lla]
  * @returns local ENU coordinates [m].
  */
-template<class T>
-inline T transform_frame_ecef_enu(const T &in, const T &map_origin) {
-	return detail::transform_static_frame(in, map_origin, StaticEcefTF::ECEF_TO_ENU);
+template <class T> inline T transform_frame_ecef_enu(const T &in, const T &map_origin) {
+    return detail::transform_static_frame(in, map_origin, StaticEcefTF::ECEF_TO_ENU);
 }
 
 /**
@@ -262,67 +257,59 @@ inline T transform_frame_ecef_enu(const T &in, const T &map_origin) {
  * @param map_origin  geodetic origin [lla]
  * @returns local ECEF coordinates [m].
  */
-template<class T>
-inline T transform_frame_enu_ecef(const T &in, const T &map_origin) {
-	return detail::transform_static_frame(in, map_origin, StaticEcefTF::ENU_TO_ECEF);
+template <class T> inline T transform_frame_enu_ecef(const T &in, const T &map_origin) {
+    return detail::transform_static_frame(in, map_origin, StaticEcefTF::ENU_TO_ECEF);
 }
 
 /**
  * @brief Transform data expressed in aircraft frame to NED frame.
  * Assumes quaternion represents rotation from aircraft frame to NED frame.
  */
-template<class T>
-inline T transform_frame_aircraft_ned(const T &in, const Eigen::Quaterniond &q) {
-	return detail::transform_frame(in, q);
+template <class T> inline T transform_frame_aircraft_ned(const T &in, const Eigen::Quaterniond &q) {
+    return detail::transform_frame(in, q);
 }
 
 /**
  * @brief Transform data expressed in NED to aircraft frame.
  * Assumes quaternion represents rotation from NED to aircraft frame.
  */
-template<class T>
-inline T transform_frame_ned_aircraft(const T &in, const Eigen::Quaterniond &q) {
-	return detail::transform_frame(in, q);
+template <class T> inline T transform_frame_ned_aircraft(const T &in, const Eigen::Quaterniond &q) {
+    return detail::transform_frame(in, q);
 }
 
 /**
  * @brief Transform data expressed in aircraft frame to ENU frame.
  * Assumes quaternion represents rotation from aircraft frame to ENU frame.
  */
-template<class T>
-inline T transform_frame_aircraft_enu(const T &in, const Eigen::Quaterniond &q) {
-	return detail::transform_frame(in, q);
+template <class T> inline T transform_frame_aircraft_enu(const T &in, const Eigen::Quaterniond &q) {
+    return detail::transform_frame(in, q);
 }
 
 /**
  * @brief Transform data expressed in ENU to aircraft frame.
  * Assumes quaternion represents rotation from ENU to aircraft frame.
  */
-template<class T>
-inline T transform_frame_enu_aircraft(const T &in, const Eigen::Quaterniond &q) {
-	return detail::transform_frame(in, q);
+template <class T> inline T transform_frame_enu_aircraft(const T &in, const Eigen::Quaterniond &q) {
+    return detail::transform_frame(in, q);
 }
 
 /**
  * @brief Transform data expressed in ENU to base_link frame.
  * Assumes quaternion represents rotation from ENU to base_link frame.
  */
-template<class T>
-inline T transform_frame_enu_baselink(const T &in, const Eigen::Quaterniond &q) {
-	return detail::transform_frame(in, q);
+template <class T> inline T transform_frame_enu_baselink(const T &in, const Eigen::Quaterniond &q) {
+    return detail::transform_frame(in, q);
 }
 
 /**
  * @brief Transform data expressed in baselink to ENU frame.
  * Assumes quaternion represents rotation from basel_link to ENU frame.
  */
-template<class T>
-inline T transform_frame_baselink_enu(const T &in, const Eigen::Quaterniond &q) {
-	return detail::transform_frame(in, q);
+template <class T> inline T transform_frame_baselink_enu(const T &in, const Eigen::Quaterniond &q) {
+    return detail::transform_frame(in, q);
 }
 
 // -*- utils -*-
-
 
 /**
  * @brief Convert euler angles to quaternion.
@@ -334,8 +321,9 @@ Eigen::Quaterniond quaternion_from_rpy(const Eigen::Vector3d &rpy);
  *
  * @return quaternion, same as @a tf::quaternionFromRPY() but in Eigen format.
  */
-inline Eigen::Quaterniond quaternion_from_rpy(const double roll, const double pitch, const double yaw) {
-	return quaternion_from_rpy(Eigen::Vector3d(roll, pitch, yaw));
+inline Eigen::Quaterniond quaternion_from_rpy(const double roll, const double pitch,
+                                              const double yaw) {
+    return quaternion_from_rpy(Eigen::Vector3d(roll, pitch, yaw));
 }
 
 /**
@@ -348,12 +336,12 @@ Eigen::Vector3d quaternion_to_rpy(const Eigen::Quaterniond &q);
 /**
  * @brief Convert quaternion to euler angles
  */
-inline void quaternion_to_rpy(const Eigen::Quaterniond &q, double &roll, double &pitch, double &yaw)
-{
-	const auto rpy = quaternion_to_rpy(q);
-	roll = rpy.x();
-	pitch = rpy.y();
-	yaw = rpy.z();
+inline void quaternion_to_rpy(const Eigen::Quaterniond &q, double &roll, double &pitch,
+                              double &yaw) {
+    const auto rpy = quaternion_to_rpy(q);
+    roll           = rpy.x();
+    pitch          = rpy.y();
+    yaw            = rpy.z();
 }
 
 /**
@@ -369,79 +357,78 @@ double quaternion_get_yaw(const Eigen::Quaterniond &q);
  * MAVLink uses wxyz order, wile Eigen::Quaterniond uses xyzw internal order,
  * so it can't be stored to array using Eigen::Map.
  */
-template <typename _Scalar, typename std::enable_if<std::is_floating_point<_Scalar>::value, bool>::type = true>
-inline void quaternion_to_mavlink(const Eigen::Quaternion<_Scalar> &q, std::array<float, 4> &qmsg)
-{
-	qmsg[0] = q.w();
-	qmsg[1] = q.x();
-	qmsg[2] = q.y();
-	qmsg[3] = q.z();
+template <typename _Scalar,
+          typename std::enable_if<std::is_floating_point<_Scalar>::value, bool>::type = true>
+inline void quaternion_to_mavlink(const Eigen::Quaternion<_Scalar> &q, std::array<float, 4> &qmsg) {
+    qmsg[0] = q.w();
+    qmsg[1] = q.x();
+    qmsg[2] = q.y();
+    qmsg[3] = q.z();
 }
 
 /**
  * @brief Convert Mavlink float[4] quaternion to Eigen
  */
-inline Eigen::Quaterniond mavlink_to_quaternion(const std::array<float, 4> &q)
-{
-	return Eigen::Quaterniond(q[0], q[1], q[2], q[3]);
+inline Eigen::Quaterniond mavlink_to_quaternion(const std::array<float, 4> &q) {
+    return Eigen::Quaterniond(q[0], q[1], q[2], q[3]);
 }
 
 /**
  * @brief Convert covariance matrix to MAVLink float[n] format
  */
-template<class T, std::size_t SIZE>
-inline void covariance_to_mavlink(const T &cov, std::array<float, SIZE> &covmsg)
-{
-	std::copy(cov.cbegin(), cov.cend(), covmsg.begin());
+template <class T, std::size_t SIZE>
+inline void covariance_to_mavlink(const T &cov, std::array<float, SIZE> &covmsg) {
+    std::copy(cov.cbegin(), cov.cend(), covmsg.begin());
 }
 
 /**
  * @brief Convert upper right triangular of a covariance matrix to MAVLink float[n] format
  */
-template<class T, std::size_t ARR_SIZE>
-inline void covariance_urt_to_mavlink(const T &covmap, std::array<float, ARR_SIZE> &covmsg)
-{
-	auto m = covmap;
-	std::size_t COV_SIZE = m.rows() * (m.rows() + 1) / 2;
-	ROS_ASSERT_MSG(COV_SIZE == ARR_SIZE,
-				"frame_tf: covariance matrix URT size (%lu) is different from Mavlink msg covariance field size (%lu)",
-				COV_SIZE, ARR_SIZE);
+template <class T, std::size_t ARR_SIZE>
+inline void covariance_urt_to_mavlink(const T &covmap, std::array<float, ARR_SIZE> &covmsg) {
+    auto        m        = covmap;
+    std::size_t COV_SIZE = m.rows() * (m.rows() + 1) / 2;
+    ROS_ASSERT_MSG(COV_SIZE == ARR_SIZE,
+                   "frame_tf: covariance matrix URT size (%lu) is different from Mavlink msg "
+                   "covariance field size (%lu)",
+                   COV_SIZE, ARR_SIZE);
 
-	auto out = covmsg.begin();
+    auto out = covmsg.begin();
 
-	for (size_t x = 0; x < m.cols(); x++) {
-		for (size_t y = x; y < m.rows(); y++)
-			*out++ = m(y, x);
-	}
+    for (size_t x = 0; x < m.cols(); x++) {
+        for (size_t y = x; y < m.rows(); y++)
+            *out++ = m(y, x);
+    }
 }
 
 /**
  * @brief Convert MAVLink float[n] format (upper right triangular of a covariance matrix)
  * to Eigen::MatrixXd<n,n> full covariance matrix
  */
-template<class T, std::size_t ARR_SIZE>
-inline void mavlink_urt_to_covariance_matrix(const std::array<float, ARR_SIZE> &covmsg, T &covmat)
-{
-	std::size_t COV_SIZE = covmat.rows() * (covmat.rows() + 1) / 2;
-	ROS_ASSERT_MSG(COV_SIZE == ARR_SIZE,
-				"frame_tf: covariance matrix URT size (%lu) is different from Mavlink msg covariance field size (%lu)",
-				COV_SIZE, ARR_SIZE);
+template <class T, std::size_t ARR_SIZE>
+inline void mavlink_urt_to_covariance_matrix(const std::array<float, ARR_SIZE> &covmsg, T &covmat) {
+    std::size_t COV_SIZE = covmat.rows() * (covmat.rows() + 1) / 2;
+    ROS_ASSERT_MSG(COV_SIZE == ARR_SIZE,
+                   "frame_tf: covariance matrix URT size (%lu) is different from Mavlink msg "
+                   "covariance field size (%lu)",
+                   COV_SIZE, ARR_SIZE);
 
-	auto in = covmsg.begin();
+    auto in = covmsg.begin();
 
-	for (size_t x = 0; x < covmat.cols(); x++) {
-		for (size_t y = x; y < covmat.rows(); y++) {
-			covmat(x, y) = static_cast<double>(*in++);
-			covmat(y, x) = covmat(x, y);
-		}
-	}
+    for (size_t x = 0; x < covmat.cols(); x++) {
+        for (size_t y = x; y < covmat.rows(); y++) {
+            covmat(x, y) = static_cast<double>(*in++);
+            covmat(y, x) = covmat(x, y);
+        }
+    }
 }
 
 // [[[cog:
 // def make_to_eigen(te, tr, fields):
-//     cog.outl("""//! @brief Helper to convert common ROS geometry_msgs::{tr} to Eigen::{te}""".format(**locals()))
-//     cog.outl("""inline Eigen::{te} to_eigen(const geometry_msgs::{tr} r) {{""".format(**locals()))
-//     cog.outl("""\treturn Eigen::{te}({fl});""".format(te=te, fl=", ".join(["r." + f for f in fields])))
+//     cog.outl("""//! @brief Helper to convert common ROS geometry_msgs::{tr} to
+//     Eigen::{te}""".format(**locals())) cog.outl("""inline Eigen::{te} to_eigen(const
+//     geometry_msgs::{tr} r) {{""".format(**locals())) cog.outl("""\treturn
+//     Eigen::{te}({fl});""".format(te=te, fl=", ".join(["r." + f for f in fields])))
 //     cog.outl("""}""")
 //
 // make_to_eigen("Vector3d", "Point", "xyz")
@@ -450,16 +437,16 @@ inline void mavlink_urt_to_covariance_matrix(const std::array<float, ARR_SIZE> &
 // ]]]
 //! @brief Helper to convert common ROS geometry_msgs::Point to Eigen::Vector3d
 inline Eigen::Vector3d to_eigen(const geometry_msgs::Point r) {
-	return Eigen::Vector3d(r.x, r.y, r.z);
+    return Eigen::Vector3d(r.x, r.y, r.z);
 }
 //! @brief Helper to convert common ROS geometry_msgs::Vector3 to Eigen::Vector3d
 inline Eigen::Vector3d to_eigen(const geometry_msgs::Vector3 r) {
-	return Eigen::Vector3d(r.x, r.y, r.z);
+    return Eigen::Vector3d(r.x, r.y, r.z);
 }
 //! @brief Helper to convert common ROS geometry_msgs::Quaternion to Eigen::Quaterniond
 inline Eigen::Quaterniond to_eigen(const geometry_msgs::Quaternion r) {
-	return Eigen::Quaterniond(r.w, r.x, r.y, r.z);
+    return Eigen::Quaterniond(r.w, r.x, r.y, r.z);
 }
 // [[[end]]] (checksum: 1b3ada1c4245d4e31dcae9768779b952)
-}	// namespace ftf
-}	// namespace mavros
+} // namespace ftf
+} // namespace mavros

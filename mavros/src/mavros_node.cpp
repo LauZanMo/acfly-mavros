@@ -13,13 +13,11 @@
 
 #include <mavros/mavros.h>
 
-int main(int argc, char *argv[])
-{
-	ros::init(argc, argv, "mavros");
+int main(int argc, char *argv[]) {
+    ros::init(argc, argv, "mavros");
 
-	mavros::MavRos mavros;
-	mavros.spin();
+    mavros::MavRos mavros;
+    mavros.spin();
 
-	return 0;
+    return 0;
 }
-
