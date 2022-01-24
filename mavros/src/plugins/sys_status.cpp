@@ -249,10 +249,10 @@ public:
                          ? "Ok"
                          : "Fail");
         if (last_st_.onboard_control_sensors_enabled & enum_value(STS::XY_POSITION_CONTROL))
-            stat.add("x/y position control",
-                     (last_st_.onboard_control_sensors_health & enum_value(STS::XY_POSITION_CONTROL))
-                         ? "Ok"
-                         : "Fail");
+            stat.add("x/y position control", (last_st_.onboard_control_sensors_health &
+                                              enum_value(STS::XY_POSITION_CONTROL))
+                                                 ? "Ok"
+                                                 : "Fail");
         if (last_st_.onboard_control_sensors_enabled & enum_value(STS::MOTOR_OUTPUTS))
             stat.add("motor outputs / control",
                      (last_st_.onboard_control_sensors_health & enum_value(STS::MOTOR_OUTPUTS))
@@ -280,16 +280,17 @@ public:
                          : "Fail");
         if (last_st_.onboard_control_sensors_enabled & enum_value(STS::GEOFENCE))
             stat.add("geofence",
-                     (last_st_.onboard_control_sensors_health & enum_value(STS::GEOFENCE)) ? "Ok"
-                                                                                          : "Fail");
+                     (last_st_.onboard_control_sensors_health & enum_value(STS::GEOFENCE))
+                         ? "Ok"
+                         : "Fail");
         if (last_st_.onboard_control_sensors_enabled & enum_value(STS::AHRS))
             stat.add("AHRS subsystem health",
                      (last_st_.onboard_control_sensors_health & enum_value(STS::AHRS)) ? "Ok"
-                                                                                      : "Fail");
+                                                                                       : "Fail");
         if (last_st_.onboard_control_sensors_enabled & enum_value(STS::TERRAIN))
             stat.add("Terrain subsystem health",
                      (last_st_.onboard_control_sensors_health & enum_value(STS::TERRAIN)) ? "Ok"
-                                                                                         : "Fail");
+                                                                                          : "Fail");
         if (last_st_.onboard_control_sensors_enabled & enum_value(STS::REVERSE_MOTOR))
             stat.add("Motors are reversed",
                      (last_st_.onboard_control_sensors_health & enum_value(STS::REVERSE_MOTOR))
@@ -311,7 +312,7 @@ public:
         if (last_st_.onboard_control_sensors_enabled & enum_value(STS::SATCOM))
             stat.add("Satellite Communication",
                      (last_st_.onboard_control_sensors_health & enum_value(STS::SATCOM)) ? "Ok"
-                                                                                        : "Fail");
+                                                                                         : "Fail");
         if (last_st_.onboard_control_sensors_enabled & enum_value(STS::PREARM_CHECK))
             stat.add("pre-arm check status. Always healthy when armed",
                      (last_st_.onboard_control_sensors_health & enum_value(STS::PREARM_CHECK))
@@ -397,9 +398,10 @@ private:
 class SystemStatusPlugin : public plugin::PluginBase {
 public:
     SystemStatusPlugin()
-        : PluginBase(), ss_nh("~"), hb_diag("Heartbeat", 10), sys_diag("System"), batt_diag("Battery"),
-          conn_heartbeat_mav_type(MAV_TYPE::ONBOARD_CONTROLLER), version_retries(RETRIES_COUNT),
-          disable_diag(false), has_battery_status(false), battery_voltage(0.0) {}
+        : PluginBase(), ss_nh("~"), hb_diag("Heartbeat", 10), sys_diag("System"),
+          batt_diag("Battery"), conn_heartbeat_mav_type(MAV_TYPE::ONBOARD_CONTROLLER),
+          version_retries(RETRIES_COUNT), disable_diag(false), has_battery_status(false),
+          battery_voltage(0.0) {}
 
     // ROS插件动态加载后会执行该函数，相当于构造函数
     void initialize(UAS &uas_) override {
@@ -441,7 +443,7 @@ public:
         // one-shot timeout timer
         // 单次超时定时器(不会被自动重置)
         timeout_timer = ss_nh.createWallTimer(ros::WallDuration(conn_timeout_d),
-                                           &SystemStatusPlugin::timeout_cb, this, true);
+                                              &SystemStatusPlugin::timeout_cb, this, true);
 
         if (!conn_heartbeat.isZero()) {
             heartbeat_timer =
@@ -454,17 +456,19 @@ public:
             ros::WallDuration(1.0), &SystemStatusPlugin::autopilot_version_cb, this);
         autopilot_version_timer.stop();
 
-        state_pub            = ss_nh.advertise<mavros_msgs::State>("state", 10, true);
-        extended_state_pub   = ss_nh.advertise<mavros_msgs::ExtendedState>("extended_state", 10);
-        batt_pub             = ss_nh.advertise<BatteryMsg>("battery", 10);
-        batt2_pub            = ss_nh.advertise<BatteryMsg>("battery2", 10);
-        estimator_status_pub = ss_nh.advertise<mavros_msgs::EstimatorStatus>("estimator_status", 10);
-        statustext_pub       = ss_nh.advertise<mavros_msgs::StatusText>("statustext/recv", 10);
+        state_pub          = ss_nh.advertise<mavros_msgs::State>("state", 10, true);
+        extended_state_pub = ss_nh.advertise<mavros_msgs::ExtendedState>("extended_state", 10);
+        batt_pub           = ss_nh.advertise<BatteryMsg>("battery", 10);
+        batt2_pub          = ss_nh.advertise<BatteryMsg>("battery2", 10);
+        estimator_status_pub =
+            ss_nh.advertise<mavros_msgs::EstimatorStatus>("estimator_status", 10);
+        statustext_pub = ss_nh.advertise<mavros_msgs::StatusText>("statustext/recv", 10);
         statustext_sub =
             ss_nh.subscribe("statustext/send", 10, &SystemStatusPlugin::statustext_cb, this);
-        rate_srv = ss_nh.advertiseService("set_stream_rate", &SystemStatusPlugin::set_rate_cb, this);
-        vehicle_info_get_srv =
-            ss_nh.advertiseService("vehicle_info_get", &SystemStatusPlugin::vehicle_info_get_cb, this);
+        rate_srv =
+            ss_nh.advertiseService("set_stream_rate", &SystemStatusPlugin::set_rate_cb, this);
+        vehicle_info_get_srv = ss_nh.advertiseService(
+            "vehicle_info_get", &SystemStatusPlugin::vehicle_info_get_cb, this);
         message_interval_srv = ss_nh.advertiseService(
             "set_message_interval", &SystemStatusPlugin::set_message_interval_cb, this);
 
