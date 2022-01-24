@@ -1,17 +1,15 @@
 /**
- * @brief Waypoint plugin
  * @file waypoint.cpp
+ * @author LauZanMo (LauZanMo@whu.edu.cn)
  * @author Vladimir Ermakov <vooon341@gmail.com>
+ * @brief This file is from mavros open source respository, thanks for their contribution.
+ * @version 1.0
+ * @date 2022-01-24
  *
- * @addtogroup plugin
- * @{
- */
-/*
- * Copyright 2014,2015,2016,2017,2018 Vladimir Ermakov.
+ * @copyright Copyright (c) 2022 acfly
+ * @copyright Copyright 2014,2015,2016,2017 Vladimir Ermakov.
+ * For commercial use, please contact acfly: https://www.acfly.cn
  *
- * This file is part of the mavros package and subject to the license terms
- * in the top-level LICENSE file of the mavros repository.
- * https://github.com/mavlink/mavros/tree/master/LICENSE.md
  */
 
 #include <mavros/mission_protocol_base.h>
@@ -24,6 +22,10 @@ namespace mavros {
 namespace std_plugins {
 /**
  * @brief Mission manupulation plugin
+ * @brief 航点飞行的ROS插件
+ * @note 该插件继承了MissionBase插件，部分功能在MissionBase实现，能在ROS中实现QGC中的航点飞行
+ * 功能，但不如QGC方便
+ * @warning 该插件需要飞控端的兼容性消息才能使用INT消息
  */
 class WaypointPlugin : public plugin::MissionBase {
 public:
@@ -75,20 +77,16 @@ private:
     ros::Publisher     wp_reached_pub;
     ros::ServiceServer set_cur_srv;
 
-    /* -*- rx handlers -*- */
+    /* message handlers */
+    /* 信息回调句柄 */
 
-    /**
-     * @brief handle MISSION_CURRENT mavlink msg
-     * This confirms a SET_CUR action
-     * @param msg		Received Mavlink msg
-     * @param mcur		MISSION_CURRENT from msg
-     */
-    void handle_mission_current(const mavlink::mavlink_message_t *     msg,
+    void handle_mission_current(const mavlink::mavlink_message_t      *msg,
                                 mavlink::common::msg::MISSION_CURRENT &mcur) {
         unique_lock lock(mutex);
 
         if (wp_state == WP::SET_CUR) {
-            /* MISSION_SET_CURRENT ACK */
+            // MISSION_SET_CURRENT ACK
+            // MISSION_SET_CURRENT信息应答
             ROS_DEBUG_NAMED(log_ns, "%s: set current #%d done", log_ns.c_str(), mcur.seq);
             go_idle();
             wp_cur_active = mcur.seq;
@@ -98,7 +96,8 @@ private:
             list_sending.notify_all();
             publish_waypoints();
         } else if (wp_state == WP::IDLE && wp_cur_active != mcur.seq) {
-            /* update active */
+            // update active
+            // 更新当前航点
             ROS_DEBUG_NAMED(log_ns, "%s: update current #%d", log_ns.c_str(), mcur.seq);
             wp_cur_active = mcur.seq;
             set_current_waypoint(wp_cur_active);
@@ -108,14 +107,10 @@ private:
         }
     }
 
-    /**
-     * @brief handle MISSION_ITEM_REACHED mavlink msg
-     * @param msg		Received Mavlink msg
-     * @param mitr		MISSION_ITEM_REACHED from msg
-     */
-    void handle_mission_item_reached(const mavlink::mavlink_message_t *          msg,
+    void handle_mission_item_reached(const mavlink::mavlink_message_t           *msg,
                                      mavlink::common::msg::MISSION_ITEM_REACHED &mitr) {
-        /* in QGC used as informational message */
+        // in QGC used as informational message
+        // QGC中用作信息型消息
         ROS_INFO_NAMED(log_ns, "%s: reached #%d", log_ns.c_str(), mitr.seq);
 
         auto wpr = boost::make_shared<mavros_msgs::WaypointReached>();
@@ -126,9 +121,11 @@ private:
         wp_reached_pub.publish(wpr);
     }
 
-    /* -*- mid-level helpers -*- */
+    /* mid-level functions */
+    /* 中间件函数 */
 
     // Acts when capabilities of the fcu are changed
+    // 当飞控兼容性改变时执行该函数
     void capabilities_cb(UAS::MAV_CAP capabilities) override {
         lock_guard lock(mutex);
         if (m_uas->has_capability(UAS::MAV_CAP::MISSION_INT)) {
@@ -143,6 +140,7 @@ private:
     }
 
     // Act on first heartbeat from FCU
+    // 当连接状态改变后执行该函数
     void connection_cb(bool connected) override {
         lock_guard lock(mutex);
         if (connected) {
@@ -158,7 +156,8 @@ private:
         }
     }
 
-    //! @brief publish the updated waypoint list after operation
+    // publish the updated waypoint list after operation
+    // 操作后发布更新的航点列表
     void publish_waypoints() override {
         auto        wpl = boost::make_shared<mavros_msgs::WaypointList>();
         unique_lock lock(mutex);
@@ -174,14 +173,16 @@ private:
         wp_list_pub.publish(wpl);
     }
 
-    /* -*- ROS callbacks -*- */
+    /* ros callbacks */
+    /* ROS回调函数 */
 
-    bool pull_cb(mavros_msgs::WaypointPull::Request & req,
+    bool pull_cb(mavros_msgs::WaypointPull::Request  &req,
                  mavros_msgs::WaypointPull::Response &res) {
         unique_lock lock(mutex);
 
         if (wp_state != WP::IDLE)
             // Wrong initial state, other operation in progress?
+            // 初始状态错误，正在执行别的操作？
             return false;
 
         wp_state = WP::RXLIST;
@@ -195,19 +196,22 @@ private:
 
         res.wp_received = waypoints.size();
         go_idle(); // not nessessary, but prevents from blocking
+                   // 非必要，但是防止阻塞
         return true;
     }
 
-    bool push_cb(mavros_msgs::WaypointPush::Request & req,
+    bool push_cb(mavros_msgs::WaypointPush::Request  &req,
                  mavros_msgs::WaypointPush::Response &res) {
         unique_lock lock(mutex);
 
         if (wp_state != WP::IDLE)
             // Wrong initial state, other operation in progress?
+            // 初始状态错误，正在执行别的操作？
             return false;
 
         if (req.start_index) {
             // Partial Waypoint update
+            // 部分航点更新
 
             if (!enable_partial_push) {
                 ROS_WARN_NAMED(log_ns, "%s: Partial Push not enabled. (Only supported on APM)",
@@ -247,6 +251,7 @@ private:
             res.wp_transfered = wp_cur_id - wp_start_id + 1;
         } else {
             // Full waypoint update
+            // 所有航点更新
             wp_state = WP::TXLIST;
 
             send_waypoints.clear();
@@ -267,10 +272,11 @@ private:
         }
 
         go_idle(); // same as in pull_cb
+                   //与pull_cb函数一致
         return true;
     }
 
-    bool clear_cb(mavros_msgs::WaypointClear::Request & req,
+    bool clear_cb(mavros_msgs::WaypointClear::Request  &req,
                   mavros_msgs::WaypointClear::Response &res) {
         unique_lock lock(mutex);
 
@@ -286,10 +292,11 @@ private:
 
         lock.lock();
         go_idle(); // same as in pull_cb
+                   //与pull_cb函数一致
         return true;
     }
 
-    bool set_cur_cb(mavros_msgs::WaypointSetCurrent::Request & req,
+    bool set_cur_cb(mavros_msgs::WaypointSetCurrent::Request  &req,
                     mavros_msgs::WaypointSetCurrent::Response &res) {
         unique_lock lock(mutex);
 
@@ -306,6 +313,7 @@ private:
 
         lock.lock();
         go_idle(); // same as in pull_cb
+                   //与pull_cb函数一致
         return true;
     }
 };

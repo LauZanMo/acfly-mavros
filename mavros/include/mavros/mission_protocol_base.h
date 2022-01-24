@@ -1,19 +1,17 @@
 /**
- * @brief Mission base plugin
  * @file mission_protocol_base.h
+ * @author LauZanMo (LauZanMo@whu.edu.cn)
  * @author Vladimir Ermakov <vooon341@gmail.com>
  * @author Charlie Burge <charlieburge@yahoo.com>
+ * @brief This file is from mavros open source respository, thanks for their contribution.
+ * @version 1.0
+ * @date 2022-01-24
  *
- * @addtogroup plugin
- * @{
- */
-/*
- * Copyright 2014,2015,2016,2017,2018 Vladimir Ermakov.
- * Copyright 2021 Charlie Burge.
+ * @copyright Copyright (c) 2022 acfly
+ * @copyright Copyright 2014,2015,2016,2017 Vladimir Ermakov.
+ * @copyright Copyright 2021 Charlie Burge.
+ * For commercial use, please contact acfly: https://www.acfly.cn
  *
- * This file is part of the mavros package and subject to the license terms
- * in the top-level LICENSE file of the mavros repository.
- * https://github.com/mavlink/mavros/tree/master/LICENSE.md
  */
 
 #pragma once
@@ -173,6 +171,7 @@ ITEM mav_from_msg(const mavros_msgs::Waypoint &wp, const uint16_t seq, WP_TYPE t
     ret.seq = seq;
 
     // defaults to 0 -> MAV_MISSION_TYPE_MISSION
+    // 缺省值为0 -> MAV_MISSION_TYPE_MISSION
     ret.mission_type = enum_value(type);
 
     return ret;
@@ -205,6 +204,7 @@ inline WP_ITEM_INT mav_from_msg(const mavros_msgs::Waypoint &wp, const uint16_t 
     ret.seq = seq;
 
     // defaults to 0 -> MAV_MISSION_TYPE_MISSION
+    // 缺省值为0 -> MAV_MISSION_TYPE_MISSION
     ret.mission_type = enum_value(type);
 
     return ret;
@@ -222,6 +222,8 @@ template <class ITEM> std::string waypoint_to_string(const ITEM &wp) {
 
 /**
  * @brief Mission base plugin
+ * @brief 任务模式基础ROS插件
+ * @note 该基础插件分别被航点，围栏，集结所继承，实现了任务模式的基础功能
  */
 class MissionBase : public plugin::PluginBase {
 public:
@@ -292,83 +294,47 @@ protected:
     const ros::Duration WP_TIMEOUT_DT;
     const ros::Duration RESCHEDULE_DT;
 
-    /* -*- rx handlers -*- */
+    /* message handlers */
+    /* 信息回调句柄 */
 
-    /**
-     * @brief handle MISSION_ITEM_INT mavlink msg
-     * handles and stores mission items when pulling waypoints
-     * @param msg		Received Mavlink msg
-     * @param wpi		WaypointItemInt from msg
-     */
     void handle_mission_item_int(const mavlink::mavlink_message_t *msg, WP_ITEM_INT &wpi);
 
-    /**
-     * @brief handle MISSION_ITEM mavlink msg
-     * handles and stores mission items when pulling waypoints
-     * @param msg		Received Mavlink msg
-     * @param wpi		WaypointItem from msg
-     */
     void handle_mission_item(const mavlink::mavlink_message_t *msg, WP_ITEM &wpi);
 
-    /**
-     * @brief checks for a sequence mismatch between a
-     * MISSION_REQUEST(_INT) sequence and the current
-     * waypoint that should be sent.
-     * @param seq	The seq member of a MISSION_REQUEST(_INT)
-     * @return		True if there is a sequence mismatch
-     */
     bool sequence_mismatch(const uint16_t &seq);
 
-    /**
-     * @brief handle MISSION_REQUEST mavlink msg
-     * handles and acts on misison request from FCU
-     * @param msg		Received Mavlink msg
-     * @param mreq		MISSION_REQUEST from msg
-     */
-    void handle_mission_request(const mavlink::mavlink_message_t *     msg,
+    void handle_mission_request(const mavlink::mavlink_message_t      *msg,
                                 mavlink::common::msg::MISSION_REQUEST &mreq);
 
-    /**
-     * @brief handle MISSION_REQUEST_INT mavlink msg
-     * handles and acts on misison request from FCU
-     * @param msg		Received Mavlink msg
-     * @param mreq		MISSION_REQUEST_INT from msg
-     */
-    void handle_mission_request_int(const mavlink::mavlink_message_t *         msg,
+    void handle_mission_request_int(const mavlink::mavlink_message_t          *msg,
                                     mavlink::common::msg::MISSION_REQUEST_INT &mreq);
 
-    /**
-     * @brief handle MISSION_COUNT mavlink msg
-     * Handles a mission count from FCU in a Waypoint Pull
-     * Triggers a pull GCS seems to be requesting mission
-     * @param msg		Received Mavlink msg
-     * @param mcnt		MISSION_COUNT from msg
-     */
-    void handle_mission_count(const mavlink::mavlink_message_t *   msg,
+    void handle_mission_count(const mavlink::mavlink_message_t    *msg,
                               mavlink::common::msg::MISSION_COUNT &mcnt);
 
-    /**
-     * @brief handle MISSION_ACK mavlink msg
-     * Handles a MISSION_ACK which marks the end of a push, or a failure
-     * @param msg		Received Mavlink msg
-     * @param mack		MISSION_ACK from msg
-     */
-    void handle_mission_ack(const mavlink::mavlink_message_t * msg,
+    void handle_mission_ack(const mavlink::mavlink_message_t  *msg,
                             mavlink::common::msg::MISSION_ACK &mack);
 
-    /* -*- mid-level helpers -*- */
+    /* mid-level functions */
+    /* 中间件函数 */
 
     /**
      * @brief Act on a timeout
      * Resend the message that may have been lost
+     * @brief 在超时时执行
+     * 对可能出现丢失的信息进行重发
      */
     void timeout_cb(const ros::TimerEvent &event);
 
-    //! @brief Callback for scheduled waypoint pull
+    /**
+     * @brief Callback for scheduled waypoint pull
+     * @brief 对调度航点拉取请求的回调
+     */
     void scheduled_pull_cb(const ros::TimerEvent &event) {
         lock_guard lock(mutex);
         if (wp_state != WP::IDLE) {
-            /* try later */
+            // try later
+            // 延后
             ROS_DEBUG_NAMED(log_ns, "%s: busy, reschedule pull", log_ns.c_str());
             schedule_pull(RESCHEDULE_DT);
             return;
@@ -381,9 +347,13 @@ protected:
         mission_request_list();
     }
 
-    //! @brief Send ACK back to FCU after pull
+    /**
+     * @brief Send ACK back to FCU after pull
+     * @brief 拉取航点后发送应答给飞控
+     */
     void request_mission_done(void) {
-        /* possibly not needed if count == 0 (QGC impl) */
+        // possibly not needed if count == 0 (QGC impl)
+        // 如果count == 0也许不需要这样做
         mission_ack(MRES::ACCEPTED);
 
         go_idle();
@@ -414,7 +384,10 @@ protected:
         schedule_timer.start();
     }
 
-    //! @brief send a single waypoint to FCU
+    /**
+     * @brief send a single waypoint to FCU
+     * @brief 发送单个航点给飞控
+     */
     template <class ITEM> void send_waypoint(size_t seq) {
         if (seq < send_waypoints.size()) {
             auto wp_msg = send_waypoints.at(seq);
@@ -428,6 +401,7 @@ protected:
     /**
      * @brief wait until a waypoint pull is complete.
      * Pull happens asynchronously, this function blocks until it is done.
+     * @brief 等待直至航点拉取完成，拉取为异步操作，因此该函数会阻塞直至拉取完成
      */
     bool wait_fetch_all() {
         std::unique_lock<std::mutex> lock(recv_cond_mutex);
@@ -439,6 +413,7 @@ protected:
     /**
      * @brief wait until a waypoint push is complete.
      * Push happens asynchronously, this function blocks until it is done.
+     * @brief 等待直至航点上传完成，拉取为异步操作，因此该函数会阻塞直至上传完成
      */
     bool wait_push_all() {
         std::unique_lock<std::mutex> lock(send_cond_mutex);
@@ -448,7 +423,10 @@ protected:
                !is_timedout;
     }
 
-    //! @brief set the FCU current waypoint
+    /**
+     * @brief set the FCU current waypoint
+     * @brief 对飞控当前航点进行设置
+     */
     void set_current_waypoint(size_t seq) {
         auto i = 0;
         for (auto &it : waypoints) {
@@ -457,10 +435,14 @@ protected:
         }
     }
 
-    //! @brief publish the updated waypoint list after operation
+    /**
+     * @brief publish the updated waypoint list after operation
+     * @brief 操作完成后发布更新的航点列表
+     */
     virtual void publish_waypoints() = 0;
 
-    /* -*- low-level send functions -*- */
+    /* low-level send functions */
+    /* 底层发送函数 */
 
     template <class ITEM> void mission_send(ITEM &wp) {
         auto wpi = wp;

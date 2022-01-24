@@ -1,17 +1,17 @@
 /**
- * @brief Mission base plugin
  * @file mission_protocol_base.cpp
+ * @author LauZanMo (LauZanMo@whu.edu.cn)
  * @author Vladimir Ermakov <vooon341@gmail.com>
  * @author Charlie Burge <charlieburge@yahoo.com>
+ * @brief This file is from mavros open source respository, thanks for their contribution.
+ * @version 1.0
+ * @date 2022-01-24
  *
- */
-/*
- * Copyright 2014,2015,2016,2017,2018 Vladimir Ermakov.
- * Copyright 2021 Charlie Burge.
+ * @copyright Copyright (c) 2022 acfly
+ * @copyright Copyright 2014,2015,2016,2017 Vladimir Ermakov.
+ * @copyright Copyright 2021 Charlie Burge.
+ * For commercial use, please contact acfly: https://www.acfly.cn
  *
- * This file is part of the mavros package and subject to the license terms
- * in the top-level LICENSE file of the mavros repository.
- * https://github.com/mavlink/mavros/tree/master/LICENSE.md
  */
 
 #include <mavros/mission_protocol_base.h>
@@ -21,11 +21,13 @@ namespace plugin {
 void MissionBase::handle_mission_item_int(const mavlink::mavlink_message_t *msg, WP_ITEM_INT &wpi) {
     unique_lock lock(mutex);
 
-    /* Only interested in the specific msg type */
+    // Only interested in the specific msg type
+    // 只对特定的信息进行处理
     if (wpi.mission_type != enum_value(wp_type)) {
         return;
     }
-    /* receive item only in RX state */
+    // receive item only in RX state
+    // 仅在接收状态下接收任务
     else if (wp_state == WP::RXWPINT) {
         if (wpi.seq != wp_cur_id) {
             ROS_WARN_NAMED(log_ns, "%s: Seq mismatch, dropping item (%d != %zu)", log_ns.c_str(),
@@ -58,11 +60,13 @@ void MissionBase::handle_mission_item_int(const mavlink::mavlink_message_t *msg,
 void MissionBase::handle_mission_item(const mavlink::mavlink_message_t *msg, WP_ITEM &wpi) {
     unique_lock lock(mutex);
 
-    /* Only interested in the specific msg type */
+    // Only interested in the specific msg type
+    // 只对特定的信息进行处理
     if (wpi.mission_type != enum_value(wp_type)) {
         return;
     }
-    /* receive item only in RX state */
+    // receive item only in RX state
+    // 仅在接收状态下接收任务
     else if (wp_state == WP::RXWP) {
         if (wpi.seq != wp_cur_id) {
             ROS_WARN_NAMED(log_ns, "%s: Seq mismatch, dropping item (%d != %zu)", log_ns.c_str(),
@@ -101,11 +105,12 @@ bool MissionBase::sequence_mismatch(const uint16_t &seq) {
     }
 }
 
-void MissionBase::handle_mission_request(const mavlink::mavlink_message_t *     msg,
+void MissionBase::handle_mission_request(const mavlink::mavlink_message_t      *msg,
                                          mavlink::common::msg::MISSION_REQUEST &mreq) {
     lock_guard lock(mutex);
 
-    /* Only interested in the specific msg type */
+    // Only interested in the specific msg type
+    // 只对特定的信息进行处理
     if (mreq.mission_type != enum_value(wp_type)) {
         return;
     } else if ((wp_state == WP::TXLIST && mreq.seq == 0) ||
@@ -136,11 +141,12 @@ void MissionBase::handle_mission_request(const mavlink::mavlink_message_t *     
                         enum_value(wp_state));
 }
 
-void MissionBase::handle_mission_request_int(const mavlink::mavlink_message_t *         msg,
+void MissionBase::handle_mission_request_int(const mavlink::mavlink_message_t          *msg,
                                              mavlink::common::msg::MISSION_REQUEST_INT &mreq) {
     lock_guard lock(mutex);
 
-    /* Only interested in the specific msg type */
+    // Only interested in the specific msg type
+    // 只对特定的信息进行处理
     if (mreq.mission_type != enum_value(wp_type)) {
         return;
     } else if ((wp_state == WP::TXLIST && mreq.seq == 0) ||
@@ -171,15 +177,17 @@ void MissionBase::handle_mission_request_int(const mavlink::mavlink_message_t * 
                         enum_value(wp_state));
 }
 
-void MissionBase::handle_mission_count(const mavlink::mavlink_message_t *   msg,
+void MissionBase::handle_mission_count(const mavlink::mavlink_message_t    *msg,
                                        mavlink::common::msg::MISSION_COUNT &mcnt) {
     unique_lock lock(mutex);
 
-    /* Only interested in the specific msg type */
+    // Only interested in the specific msg type
+    // 只对特定的信息进行处理
     if (mcnt.mission_type != enum_value(wp_type)) {
         return;
     } else if (wp_state == WP::RXLIST) {
-        /* FCU report of MISSION_REQUEST_LIST */
+        // FCU report of MISSION_REQUEST_LIST
+        // 飞控对MISSION_REQUEST_LIST指令的应答
         ROS_DEBUG_NAMED(log_ns, "%s: count %d", log_ns.c_str(), mcnt.count);
 
         wp_count  = mcnt.count;
@@ -205,7 +213,8 @@ void MissionBase::handle_mission_count(const mavlink::mavlink_message_t *   msg,
         }
     } else {
         ROS_INFO_NAMED(log_ns, "%s: seems GCS requesting mission", log_ns.c_str());
-        /* schedule pull after GCS done */
+        // schedule pull after GCS done
+        // 地面站后调用拉取命令
         if (do_pull_after_gcs) {
             ROS_INFO_NAMED(log_ns, "%s: scheduling pull after GCS is done", log_ns.c_str());
             reschedule_pull = true;
@@ -214,13 +223,14 @@ void MissionBase::handle_mission_count(const mavlink::mavlink_message_t *   msg,
     }
 }
 
-void MissionBase::handle_mission_ack(const mavlink::mavlink_message_t * msg,
+void MissionBase::handle_mission_ack(const mavlink::mavlink_message_t  *msg,
                                      mavlink::common::msg::MISSION_ACK &mack) {
     unique_lock lock(mutex);
 
     auto ack_type = static_cast<MRES>(mack.type);
 
-    /* Only interested in the specific msg type */
+    // FCU report of MISSION_REQUEST_LIST
+    // 飞控对MISSION_REQUEST_LIST指令的应答
     if (mack.mission_type != enum_value(wp_type)) {
         return;
     } else if ((wp_state == WP::TXLIST || wp_state == WP::TXPARTIAL || wp_state == WP::TXWP ||
@@ -241,11 +251,15 @@ void MissionBase::handle_mission_ack(const mavlink::mavlink_message_t * msg,
         // This happens when waypoint N was received by autopilot, but the request for waypoint N+1
         // failed. This causes seq mismatch, ignore and eventually the request for n+1 will get to
         // us and seq will sync up.
+        // 任务应答：在发送航点时接收到INVALID_SEQUENCE信息
+        // 这通常会发生在自驾仪接收到N个航点，但是第N+1个航点请求失败的时候，该情况会导致序列不匹配，忽略它并在最后
+        // 请求第N+1个航点，直至序列同步
         ROS_DEBUG_NAMED(log_ns, "%s: Received INVALID_SEQUENCE ack", log_ns.c_str());
     } else if (wp_state == WP::TXLIST || wp_state == WP::TXPARTIAL || wp_state == WP::TXWP ||
                wp_state == WP::TXWPINT) {
         go_idle();
-        /* use this flag for failure report */
+        // use this flag for failure report
+        // 如果应答失败则置位该标志
         is_timedout = true;
         lock.unlock();
         list_sending.notify_all();
@@ -333,7 +347,8 @@ void MissionBase::timeout_cb(const ros::TimerEvent &event) {
             ROS_ERROR_NAMED(log_ns, "%s: timed out.", log_ns.c_str());
             go_idle();
             is_timedout = true;
-            /* prevent waiting cond var timeout */
+            // prevent waiting cond var timeout
+            // 避免等待条件变量超时
             lock.unlock();
             list_receiving.notify_all();
             list_sending.notify_all();
