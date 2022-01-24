@@ -1,17 +1,15 @@
 /**
- * @brief Mixin for setpoint plugins
  * @file setpoint_mixin.h
+ * @author LauZanMo (LauZanMo@whu.edu.cn)
  * @author Vladimir Ermakov <vooon341@gmail.com>
+ * @brief This file is from mavros open source respository, thanks for their contribution.
+ * @version 1.0
+ * @date 2022-01-25
  *
- * @addtogroup plugin
- * @{
- */
-/*
- * Copyright 2014 Vladimir Ermakov.
+ * @copyright Copyright (c) 2022 acfly
+ * @copyright Copyright 2014,2015,2016,2017 Vladimir Ermakov.
+ * For commercial use, please contact acfly: https://www.acfly.cn
  *
- * This file is part of the mavros package and subject to the license terms
- * in the top-level LICENSE file of the mavros repository.
- * https://github.com/mavlink/mavros/tree/master/LICENSE.md
  */
 
 #pragma once
@@ -37,7 +35,7 @@ public:
     void set_position_target_local_ned(uint32_t time_boot_ms, uint8_t coordinate_frame,
                                        uint16_t type_mask, Eigen::Vector3d p, Eigen::Vector3d v,
                                        Eigen::Vector3d af, float yaw, float yaw_rate) {
-        mavros::UAS *                                       m_uas_ = static_cast<D *>(this)->m_uas;
+        mavros::UAS                                        *m_uas_ = static_cast<D *>(this)->m_uas;
         mavlink::common::msg::SET_POSITION_TARGET_LOCAL_NED sp     = {};
 
         m_uas_->msg_set_target(sp);
@@ -80,7 +78,7 @@ public:
                                         uint16_t type_mask, int32_t lat_int, int32_t lon_int,
                                         float alt, Eigen::Vector3d v, Eigen::Vector3d af, float yaw,
                                         float yaw_rate) {
-        mavros::UAS *                                        m_uas_ = static_cast<D *>(this)->m_uas;
+        mavros::UAS                                         *m_uas_ = static_cast<D *>(this)->m_uas;
         mavlink::common::msg::SET_POSITION_TARGET_GLOBAL_INT sp     = {};
 
         m_uas_->msg_set_target(sp);
@@ -122,7 +120,7 @@ public:
     void set_attitude_target(uint32_t time_boot_ms, uint8_t type_mask,
                              Eigen::Quaterniond orientation, Eigen::Vector3d body_rate,
                              float thrust) {
-        mavros::UAS *                             m_uas_ = static_cast<D *>(this)->m_uas;
+        mavros::UAS                              *m_uas_ = static_cast<D *>(this)->m_uas;
         mavlink::common::msg::SET_ATTITUDE_TARGET sp     = {};
 
         m_uas_->msg_set_target(sp);
@@ -207,10 +205,10 @@ public:
         tf_thread = std::thread([this, cbp, &topic_sub]() {
             mavconn::utils::set_this_thread_name("%s", tf_thd_name.c_str());
 
-            mavros::UAS *    m_uas_          = static_cast<D *>(this)->m_uas;
+            mavros::UAS     *m_uas_          = static_cast<D *>(this)->m_uas;
             ros::NodeHandle &_sp_nh          = static_cast<D *>(this)->sp_nh;
-            std::string &    _frame_id       = static_cast<D *>(this)->tf_frame_id;
-            std::string &    _child_frame_id = static_cast<D *>(this)->tf_child_frame_id;
+            std::string     &_frame_id       = static_cast<D *>(this)->tf_frame_id;
+            std::string     &_child_frame_id = static_cast<D *>(this)->tf_child_frame_id;
 
             tf2_ros::MessageFilter<T> tf2_filter(topic_sub, m_uas_->tf2_buffer, _frame_id, 10,
                                                  _sp_nh);

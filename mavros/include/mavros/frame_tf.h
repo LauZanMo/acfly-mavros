@@ -1,20 +1,18 @@
 /**
- * @brief Frame transformation utilities
  * @file frame_tf.h
+ * @author LauZanMo (LauZanMo@whu.edu.cn)
  * @author Vladimir Ermakov <vooon341@gmail.com>
  * @author Eddy Scott <scott.edward@aurora.aero>
  * @author Nuno Marques <n.marques21@hotmail.com>
+ * @brief This file is from mavros open source respository, thanks for their contribution.
+ * @version 1.0
+ * @date 2022-01-25
  *
- * @addtogroup nodelib
- * @{
- */
-/*
- * Copyright 2016,2017 Vladimir Ermakov.
+ * @copyright Copyright (c) 2022 acfly
+ * @copyright Copyright 2014,2015,2016,2017 Vladimir Ermakov.
  * Copyright 2017,2018 Nuno Marques.
+ * For commercial use, please contact acfly: https://www.acfly.cn
  *
- * This file is part of the mavros package and subject to the license terms
- * in the top-level LICENSE file of the mavros repository.
- * https://github.com/mavlink/mavros/tree/master/LICENSE.md
  */
 
 #pragma once

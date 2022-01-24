@@ -1,17 +1,15 @@
 /**
- * @brief enum stringify helpers
  * @file enum_to_string.cpp
+ * @author LauZanMo (LauZanMo@whu.edu.cn)
  * @author Vladimir Ermakov <vooon341@gmail.com>
+ * @brief This file is from mavros open source respository, thanks for their contribution.
+ * @version 1.0
+ * @date 2022-01-25
  *
- * @addtogroup nodelib
- * @{
- */
-/*
- * Copyright 2016 Valdimir Ermakov
+ * @copyright Copyright (c) 2022 acfly
+ * @copyright Copyright 2014,2015,2016,2017 Vladimir Ermakov.
+ * For commercial use, please contact acfly: https://www.acfly.cn
  *
- * This file is part of the mavros package and subject to the license terms
- * in the top-level LICENSE file of the mavros repository.
- * https://github.com/mavlink/mavros/tree/master/LICENSE.md
  */
 
 #include <array>
@@ -291,8 +289,8 @@ static const std::array<const std::string, 9> mav_state_strings{{
     /*  4 */ "Active",      // System is active and might be already airborne. Motors are engaged.
     /*  5 */ "Critical",    // System is in a non-normal flight mode. It can however still navigate.
     /*  6 */ "Emergency",   // System is in a non-normal flight mode. It lost control over parts or
-                          // over the whole airframe. It is in mayday and going down.
-    /*  7 */ "Poweroff", // System just initialized its power-down sequence, will shut down now.
+                            // over the whole airframe. It is in mayday and going down.
+    /*  7 */ "Poweroff",    // System just initialized its power-down sequence, will shut down now.
     /*  8 */ "Flight_Termination", // System is terminating itself.
 }};
 
@@ -530,7 +528,7 @@ static const std::array<const std::string, 22> mav_frame_strings{{
                                     // home position. First value / x: latitude, second value / y:
                                     // longitude, third value / z: positive altitude with 0 being at
                                     // the altitude of the home location.
-    /*  4 */ "LOCAL_ENU",  // Local coordinate frame, Z-up (x: East, y: North, z: Up).
+    /*  4 */ "LOCAL_ENU",           // Local coordinate frame, Z-up (x: East, y: North, z: Up).
     /*  5 */ "GLOBAL_INT", // Global (WGS84) coordinate frame (scaled) + MSL altitude. First value /
                            // x: latitude in degrees*1.0e-7, second value / y: longitude in
                            // degrees*1.0e-7, third value / z: positive altitude over mean sea level
@@ -574,9 +572,9 @@ static const std::array<const std::string, 22> mav_frame_strings{{
     /* 19 */ "RESERVED_19", // MAV_FRAME_ESTIM_ENU - Odometry local coordinate frame of data given
                             // by an estimator running onboard the vehicle, Z-up (x: East, y: North,
                             // z: Up).
-    /* 20 */ "LOCAL_FRD", // Forward, Right, Down coordinate frame. This is a local frame with
-                          // Z-down and arbitrary F/R alignment (i.e. not aligned with NED/earth
-                          // frame).
+    /* 20 */ "LOCAL_FRD",   // Forward, Right, Down coordinate frame. This is a local frame with
+                            // Z-down and arbitrary F/R alignment (i.e. not aligned with NED/earth
+                            // frame).
     /* 21 */ "LOCAL_FLU", // Forward, Left, Up coordinate frame. This is a local frame with Z-up and
                           // arbitrary F/L alignment (i.e. not aligned with ENU/earth frame).
 }};
@@ -865,20 +863,20 @@ static const std::unordered_map<typename std::underlying_type<MAV_COMPONENT>::ty
         {157, "OSD"},        // On Screen Display (OSD) devices for video links.
         {158, "PERIPHERAL"}, // Generic autopilot peripheral component ID. Meant for devices that do
                              // not implement the parameter microservice.
-        {159, "QX1_GIMBAL"},       // Gimbal ID for QX1.
-        {160, "FLARM"},            // FLARM collision alert component.
-        {171, "GIMBAL2"},          // Gimbal #2.
-        {172, "GIMBAL3"},          // Gimbal #3.
-        {173, "GIMBAL4"},          // Gimbal #4
-        {174, "GIMBAL5"},          // Gimbal #5.
-        {175, "GIMBAL6"},          // Gimbal #6.
+        {159, "QX1_GIMBAL"}, // Gimbal ID for QX1.
+        {160, "FLARM"},      // FLARM collision alert component.
+        {171, "GIMBAL2"},    // Gimbal #2.
+        {172, "GIMBAL3"},    // Gimbal #3.
+        {173, "GIMBAL4"},    // Gimbal #4
+        {174, "GIMBAL5"},    // Gimbal #5.
+        {175, "GIMBAL6"},    // Gimbal #6.
         {190, "MISSIONPLANNER"},   // Component that can generate/supply a mission flight plan (e.g.
                                    // GCS or developer API).
         {191, "ONBOARD_COMPUTER"}, // Component that lives on the onboard computer (companion
                                    // computer) and has some generic functionalities, such as
                                    // settings system parameters and monitoring the status of some
                                    // processes that don't directly speak mavlink and so on.
-        {195, "PATHPLANNER"}, // Component that finds an optimal path between points based on a
+        {195, "PATHPLANNER"},      // Component that finds an optimal path between points based on a
                               // certain constraint (e.g. minimum snap, shortest path, cost, etc.).
         {196,
          "OBSTACLE_AVOIDANCE"}, // Component that plans a collision free path between two points.
@@ -967,7 +965,7 @@ static const std::array<const std::string, 4> landing_target_type_strings{{
     /*  1 */ "RADIO_BEACON",    // Landing target signaled by radio beacon (ex: ILS, NDB)
     /*  2 */ "VISION_FIDUCIAL", // Landing target represented by a fiducial marker (ex: ARTag)
     /*  3 */ "VISION_OTHER",    // Landing target represented by a pre-defined visual shape/feature
-                             // (ex: X-marker, H-marker, square)
+                                // (ex: X-marker, H-marker, square)
 }};
 
 std::string to_string(LANDING_TARGET_TYPE e) {

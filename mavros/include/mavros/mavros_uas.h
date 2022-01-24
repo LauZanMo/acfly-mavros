@@ -1,18 +1,15 @@
 /**
- * @brief MAVROS Plugin context
  * @file mavros_uas.h
+ * @author LauZanMo (LauZanMo@whu.edu.cn)
  * @author Vladimir Ermakov <vooon341@gmail.com>
- * @author Eddy Scott <scott.edward@aurora.aero>
+ * @brief This file is from mavros open source respository, thanks for their contribution.
+ * @version 1.0
+ * @date 2022-01-25
  *
- * @addtogroup nodelib
- * @{
- */
-/*
- * Copyright 2014,2015,2016,2017 Vladimir Ermakov.
+ * @copyright Copyright (c) 2022 acfly
+ * @copyright Copyright 2014,2015,2016,2017 Vladimir Ermakov.
+ * For commercial use, please contact acfly: https://www.acfly.cn
  *
- * This file is part of the mavros package and subject to the license terms
- * in the top-level LICENSE file of the mavros repository.
- * https://github.com/mavlink/mavros/tree/master/LICENSE.md
  */
 
 #pragma once
@@ -93,7 +90,9 @@ public:
     /**
      * @brief Return connection status
      */
-    inline bool is_connected() { return connected; }
+    inline bool is_connected() {
+        return connected;
+    }
 
     /* -*- HEARTBEAT data -*- */
 
@@ -275,7 +274,7 @@ public:
      * @param vector      vector of transforms
      */
     void add_static_transform(const std::string &frame_id, const std::string &child_id,
-                              const Eigen::Affine3d &                       tr,
+                              const Eigen::Affine3d                        &tr,
                               std::vector<geometry_msgs::TransformStamped> &vector);
 
     /**
@@ -290,13 +289,21 @@ public:
 
     /* -*- time sync -*- */
 
-    inline void set_time_offset(uint64_t offset_ns) { time_offset = offset_ns; }
+    inline void set_time_offset(uint64_t offset_ns) {
+        time_offset = offset_ns;
+    }
 
-    inline uint64_t get_time_offset(void) { return time_offset; }
+    inline uint64_t get_time_offset(void) {
+        return time_offset;
+    }
 
-    inline void set_timesync_mode(timesync_mode mode) { tsync_mode = mode; }
+    inline void set_timesync_mode(timesync_mode mode) {
+        tsync_mode = mode;
+    }
 
-    inline timesync_mode get_timesync_mode(void) { return tsync_mode; }
+    inline timesync_mode get_timesync_mode(void) {
+        return tsync_mode;
+    }
 
     /* -*- autopilot version -*- */
     uint64_t get_capabilities();
@@ -386,17 +393,23 @@ public:
     /**
      * @brief Check that system id is my target
      */
-    inline bool is_my_target(uint8_t sysid) { return sysid == get_tgt_system(); }
+    inline bool is_my_target(uint8_t sysid) {
+        return sysid == get_tgt_system();
+    }
 
     /**
      * @brief Check that FCU is APM
      */
-    inline bool is_ardupilotmega() { return MAV_AUTOPILOT::ARDUPILOTMEGA == get_autopilot(); }
+    inline bool is_ardupilotmega() {
+        return MAV_AUTOPILOT::ARDUPILOTMEGA == get_autopilot();
+    }
 
     /**
      * @brief Check that FCU is PX4
      */
-    inline bool is_px4() { return MAV_AUTOPILOT::PX4 == get_autopilot(); }
+    inline bool is_px4() {
+        return MAV_AUTOPILOT::PX4 == get_autopilot();
+    }
 
     /**
      * @brief Represent FCU mode as string

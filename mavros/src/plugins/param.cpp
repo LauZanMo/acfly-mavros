@@ -29,13 +29,6 @@ using utils::enum_value;
 /**
  * @brief Parameter storage
  * @brief 参数保存
- *
- * APM uses:
- * - int8 (primary for bools)
- * - int16 ???
- * - int32 for int's
- * - real32 for float's
- *
  * PX4(acfly):
  * - int32 for int's
  * - real32 for float's
@@ -113,10 +106,13 @@ public:
         };
     }
 
-    //! Make PARAM_SET message. Set target ids manually!
+    // Make PARAM_SET message. Set target ids manually!
+    // 构建PARAM_SET信息，手动设置目标id!
     PARAM_SET to_param_set() {
         // Note: XmlRpcValue does not have const cast operators.
         //       This method can't be const.
+        // 注意：XmlRpcValue没有const cast转换符
+        //       该方法不能为const
 
         mavlink::mavlink_param_union_t uv;
         PARAM_SET                      ret{};
@@ -225,6 +221,7 @@ public:
     }
 
     // for debugging
+    // 用于调试
     std::string to_string() const {
         return utils::format("%s (%u/%u): %s", param_id.c_str(), param_index, param_count,
                              param_value.toXml().c_str());
@@ -233,7 +230,8 @@ public:
     mavros_msgs::Param to_msg() {
         mavros_msgs::Param msg;
 
-        // XXX(vooon): find better solution
+        // TODO: find better solution
+        // 找到更好的解决方案
         msg.header.stamp = ros::Time::now();
 
         msg.param_id      = param_id;
@@ -245,9 +243,7 @@ public:
         return msg;
     }
 
-    /**
-     * Exclude this parameters from ~param/push
-     */
+    // 排除下列参数
     static bool check_exclude_param_id(std::string param_id) {
         return param_id == "SYSID_SW_MREV" || param_id == "SYS_NUM_RESETS" ||
                param_id == "ARSPD_OFFSET" || param_id == "GND_ABS_PRESS" ||
@@ -261,6 +257,7 @@ public:
 
 /**
  * @brief Parameter set transaction data
+ * @brief 参数集交互数据
  */
 class ParamSetOpt {
 public:
@@ -276,6 +273,8 @@ public:
 
 /**
  * @brief Parameter manipulation plugin
+ * @brief 参数管理的ROS插件
+ * @note 该插件负责飞控参数的读取和写入，并对读写操作进行监控
  */
 class ParamPlugin : public plugin::PluginBase {
 public:

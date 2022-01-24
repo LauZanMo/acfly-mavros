@@ -1,18 +1,15 @@
 /**
- * @brief MAVROS Plugin base
  * @file mavros_plugin.h
+ * @author LauZanMo (LauZanMo@whu.edu.cn)
  * @author Vladimir Ermakov <vooon341@gmail.com>
+ * @brief This file is from mavros open source respository, thanks for their contribution.
+ * @version 1.0
+ * @date 2022-01-25
  *
- * @addtogroup plugin
- * @{
- *  @brief MAVROS Plugin system
- */
-/*
- * Copyright 2013,2014,2015 Vladimir Ermakov.
+ * @copyright Copyright (c) 2022 acfly
+ * @copyright Copyright 2014,2015,2016,2017 Vladimir Ermakov.
+ * For commercial use, please contact acfly: https://www.acfly.cn
  *
- * This file is part of the mavros package and subject to the license terms
- * in the top-level LICENSE file of the mavros repository.
- * https://github.com/mavlink/mavros/tree/master/LICENSE.md
  */
 
 #pragma once
@@ -56,7 +53,9 @@ public:
      *
      * @param[in] uas  @p UAS instance
      */
-    virtual void initialize(UAS &uas) { m_uas = &uas; }
+    virtual void initialize(UAS &uas) {
+        m_uas = &uas;
+    }
 
     /**
      * @brief Return vector of MAVLink message subscriptions (handlers)
@@ -121,7 +120,9 @@ protected:
     /**
      * Common callback called on connection change
      */
-    virtual void connection_cb(bool connected) { ROS_BREAK(); }
+    virtual void connection_cb(bool connected) {
+        ROS_BREAK();
+    }
 
     /**
      * Shortcut for connection_cb() registration
@@ -134,7 +135,9 @@ protected:
     /**
      * Common callback called only when capabilities change
      */
-    virtual void capabilities_cb(UAS::MAV_CAP capabilities) { ROS_BREAK(); }
+    virtual void capabilities_cb(UAS::MAV_CAP capabilities) {
+        ROS_BREAK();
+    }
 
     /**
      * Shortcut for capabilities_cb() registration
