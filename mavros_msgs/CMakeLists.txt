@@ -81,6 +81,7 @@ add_service_files(
   CommandHome.srv
   CommandInt.srv
   CommandLong.srv
+  CommandSetMode.srv
   CommandTOL.srv
   CommandTriggerControl.srv
   CommandTriggerInterval.srv
@@ -106,7 +107,6 @@ add_service_files(
   ParamPush.srv
   ParamSet.srv
   SetMavFrame.srv
-  SetMode.srv
   StreamRate.srv
   VehicleInfoGet.srv
   WaypointClear.srv
