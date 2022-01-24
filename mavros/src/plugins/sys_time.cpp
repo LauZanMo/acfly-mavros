@@ -505,7 +505,7 @@ private:
     }
 
     /* ros callbacks */
-    /* ros回调函数 */
+    /* ROS回调函数 */
 
     void sys_time_cb(const ros::WallTimerEvent &event) {
         // For filesystem only
