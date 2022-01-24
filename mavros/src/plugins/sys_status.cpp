@@ -49,13 +49,13 @@ public:
     HeartbeatStatus(const std::string &name, size_t win_size)
         : diagnostic_updater::DiagnosticTask(name), times_(win_size), seq_nums_(win_size),
           window_size_(win_size), min_freq_(0.2), max_freq_(100), tolerance_(0.1),
-          autopilot(MAV_AUTOPILOT::GENERIC), type(MAV_TYPE::GENERIC),
-          system_status(MAV_STATE::UNINIT) {
+          autopilot_(MAV_AUTOPILOT::GENERIC), type_(MAV_TYPE::GENERIC),
+          system_status_(MAV_STATE::UNINIT) {
         clear();
     }
 
     void clear() {
-        std::lock_guard<std::mutex> lock(mutex);
+        std::lock_guard<std::mutex> lock(mutex_);
         ros::Time                   curtime = ros::Time::now();
         count_                              = 0;
 
@@ -67,18 +67,18 @@ public:
         hist_indx_ = 0;
     }
 
-    void tick(uint8_t type_, uint8_t autopilot_, std::string &mode_, uint8_t system_status_) {
-        std::lock_guard<std::mutex> lock(mutex);
+    void tick(uint8_t type, uint8_t autopilot, std::string &mode, uint8_t system_status) {
+        std::lock_guard<std::mutex> lock(mutex_);
         count_++;
 
-        type          = static_cast<MAV_TYPE>(type_);
-        autopilot     = static_cast<MAV_AUTOPILOT>(autopilot_);
-        mode          = mode_;
-        system_status = static_cast<MAV_STATE>(system_status_);
+        type_          = static_cast<MAV_TYPE>(type);
+        autopilot_     = static_cast<MAV_AUTOPILOT>(autopilot);
+        mode_          = mode;
+        system_status_ = static_cast<MAV_STATE>(system_status);
     }
 
     void run(diagnostic_updater::DiagnosticStatusWrapper &stat) {
-        std::lock_guard<std::mutex> lock(mutex);
+        std::lock_guard<std::mutex> lock(mutex_);
 
         ros::Time curtime     = ros::Time::now();
         int       curseq      = count_;
@@ -101,10 +101,10 @@ public:
 
         stat.addf("Heartbeats since startup", "%d", count_);
         stat.addf("Frequency (Hz)", "%f", freq);
-        stat.add("Vehicle type", utils::to_string(type));
-        stat.add("Autopilot type", utils::to_string(autopilot));
-        stat.add("Mode", mode);
-        stat.add("System status", utils::to_string(system_status));
+        stat.add("Vehicle type", utils::to_string(type_));
+        stat.add("Autopilot type", utils::to_string(autopilot_));
+        stat.add("Mode", mode_);
+        stat.add("System status", utils::to_string(system_status_));
     }
 
 private:
@@ -112,16 +112,16 @@ private:
     std::vector<ros::Time> times_;
     std::vector<int>       seq_nums_;
     int                    hist_indx_;
-    std::mutex             mutex;
+    std::mutex             mutex_;
     const size_t           window_size_;
     const double           min_freq_;
     const double           max_freq_;
     const double           tolerance_;
 
-    MAV_AUTOPILOT autopilot;
-    MAV_TYPE      type;
-    std::string   mode;
-    MAV_STATE     system_status;
+    MAV_AUTOPILOT autopilot_;
+    MAV_TYPE      type_;
+    std::string   mode_;
+    MAV_STATE     system_status_;
 };
 
 /**
@@ -132,25 +132,25 @@ private:
 class SystemStatusDiag : public diagnostic_updater::DiagnosticTask {
 public:
     SystemStatusDiag(const std::string &name)
-        : diagnostic_updater::DiagnosticTask(name), last_st{} {}
+        : diagnostic_updater::DiagnosticTask(name), last_st_{} {}
 
     void set(mavlink::common::msg::SYS_STATUS &st) {
-        std::lock_guard<std::mutex> lock(mutex);
-        last_st = st;
+        std::lock_guard<std::mutex> lock(mutex_);
+        last_st_ = st;
     }
 
     void run(diagnostic_updater::DiagnosticStatusWrapper &stat) {
-        std::lock_guard<std::mutex> lock(mutex);
+        std::lock_guard<std::mutex> lock(mutex_);
 
-        if ((last_st.onboard_control_sensors_health & last_st.onboard_control_sensors_enabled) !=
-            last_st.onboard_control_sensors_enabled)
+        if ((last_st_.onboard_control_sensors_health & last_st_.onboard_control_sensors_enabled) !=
+            last_st_.onboard_control_sensors_enabled)
             stat.summary(2, "Sensor health");
         else
             stat.summary(0, "Normal");
 
-        stat.addf("Sensor present", "0x%08X", last_st.onboard_control_sensors_present);
-        stat.addf("Sensor enabled", "0x%08X", last_st.onboard_control_sensors_enabled);
-        stat.addf("Sensor health", "0x%08X", last_st.onboard_control_sensors_health);
+        stat.addf("Sensor present", "0x%08X", last_st_.onboard_control_sensors_present);
+        stat.addf("Sensor enabled", "0x%08X", last_st_.onboard_control_sensors_enabled);
+        stat.addf("Sensor health", "0x%08X", last_st_.onboard_control_sensors_health);
 
         using STS = mavlink::common::MAV_SYS_STATUS_SENSOR;
 
@@ -174,173 +174,173 @@ public:
         //         sts = 'SENSOR_' + sts
         //
         //     cog.outl(f"""\
-		//     if (last_st.onboard_control_sensors_enabled & enum_value(STS::{sts}))
-        //     \tstat.add("{desc.strip()}", (last_st.onboard_control_sensors_health &
+		//     if (last_st_.onboard_control_sensors_enabled & enum_value(STS::{sts}))
+        //     \tstat.add("{desc.strip()}", (last_st_.onboard_control_sensors_health &
         //     enum_value(STS::{sts})) ? "Ok" : "Fail");""")
         // ]]]
-        if (last_st.onboard_control_sensors_enabled & enum_value(STS::SENSOR_3D_GYRO))
+        if (last_st_.onboard_control_sensors_enabled & enum_value(STS::SENSOR_3D_GYRO))
             stat.add("3D gyro",
-                     (last_st.onboard_control_sensors_health & enum_value(STS::SENSOR_3D_GYRO))
+                     (last_st_.onboard_control_sensors_health & enum_value(STS::SENSOR_3D_GYRO))
                          ? "Ok"
                          : "Fail");
-        if (last_st.onboard_control_sensors_enabled & enum_value(STS::SENSOR_3D_ACCEL))
+        if (last_st_.onboard_control_sensors_enabled & enum_value(STS::SENSOR_3D_ACCEL))
             stat.add("3D accelerometer",
-                     (last_st.onboard_control_sensors_health & enum_value(STS::SENSOR_3D_ACCEL))
+                     (last_st_.onboard_control_sensors_health & enum_value(STS::SENSOR_3D_ACCEL))
                          ? "Ok"
                          : "Fail");
-        if (last_st.onboard_control_sensors_enabled & enum_value(STS::SENSOR_3D_MAG))
+        if (last_st_.onboard_control_sensors_enabled & enum_value(STS::SENSOR_3D_MAG))
             stat.add("3D magnetometer",
-                     (last_st.onboard_control_sensors_health & enum_value(STS::SENSOR_3D_MAG))
+                     (last_st_.onboard_control_sensors_health & enum_value(STS::SENSOR_3D_MAG))
                          ? "Ok"
                          : "Fail");
-        if (last_st.onboard_control_sensors_enabled & enum_value(STS::ABSOLUTE_PRESSURE))
+        if (last_st_.onboard_control_sensors_enabled & enum_value(STS::ABSOLUTE_PRESSURE))
             stat.add("absolute pressure",
-                     (last_st.onboard_control_sensors_health & enum_value(STS::ABSOLUTE_PRESSURE))
+                     (last_st_.onboard_control_sensors_health & enum_value(STS::ABSOLUTE_PRESSURE))
                          ? "Ok"
                          : "Fail");
-        if (last_st.onboard_control_sensors_enabled & enum_value(STS::DIFFERENTIAL_PRESSURE))
-            stat.add("differential pressure", (last_st.onboard_control_sensors_health &
+        if (last_st_.onboard_control_sensors_enabled & enum_value(STS::DIFFERENTIAL_PRESSURE))
+            stat.add("differential pressure", (last_st_.onboard_control_sensors_health &
                                                enum_value(STS::DIFFERENTIAL_PRESSURE))
                                                   ? "Ok"
                                                   : "Fail");
-        if (last_st.onboard_control_sensors_enabled & enum_value(STS::GPS))
-            stat.add("GPS", (last_st.onboard_control_sensors_health & enum_value(STS::GPS))
+        if (last_st_.onboard_control_sensors_enabled & enum_value(STS::GPS))
+            stat.add("GPS", (last_st_.onboard_control_sensors_health & enum_value(STS::GPS))
                                 ? "Ok"
                                 : "Fail");
-        if (last_st.onboard_control_sensors_enabled & enum_value(STS::OPTICAL_FLOW))
+        if (last_st_.onboard_control_sensors_enabled & enum_value(STS::OPTICAL_FLOW))
             stat.add("optical flow",
-                     (last_st.onboard_control_sensors_health & enum_value(STS::OPTICAL_FLOW))
+                     (last_st_.onboard_control_sensors_health & enum_value(STS::OPTICAL_FLOW))
                          ? "Ok"
                          : "Fail");
-        if (last_st.onboard_control_sensors_enabled & enum_value(STS::VISION_POSITION))
+        if (last_st_.onboard_control_sensors_enabled & enum_value(STS::VISION_POSITION))
             stat.add("computer vision position",
-                     (last_st.onboard_control_sensors_health & enum_value(STS::VISION_POSITION))
+                     (last_st_.onboard_control_sensors_health & enum_value(STS::VISION_POSITION))
                          ? "Ok"
                          : "Fail");
-        if (last_st.onboard_control_sensors_enabled & enum_value(STS::LASER_POSITION))
+        if (last_st_.onboard_control_sensors_enabled & enum_value(STS::LASER_POSITION))
             stat.add("laser based position",
-                     (last_st.onboard_control_sensors_health & enum_value(STS::LASER_POSITION))
+                     (last_st_.onboard_control_sensors_health & enum_value(STS::LASER_POSITION))
                          ? "Ok"
                          : "Fail");
-        if (last_st.onboard_control_sensors_enabled & enum_value(STS::EXTERNAL_GROUND_TRUTH))
+        if (last_st_.onboard_control_sensors_enabled & enum_value(STS::EXTERNAL_GROUND_TRUTH))
             stat.add(
                 "external ground truth (Vicon or Leica)",
-                (last_st.onboard_control_sensors_health & enum_value(STS::EXTERNAL_GROUND_TRUTH))
+                (last_st_.onboard_control_sensors_health & enum_value(STS::EXTERNAL_GROUND_TRUTH))
                     ? "Ok"
                     : "Fail");
-        if (last_st.onboard_control_sensors_enabled & enum_value(STS::ANGULAR_RATE_CONTROL))
-            stat.add("3D angular rate control", (last_st.onboard_control_sensors_health &
+        if (last_st_.onboard_control_sensors_enabled & enum_value(STS::ANGULAR_RATE_CONTROL))
+            stat.add("3D angular rate control", (last_st_.onboard_control_sensors_health &
                                                  enum_value(STS::ANGULAR_RATE_CONTROL))
                                                     ? "Ok"
                                                     : "Fail");
-        if (last_st.onboard_control_sensors_enabled & enum_value(STS::ATTITUDE_STABILIZATION))
-            stat.add("attitude stabilization", (last_st.onboard_control_sensors_health &
+        if (last_st_.onboard_control_sensors_enabled & enum_value(STS::ATTITUDE_STABILIZATION))
+            stat.add("attitude stabilization", (last_st_.onboard_control_sensors_health &
                                                 enum_value(STS::ATTITUDE_STABILIZATION))
                                                    ? "Ok"
                                                    : "Fail");
-        if (last_st.onboard_control_sensors_enabled & enum_value(STS::YAW_POSITION))
+        if (last_st_.onboard_control_sensors_enabled & enum_value(STS::YAW_POSITION))
             stat.add("yaw position",
-                     (last_st.onboard_control_sensors_health & enum_value(STS::YAW_POSITION))
+                     (last_st_.onboard_control_sensors_health & enum_value(STS::YAW_POSITION))
                          ? "Ok"
                          : "Fail");
-        if (last_st.onboard_control_sensors_enabled & enum_value(STS::Z_ALTITUDE_CONTROL))
+        if (last_st_.onboard_control_sensors_enabled & enum_value(STS::Z_ALTITUDE_CONTROL))
             stat.add("z/altitude control",
-                     (last_st.onboard_control_sensors_health & enum_value(STS::Z_ALTITUDE_CONTROL))
+                     (last_st_.onboard_control_sensors_health & enum_value(STS::Z_ALTITUDE_CONTROL))
                          ? "Ok"
                          : "Fail");
-        if (last_st.onboard_control_sensors_enabled & enum_value(STS::XY_POSITION_CONTROL))
+        if (last_st_.onboard_control_sensors_enabled & enum_value(STS::XY_POSITION_CONTROL))
             stat.add("x/y position control",
-                     (last_st.onboard_control_sensors_health & enum_value(STS::XY_POSITION_CONTROL))
+                     (last_st_.onboard_control_sensors_health & enum_value(STS::XY_POSITION_CONTROL))
                          ? "Ok"
                          : "Fail");
-        if (last_st.onboard_control_sensors_enabled & enum_value(STS::MOTOR_OUTPUTS))
+        if (last_st_.onboard_control_sensors_enabled & enum_value(STS::MOTOR_OUTPUTS))
             stat.add("motor outputs / control",
-                     (last_st.onboard_control_sensors_health & enum_value(STS::MOTOR_OUTPUTS))
+                     (last_st_.onboard_control_sensors_health & enum_value(STS::MOTOR_OUTPUTS))
                          ? "Ok"
                          : "Fail");
-        if (last_st.onboard_control_sensors_enabled & enum_value(STS::RC_RECEIVER))
+        if (last_st_.onboard_control_sensors_enabled & enum_value(STS::RC_RECEIVER))
             stat.add("rc receiver",
-                     (last_st.onboard_control_sensors_health & enum_value(STS::RC_RECEIVER))
+                     (last_st_.onboard_control_sensors_health & enum_value(STS::RC_RECEIVER))
                          ? "Ok"
                          : "Fail");
-        if (last_st.onboard_control_sensors_enabled & enum_value(STS::SENSOR_3D_GYRO2))
+        if (last_st_.onboard_control_sensors_enabled & enum_value(STS::SENSOR_3D_GYRO2))
             stat.add("2nd 3D gyro",
-                     (last_st.onboard_control_sensors_health & enum_value(STS::SENSOR_3D_GYRO2))
+                     (last_st_.onboard_control_sensors_health & enum_value(STS::SENSOR_3D_GYRO2))
                          ? "Ok"
                          : "Fail");
-        if (last_st.onboard_control_sensors_enabled & enum_value(STS::SENSOR_3D_ACCEL2))
+        if (last_st_.onboard_control_sensors_enabled & enum_value(STS::SENSOR_3D_ACCEL2))
             stat.add("2nd 3D accelerometer",
-                     (last_st.onboard_control_sensors_health & enum_value(STS::SENSOR_3D_ACCEL2))
+                     (last_st_.onboard_control_sensors_health & enum_value(STS::SENSOR_3D_ACCEL2))
                          ? "Ok"
                          : "Fail");
-        if (last_st.onboard_control_sensors_enabled & enum_value(STS::SENSOR_3D_MAG2))
+        if (last_st_.onboard_control_sensors_enabled & enum_value(STS::SENSOR_3D_MAG2))
             stat.add("2nd 3D magnetometer",
-                     (last_st.onboard_control_sensors_health & enum_value(STS::SENSOR_3D_MAG2))
+                     (last_st_.onboard_control_sensors_health & enum_value(STS::SENSOR_3D_MAG2))
                          ? "Ok"
                          : "Fail");
-        if (last_st.onboard_control_sensors_enabled & enum_value(STS::GEOFENCE))
+        if (last_st_.onboard_control_sensors_enabled & enum_value(STS::GEOFENCE))
             stat.add("geofence",
-                     (last_st.onboard_control_sensors_health & enum_value(STS::GEOFENCE)) ? "Ok"
+                     (last_st_.onboard_control_sensors_health & enum_value(STS::GEOFENCE)) ? "Ok"
                                                                                           : "Fail");
-        if (last_st.onboard_control_sensors_enabled & enum_value(STS::AHRS))
+        if (last_st_.onboard_control_sensors_enabled & enum_value(STS::AHRS))
             stat.add("AHRS subsystem health",
-                     (last_st.onboard_control_sensors_health & enum_value(STS::AHRS)) ? "Ok"
+                     (last_st_.onboard_control_sensors_health & enum_value(STS::AHRS)) ? "Ok"
                                                                                       : "Fail");
-        if (last_st.onboard_control_sensors_enabled & enum_value(STS::TERRAIN))
+        if (last_st_.onboard_control_sensors_enabled & enum_value(STS::TERRAIN))
             stat.add("Terrain subsystem health",
-                     (last_st.onboard_control_sensors_health & enum_value(STS::TERRAIN)) ? "Ok"
+                     (last_st_.onboard_control_sensors_health & enum_value(STS::TERRAIN)) ? "Ok"
                                                                                          : "Fail");
-        if (last_st.onboard_control_sensors_enabled & enum_value(STS::REVERSE_MOTOR))
+        if (last_st_.onboard_control_sensors_enabled & enum_value(STS::REVERSE_MOTOR))
             stat.add("Motors are reversed",
-                     (last_st.onboard_control_sensors_health & enum_value(STS::REVERSE_MOTOR))
+                     (last_st_.onboard_control_sensors_health & enum_value(STS::REVERSE_MOTOR))
                          ? "Ok"
                          : "Fail");
-        if (last_st.onboard_control_sensors_enabled & enum_value(STS::LOGGING))
-            stat.add("Logging", (last_st.onboard_control_sensors_health & enum_value(STS::LOGGING))
+        if (last_st_.onboard_control_sensors_enabled & enum_value(STS::LOGGING))
+            stat.add("Logging", (last_st_.onboard_control_sensors_health & enum_value(STS::LOGGING))
                                     ? "Ok"
                                     : "Fail");
-        if (last_st.onboard_control_sensors_enabled & enum_value(STS::BATTERY))
-            stat.add("Battery", (last_st.onboard_control_sensors_health & enum_value(STS::BATTERY))
+        if (last_st_.onboard_control_sensors_enabled & enum_value(STS::BATTERY))
+            stat.add("Battery", (last_st_.onboard_control_sensors_health & enum_value(STS::BATTERY))
                                     ? "Ok"
                                     : "Fail");
-        if (last_st.onboard_control_sensors_enabled & enum_value(STS::PROXIMITY))
+        if (last_st_.onboard_control_sensors_enabled & enum_value(STS::PROXIMITY))
             stat.add("Proximity",
-                     (last_st.onboard_control_sensors_health & enum_value(STS::PROXIMITY))
+                     (last_st_.onboard_control_sensors_health & enum_value(STS::PROXIMITY))
                          ? "Ok"
                          : "Fail");
-        if (last_st.onboard_control_sensors_enabled & enum_value(STS::SATCOM))
+        if (last_st_.onboard_control_sensors_enabled & enum_value(STS::SATCOM))
             stat.add("Satellite Communication",
-                     (last_st.onboard_control_sensors_health & enum_value(STS::SATCOM)) ? "Ok"
+                     (last_st_.onboard_control_sensors_health & enum_value(STS::SATCOM)) ? "Ok"
                                                                                         : "Fail");
-        if (last_st.onboard_control_sensors_enabled & enum_value(STS::PREARM_CHECK))
+        if (last_st_.onboard_control_sensors_enabled & enum_value(STS::PREARM_CHECK))
             stat.add("pre-arm check status. Always healthy when armed",
-                     (last_st.onboard_control_sensors_health & enum_value(STS::PREARM_CHECK))
+                     (last_st_.onboard_control_sensors_health & enum_value(STS::PREARM_CHECK))
                          ? "Ok"
                          : "Fail");
-        if (last_st.onboard_control_sensors_enabled & enum_value(STS::OBSTACLE_AVOIDANCE))
+        if (last_st_.onboard_control_sensors_enabled & enum_value(STS::OBSTACLE_AVOIDANCE))
             stat.add("Avoidance/collision prevention",
-                     (last_st.onboard_control_sensors_health & enum_value(STS::OBSTACLE_AVOIDANCE))
+                     (last_st_.onboard_control_sensors_health & enum_value(STS::OBSTACLE_AVOIDANCE))
                          ? "Ok"
                          : "Fail");
-        if (last_st.onboard_control_sensors_enabled & enum_value(STS::PROPULSION))
+        if (last_st_.onboard_control_sensors_enabled & enum_value(STS::PROPULSION))
             stat.add("propulsion (actuator, esc, motor or propellor)",
-                     (last_st.onboard_control_sensors_health & enum_value(STS::PROPULSION))
+                     (last_st_.onboard_control_sensors_health & enum_value(STS::PROPULSION))
                          ? "Ok"
                          : "Fail");
         // [[[end]]] (checksum: 24471e5532db5c99f411475509d41f72)
 
-        stat.addf("CPU Load (%)", "%.1f", last_st.load / 10.0);
-        stat.addf("Drop rate (%)", "%.1f", last_st.drop_rate_comm / 10.0);
-        stat.addf("Errors comm", "%d", last_st.errors_comm);
-        stat.addf("Errors count #1", "%d", last_st.errors_count1);
-        stat.addf("Errors count #2", "%d", last_st.errors_count2);
-        stat.addf("Errors count #3", "%d", last_st.errors_count3);
-        stat.addf("Errors count #4", "%d", last_st.errors_count4);
+        stat.addf("CPU Load (%)", "%.1f", last_st_.load / 10.0);
+        stat.addf("Drop rate (%)", "%.1f", last_st_.drop_rate_comm / 10.0);
+        stat.addf("Errors comm", "%d", last_st_.errors_comm);
+        stat.addf("Errors count #1", "%d", last_st_.errors_count1);
+        stat.addf("Errors count #2", "%d", last_st_.errors_count2);
+        stat.addf("Errors count #3", "%d", last_st_.errors_count3);
+        stat.addf("Errors count #4", "%d", last_st_.errors_count4);
     }
 
 private:
-    std::mutex                       mutex;
-    mavlink::common::msg::SYS_STATUS last_st;
+    std::mutex                       mutex_;
+    mavlink::common::msg::SYS_STATUS last_st_;
 };
 
 /**
@@ -351,42 +351,42 @@ private:
 class BatteryStatusDiag : public diagnostic_updater::DiagnosticTask {
 public:
     BatteryStatusDiag(const std::string &name)
-        : diagnostic_updater::DiagnosticTask(name), voltage(-1.0), current(0.0), remaining(0.0),
-          min_voltage(6) {}
+        : diagnostic_updater::DiagnosticTask(name), voltage_(-1.0), current_(0.0), remaining_(0.0),
+          min_voltage_(6) {}
 
     void set_min_voltage(float volt) {
-        std::lock_guard<std::mutex> lock(mutex);
-        min_voltage = volt;
+        std::lock_guard<std::mutex> lock(mutex_);
+        min_voltage_ = volt;
     }
 
     void set(float volt, float curr, float rem) {
-        std::lock_guard<std::mutex> lock(mutex);
-        voltage   = volt;
-        current   = curr;
-        remaining = rem;
+        std::lock_guard<std::mutex> lock(mutex_);
+        voltage_   = volt;
+        current_   = curr;
+        remaining_ = rem;
     }
 
     void run(diagnostic_updater::DiagnosticStatusWrapper &stat) {
-        std::lock_guard<std::mutex> lock(mutex);
+        std::lock_guard<std::mutex> lock(mutex_);
 
-        if (voltage < 0)
+        if (voltage_ < 0)
             stat.summary(2, "No data");
-        else if (voltage < min_voltage)
+        else if (voltage_ < min_voltage_)
             stat.summary(1, "Low voltage");
         else
             stat.summary(0, "Normal");
 
-        stat.addf("Voltage", "%.2f", voltage);
-        stat.addf("Current", "%.1f", current);
-        stat.addf("Remaining", "%.1f", remaining * 100);
+        stat.addf("Voltage", "%.2f", voltage_);
+        stat.addf("Current", "%.1f", current_);
+        stat.addf("Remaining", "%.1f", remaining_ * 100);
     }
 
 private:
-    std::mutex mutex;
-    float      voltage;
-    float      current;
-    float      remaining;
-    float      min_voltage;
+    std::mutex mutex_;
+    float      voltage_;
+    float      current_;
+    float      remaining_;
+    float      min_voltage_;
 };
 
 /**
@@ -397,7 +397,7 @@ private:
 class SystemStatusPlugin : public plugin::PluginBase {
 public:
     SystemStatusPlugin()
-        : PluginBase(), nh("~"), hb_diag("Heartbeat", 10), sys_diag("System"), batt_diag("Battery"),
+        : PluginBase(), ss_nh("~"), hb_diag("Heartbeat", 10), sys_diag("System"), batt_diag("Battery"),
           conn_heartbeat_mav_type(MAV_TYPE::ONBOARD_CONTROLLER), version_retries(RETRIES_COUNT),
           disable_diag(false), has_battery_status(false), battery_voltage(0.0) {}
 
@@ -412,19 +412,19 @@ public:
         double      min_voltage;
         std::string conn_heartbeat_mav_type_str;
 
-        nh.param("conn/timeout", conn_timeout_d, 10.0);
-        nh.param("sys/min_voltage", min_voltage, 10.0);
-        nh.param("sys/disable_diag", disable_diag, false);
+        ss_nh.param("conn/timeout", conn_timeout_d, 10.0);
+        ss_nh.param("sys/min_voltage", min_voltage, 10.0);
+        ss_nh.param("sys/disable_diag", disable_diag, false);
 
         // heartbeat rate parameter
         // 心跳速率参数
-        if (nh.getParam("conn/heartbeat_rate", conn_heartbeat_d) && conn_heartbeat_d != 0.0) {
+        if (ss_nh.getParam("conn/heartbeat_rate", conn_heartbeat_d) && conn_heartbeat_d != 0.0) {
             conn_heartbeat = ros::WallDuration(ros::Rate(conn_heartbeat_d));
         }
 
         // heartbeat mav type parameter
         // 心跳mavlink格式参数
-        if (nh.getParam("conn/heartbeat_mav_type", conn_heartbeat_mav_type_str)) {
+        if (ss_nh.getParam("conn/heartbeat_mav_type", conn_heartbeat_mav_type_str)) {
             conn_heartbeat_mav_type = utils::mav_type_from_str(conn_heartbeat_mav_type_str);
         }
 
@@ -440,32 +440,32 @@ public:
 
         // one-shot timeout timer
         // 单次超时定时器(不会被自动重置)
-        timeout_timer = nh.createWallTimer(ros::WallDuration(conn_timeout_d),
+        timeout_timer = ss_nh.createWallTimer(ros::WallDuration(conn_timeout_d),
                                            &SystemStatusPlugin::timeout_cb, this, true);
 
         if (!conn_heartbeat.isZero()) {
             heartbeat_timer =
-                nh.createWallTimer(conn_heartbeat, &SystemStatusPlugin::heartbeat_cb, this);
+                ss_nh.createWallTimer(conn_heartbeat, &SystemStatusPlugin::heartbeat_cb, this);
         }
 
         // version request timer
         // 版本请求定时器
-        autopilot_version_timer = nh.createWallTimer(
+        autopilot_version_timer = ss_nh.createWallTimer(
             ros::WallDuration(1.0), &SystemStatusPlugin::autopilot_version_cb, this);
         autopilot_version_timer.stop();
 
-        state_pub            = nh.advertise<mavros_msgs::State>("state", 10, true);
-        extended_state_pub   = nh.advertise<mavros_msgs::ExtendedState>("extended_state", 10);
-        batt_pub             = nh.advertise<BatteryMsg>("battery", 10);
-        batt2_pub            = nh.advertise<BatteryMsg>("battery2", 10);
-        estimator_status_pub = nh.advertise<mavros_msgs::EstimatorStatus>("estimator_status", 10);
-        statustext_pub       = nh.advertise<mavros_msgs::StatusText>("statustext/recv", 10);
+        state_pub            = ss_nh.advertise<mavros_msgs::State>("state", 10, true);
+        extended_state_pub   = ss_nh.advertise<mavros_msgs::ExtendedState>("extended_state", 10);
+        batt_pub             = ss_nh.advertise<BatteryMsg>("battery", 10);
+        batt2_pub            = ss_nh.advertise<BatteryMsg>("battery2", 10);
+        estimator_status_pub = ss_nh.advertise<mavros_msgs::EstimatorStatus>("estimator_status", 10);
+        statustext_pub       = ss_nh.advertise<mavros_msgs::StatusText>("statustext/recv", 10);
         statustext_sub =
-            nh.subscribe("statustext/send", 10, &SystemStatusPlugin::statustext_cb, this);
-        rate_srv = nh.advertiseService("set_stream_rate", &SystemStatusPlugin::set_rate_cb, this);
+            ss_nh.subscribe("statustext/send", 10, &SystemStatusPlugin::statustext_cb, this);
+        rate_srv = ss_nh.advertiseService("set_stream_rate", &SystemStatusPlugin::set_rate_cb, this);
         vehicle_info_get_srv =
-            nh.advertiseService("vehicle_info_get", &SystemStatusPlugin::vehicle_info_get_cb, this);
-        message_interval_srv = nh.advertiseService(
+            ss_nh.advertiseService("vehicle_info_get", &SystemStatusPlugin::vehicle_info_get_cb, this);
+        message_interval_srv = ss_nh.advertiseService(
             "set_message_interval", &SystemStatusPlugin::set_message_interval_cb, this);
 
         // init state topic
@@ -489,7 +489,7 @@ public:
     }
 
 private:
-    ros::NodeHandle nh;
+    ros::NodeHandle ss_nh;
 
     HeartbeatStatus   hb_diag;
     SystemStatusDiag  sys_diag;
@@ -954,7 +954,7 @@ private:
         bool do_broadcast = version_retries > RETRIES_COUNT / 2;
 
         try {
-            auto client = nh.serviceClient<mavros_msgs::CommandLong>("cmd/command");
+            auto client = ss_nh.serviceClient<mavros_msgs::CommandLong>("cmd/command");
 
             mavros_msgs::CommandLong cmd{};
 
@@ -1077,7 +1077,7 @@ private:
         using mavlink::common::MAV_CMD;
 
         try {
-            auto client = nh.serviceClient<mavros_msgs::CommandLong>("cmd/command");
+            auto client = ss_nh.serviceClient<mavros_msgs::CommandLong>("cmd/command");
 
             // calculate interval
             // 计算间隔
