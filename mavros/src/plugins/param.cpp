@@ -1,17 +1,15 @@
 /**
- * @brief Parameter plugin
  * @file param.cpp
+ * @author LauZanMo (LauZanMo@whu.edu.cn)
  * @author Vladimir Ermakov <vooon341@gmail.com>
+ * @brief This file is from mavros open source respository, thanks for their contribution.
+ * @version 1.0
+ * @date 2022-01-24
  *
- * @addtogroup plugin
- * @{
- */
-/*
- * Copyright 2014,2015,2016 Vladimir Ermakov.
+ * @copyright Copyright (c) 2022 acfly
+ * @copyright Copyright 2014,2015,2016,2017 Vladimir Ermakov.
+ * For commercial use, please contact acfly: https://www.acfly.cn
  *
- * This file is part of the mavros package and subject to the license terms
- * in the top-level LICENSE file of the mavros repository.
- * https://github.com/mavlink/mavros/tree/master/LICENSE.md
  */
 
 #include <chrono>
@@ -30,8 +28,7 @@ using utils::enum_value;
 
 /**
  * @brief Parameter storage
- *
- * Stores parameter value.
+ * @brief 参数保存
  *
  * APM uses:
  * - int8 (primary for bools)
@@ -39,12 +36,9 @@ using utils::enum_value;
  * - int32 for int's
  * - real32 for float's
  *
- * PX4:
+ * PX4(acfly):
  * - int32 for int's
  * - real32 for float's
- *
- * So no reason to really use boost::any.
- * But feel free to fire an issue if your AP do not like it.
  */
 class Parameter {
 public:
@@ -61,7 +55,6 @@ public:
         mavlink::mavlink_param_union_t uv;
         uv.param_float = pmsg.param_value;
 
-        // #170 - copy union value to itermediate var
         int   int_tmp;
         float float_tmp;
 
@@ -118,60 +111,6 @@ public:
                            pmsg.param_type);
             param_value = 0;
         };
-    }
-
-    /**
-     * Variation of set_value with quirks for ArduPilotMega
-     */
-    void set_value_apm_quirk(mavlink::common::msg::PARAM_VALUE &pmsg) {
-        int32_t int_tmp;
-        float   float_tmp;
-
-        switch (pmsg.param_type) {
-        // [[[cog:
-        // for a, b in param_types:
-        //     btype = 'int' if 'int' in b else b
-        //     cog.outl("case enum_value(MT::%s):" % a.upper())
-        //     cog.outl("\t%s_tmp = pmsg.param_value;" % btype)
-        //     cog.outl("\tparam_value = %s_tmp;" % btype)
-        //     cog.outl("\tbreak;")
-        // ]]]
-        case enum_value(MT::INT8):
-            int_tmp     = pmsg.param_value;
-            param_value = int_tmp;
-            break;
-        case enum_value(MT::UINT8):
-            int_tmp     = pmsg.param_value;
-            param_value = int_tmp;
-            break;
-        case enum_value(MT::INT16):
-            int_tmp     = pmsg.param_value;
-            param_value = int_tmp;
-            break;
-        case enum_value(MT::UINT16):
-            int_tmp     = pmsg.param_value;
-            param_value = int_tmp;
-            break;
-        case enum_value(MT::INT32):
-            int_tmp     = pmsg.param_value;
-            param_value = int_tmp;
-            break;
-        case enum_value(MT::UINT32):
-            int_tmp     = pmsg.param_value;
-            param_value = int_tmp;
-            break;
-        case enum_value(MT::REAL32):
-            float_tmp   = pmsg.param_value;
-            param_value = float_tmp;
-            break;
-            // [[[end]]] (checksum: c30ee34dd84213471690612ab49f1f73)
-
-        default:
-            ROS_WARN_NAMED("param", "PM: Unsupported param %.16s (%u/%u) type: %u",
-                           pmsg.param_id.data(), pmsg.param_index, pmsg.param_count,
-                           pmsg.param_type);
-            param_value = 0;
-        }
     }
 
     //! Make PARAM_SET message. Set target ids manually!
@@ -384,13 +323,18 @@ private:
 
     ros::Publisher param_value_pub;
 
-    ros::Timer shedule_timer; //!< for startup shedule fetch
-    ros::Timer timeout_timer; //!< for timeout resend
+    ros::Timer shedule_timer; // for startup shedule fetch
+                              // 启动时调用拉取
+    ros::Timer timeout_timer; // for timeout resend
+                              // 用于超时重发
 
-    static constexpr int BOOTUP_TIME_MS   = 10000; //!< APM boot time
-    static constexpr int PARAM_TIMEOUT_MS = 1000;  //!< Param wait time
-    static constexpr int LIST_TIMEOUT_MS  = 30000; //!< Receive all time
-    static constexpr int _RETRIES_COUNT   = 3;
+    static constexpr int BOOTUP_TIME_MS = 10000;  // acfly boot time
+                                                  // acfly启动时间
+    static constexpr int PARAM_TIMEOUT_MS = 1000; // param wait time
+                                                  // 参数等待超时时间
+    static constexpr int LIST_TIMEOUT_MS = 30000; // Receive all time
+                                                  // 接收到所有参数超时时间
+    static constexpr int _RETRIES_COUNT = 3;
 
     const ros::Duration BOOTUP_TIME_DT;
     const ros::Duration LIST_TIMEOUT_DT;
@@ -409,26 +353,27 @@ private:
     std::mutex              list_cond_mutex;
     std::condition_variable list_receiving;
 
-    /* -*- message handlers -*- */
+    /* message handlers */
+    /* 信息回调句柄 */
 
-    void handle_param_value(const mavlink::mavlink_message_t * msg,
+    void handle_param_value(const mavlink::mavlink_message_t  *msg,
                             mavlink::common::msg::PARAM_VALUE &pmsg) {
         lock_guard lock(mutex);
 
         auto param_id = mavlink::to_string(pmsg.param_id);
 
         // search
+        // 搜索
         auto param_it = parameters.find(param_id);
         if (param_it != parameters.end()) {
             // parameter exists
+            // 参数存在
             auto &p = param_it->second;
 
-            if (m_uas->is_ardupilotmega())
-                p.set_value_apm_quirk(pmsg);
-            else
-                p.set_value(pmsg);
+            p.set_value(pmsg);
 
             // check that ack required
+            // 检查是否需要应答
             auto set_it = set_parameters.find(param_id);
             if (set_it != set_parameters.end()) {
                 set_it->second->ack.notify_all();
@@ -445,15 +390,13 @@ private:
             ROS_DEBUG_STREAM_NAMED("param", "PR: Update param " << p.to_string());
         } else {
             // insert new element
+            // 创建新参数
             Parameter p{};
             p.param_id    = param_id;
             p.param_index = pmsg.param_index;
             p.param_count = pmsg.param_count;
 
-            if (m_uas->is_ardupilotmega())
-                p.set_value_apm_quirk(pmsg);
-            else
-                p.set_value(pmsg);
+            p.set_value(pmsg);
 
             parameters[param_id] = p;
 
@@ -466,6 +409,7 @@ private:
             param_state == PR::RXPARAM_TIMEDOUT) {
 
             // we received first param. setup list timeout
+            // 接收到了第一个参数，设置列表超时
             if (param_state == PR::RXLIST) {
                 param_count = pmsg.param_count;
                 param_state = PR::RXPARAM;
@@ -474,6 +418,7 @@ private:
                 if (param_count != UINT16_MAX) {
                     ROS_DEBUG_NAMED("param", "PR: waiting %zu parameters", param_count);
                     // declare that all parameters are missing
+                    // 声明所有参数缺失
                     for (uint16_t idx = 0; idx < param_count; idx++)
                         parameters_missing_idx.push_back(idx);
                 } else
@@ -482,13 +427,15 @@ private:
             }
 
             // trying to avoid endless rerequest loop
-            // Issue #276
+            // 避免重新请求无限循环
             bool it_is_first_requested = parameters_missing_idx.front() == pmsg.param_index;
 
             // remove idx for that message
+            // 移除该信息的索引
             parameters_missing_idx.remove(pmsg.param_index);
 
             // in receiving mode we use param_rx_retries for LIST and PARAM
+            // 接收模式下对于列表和参数使用param_rx_retries变量
             if (it_is_first_requested) {
                 ROS_DEBUG_NAMED("param",
                                 "PR: got a value of a requested param idx=%u, "
@@ -504,7 +451,8 @@ private:
 
             restart_timeout_timer();
 
-            /* index starting from 0, receivig done */
+            // index starting from 0, receivig done
+            // 索引从0开始，接收结束
             if (parameters_missing_idx.empty()) {
                 ssize_t missed = param_count - parameters.size();
                 ROS_INFO_COND_NAMED(missed == 0, "param", "PR: parameters list received");
@@ -522,7 +470,8 @@ private:
         }
     }
 
-    /* -*- low-level send function -*- */
+    /* low-level send function */
+    /* 底层发送函数 */
 
     void param_request_list() {
         ROS_DEBUG_NAMED("param", "PR:m: request list");
@@ -552,7 +501,6 @@ private:
     void param_set(Parameter &param) {
         ROS_DEBUG_STREAM_NAMED("param", "PR:m: set param " << param.to_string());
 
-        // GCC 4.8 can't type out lambda return
         auto ps = ([this, &param]() -> mavlink::common::msg::PARAM_SET {
             if (m_uas->is_ardupilotmega())
                 return param.to_param_set_apm_qurk();
@@ -565,7 +513,8 @@ private:
         UAS_FCU(m_uas)->send_message_ignore_drop(ps);
     }
 
-    /* -*- mid-level functions -*- */
+    /* mid-level functions */
+    /* 中间件函数 */
 
     void connection_cb(bool connected) override {
         lock_guard lock(mutex);
@@ -586,6 +535,7 @@ private:
         lock_guard lock(mutex);
         if (param_state != PR::IDLE) {
             // try later
+            // 延后
             ROS_DEBUG_NAMED("param", "PR: busy, reshedule pull");
             shedule_pull(BOOTUP_TIME_DT);
         }
@@ -699,6 +649,7 @@ private:
         unique_lock lock(mutex);
 
         // add to waiting list
+        // 加入等待列表
         auto opt                       = std::make_shared<ParamSetOpt>(param, RETRIES_COUNT);
         set_parameters[param.param_id] = opt;
 
@@ -711,16 +662,19 @@ private:
         lock.lock();
 
         // free opt data
+        // 释放数据内存
         set_parameters.erase(param.param_id);
 
         go_idle();
         return is_not_timeout;
     }
 
-    //! Set ROS param only if name is good
+    // Set ROS param only if name is good
+    // 如果参数名没问题则设为ROS参数
     bool rosparam_set_allowed(const Parameter &p) {
         if (m_uas->is_px4() && p.param_id == "_HASH_CHECK") {
             auto v = p.param_value; // const XmlRpcValue can't cast
+                                    // const XmlRpcValue类型无法强制转换
             ROS_INFO_NAMED("param", "PR: PX4 parameter _HASH_CHECK ignored: 0x%8x",
                            static_cast<int32_t>(v));
             return false;
@@ -730,11 +684,12 @@ private:
         return true;
     }
 
-    /* -*- ROS callbacks -*- */
+    /* ros callbacks */
+    /* ROS回调函数 */
 
     /**
      * @brief fetches all parameters from device
-     * @service ~param/pull
+     * @brief 从设备中拉取所有参数
      */
     bool pull_cb(mavros_msgs::ParamPull::Request &req, mavros_msgs::ParamPull::Response &res) {
         unique_lock lock(mutex);
@@ -778,7 +733,7 @@ private:
 
     /**
      * @brief push all parameter value to device
-     * @service ~param/push
+     * @brief 将所有参数值上传到设备
      */
     bool push_cb(mavros_msgs::ParamPush::Request &req, mavros_msgs::ParamPush::Response &res) {
         XmlRpc::XmlRpcValue param_dict;
@@ -798,9 +753,11 @@ private:
             auto        param_it = parameters.find(param.first);
             if (param_it != parameters.end()) {
                 // copy current state of Parameter
+                // 复制当前参数状态
                 auto to_send = param_it->second;
 
                 // Update XmlRpcValue
+                // 更新XmlRpcValue
                 to_send.param_value = param.second;
 
                 lock.unlock();
@@ -822,7 +779,7 @@ private:
 
     /**
      * @brief sets parameter value
-     * @service ~param/set
+     * @brief 设置参数值
      */
     bool set_cb(mavros_msgs::ParamSet::Request &req, mavros_msgs::ParamSet::Response &res) {
         unique_lock lock(mutex);
@@ -838,6 +795,7 @@ private:
             auto to_send = param_it->second;
 
             // according to ParamValue description
+            // 根据参数值的描述
             if (req.value.integer != 0)
                 to_send.param_value = static_cast<int>(req.value.integer);
             else if (req.value.real != 0.0)
@@ -867,7 +825,7 @@ private:
 
     /**
      * @brief get parameter
-     * @service ~param/get
+     * @brief 获取参数
      */
     bool get_cb(mavros_msgs::ParamGet::Request &req, mavros_msgs::ParamGet::Response &res) {
         lock_guard lock(mutex);
