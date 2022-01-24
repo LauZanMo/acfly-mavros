@@ -453,7 +453,7 @@ private:
     }
 
     void add_sample(int64_t offset_ns) {
-        /*
+        /**
          * Online exponential smoothing filter. The derivative of the estimate is also
          * estimated in order to produce an estimate without steady state lag:
          * https://en.wikipedia.org/wiki/Exponential_smoothing#Double_exponential_smoothing

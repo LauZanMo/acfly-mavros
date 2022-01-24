@@ -165,8 +165,8 @@ private:
 
         L_CommandTransaction::iterator ack_it;
 
-        /* check transactions */
-        /* 查重 */
+        // check transactions
+        // 查重
         for (const auto &tr : ack_waiting_list) {
             if (tr.expected_command_ == command) {
                 ROS_WARN_THROTTLE_NAMED(10, "cmd", "CMD: Command %u already in progress", command);
