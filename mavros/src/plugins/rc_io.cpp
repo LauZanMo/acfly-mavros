@@ -1,17 +1,15 @@
 /**
- * @brief RC IO plugin
  * @file rc_io.cpp
+ * @author LauZanMo (LauZanMo@whu.edu.cn)
  * @author Vladimir Ermakov <vooon341@gmail.com>
+ * @brief This file is from mavros open source respository, thanks for their contribution.
+ * @version 1.0
+ * @date 2022-01-24
  *
- * @addtogroup plugin
- * @{
- */
-/*
- * Copyright 2014,2015,2016 Vladimir Ermakov.
+ * @copyright Copyright (c) 2022 acfly
+ * @copyright Copyright 2014,2015,2016,2017 Vladimir Ermakov.
+ * For commercial use, please contact acfly: https://www.acfly.cn
  *
- * This file is part of the mavros package and subject to the license terms
- * in the top-level LICENSE file of the mavros repository.
- * https://github.com/mavlink/mavros/tree/master/LICENSE.md
  */
 
 #include <mavros/mavros_plugin.h>
@@ -24,6 +22,7 @@ namespace mavros {
 namespace std_plugins {
 /**
  * @brief RC IO plugin
+ * @brief 遥控IO口的ROS插件
  */
 class RCIOPlugin : public plugin::PluginBase {
 public:
@@ -61,11 +60,13 @@ private:
     ros::Publisher  rc_out_pub;
     ros::Subscriber override_sub;
 
-    /* -*- rx handlers -*- */
+    /* message handlers */
+    /* 信息回调句柄 */
 
-    void handle_rc_channels_raw(const mavlink::mavlink_message_t *     msg,
+    void handle_rc_channels_raw(const mavlink::mavlink_message_t      *msg,
                                 mavlink::common::msg::RC_CHANNELS_RAW &port) {
-        /* if we receive RC_CHANNELS, drop RC_CHANNELS_RAW */
+        // if we receive RC_CHANNELS, drop RC_CHANNELS_RAW
+        // 如果接收到RC_CHANNELS信息，则不需要RC_CHANNELS_RAW信息
         if (has_rc_channels_msg)
             return;
 
@@ -99,7 +100,7 @@ private:
         rc_in_pub.publish(rcin_msg);
     }
 
-    void handle_rc_channels(const mavlink::mavlink_message_t * msg,
+    void handle_rc_channels(const mavlink::mavlink_message_t  *msg,
                             mavlink::common::msg::RC_CHANNELS &channels) {
         constexpr size_t MAX_CHANCNT = 18;
         lock_guard       lock(mutex);
@@ -117,7 +118,6 @@ private:
 
         raw_rc_in.resize(channels.chancount);
 
-        // switch works as start point selector.
         switch (channels.chancount) {
         // [[[cog:
         // for i in range(18, 0, -1):
@@ -173,7 +173,7 @@ private:
         rc_in_pub.publish(rcin_msg);
     }
 
-    void handle_servo_output_raw(const mavlink::mavlink_message_t *      msg,
+    void handle_servo_output_raw(const mavlink::mavlink_message_t       *msg,
                                  mavlink::common::msg::SERVO_OUTPUT_RAW &port) {
         lock_guard lock(mutex);
 
@@ -181,6 +181,7 @@ private:
 
         // If using Mavlink protocol v2, number of available servo channels is 16;
         // otherwise, 8
+        // 如果使用的是mavlink v2协议，可用伺服通道数量为16，否则为8
         if (msg->magic == MAVLINK_STX)
             num_channels = 16;
         else
@@ -221,7 +222,6 @@ private:
 
         auto rcout_msg = boost::make_shared<mavros_msgs::RCOut>();
 
-        // XXX: Why time_usec is 32 bit? We should test that.
         uint64_t time_usec = port.time_usec;
 
         rcout_msg->header.stamp = m_uas->synchronise_stamp(time_usec);
@@ -230,7 +230,8 @@ private:
         rc_out_pub.publish(rcout_msg);
     }
 
-    /* -*- callbacks -*- */
+    /* callbacks */
+    /* 回调函数 */
 
     void connection_cb(bool connected) override {
         lock_guard lock(mutex);
