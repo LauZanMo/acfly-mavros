@@ -125,7 +125,43 @@ private:
 
         for (auto &tr : ack_waiting_list) {
             if (tr.expected_command_ == ack.command) {
+                using mavlink::common::MAV_RESULT;
+
                 tr.result_ = ack.result;
+                switch (ack.result) {
+                case enum_value(MAV_RESULT::ACCEPTED):
+                    ROS_INFO_STREAM_NAMED("cmd", "CMD: Command " + std::to_string(ack.command) +
+                                                     " accepted.");
+                    break;
+                case enum_value(MAV_RESULT::CANCELLED):
+                    ROS_INFO_STREAM_NAMED("cmd", "CMD: Command " + std::to_string(ack.command) +
+                                                     " cancelled.");
+                    break;
+                case enum_value(MAV_RESULT::DENIED):
+                    ROS_WARN_STREAM_NAMED("cmd", "CMD: Command " + std::to_string(ack.command) +
+                                                     " denied.");
+                    break;
+                case enum_value(MAV_RESULT::FAILED):
+                    ROS_ERROR_STREAM_NAMED("cmd", "CMD: Command " + std::to_string(ack.command) +
+                                                      " failed.");
+                    break;
+                case enum_value(MAV_RESULT::IN_PROGRESS):
+                    ROS_INFO_STREAM_NAMED("cmd", "CMD: Command " + std::to_string(ack.command) +
+                                                     " in progress.");
+                    break;
+                case enum_value(MAV_RESULT::TEMPORARILY_REJECTED):
+                    ROS_WARN_STREAM_NAMED("cmd", "CMD: Command " + std::to_string(ack.command) +
+                                                     " temporarily rejected.");
+                    break;
+                case enum_value(MAV_RESULT::UNSUPPORTED):
+                    ROS_WARN_STREAM_NAMED("cmd", "CMD: Command " + std::to_string(ack.command) +
+                                                     " unsupported.");
+                    break;
+
+                default:
+                    break;
+                }
+
                 tr.ack_.notify_all();
                 return;
             }
