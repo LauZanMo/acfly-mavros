@@ -8,6 +8,7 @@
  *
  * @copyright Copyright (c) 2022 acfly
  * @copyright Copyright 2014,2015,2016,2017 Vladimir Ermakov, M.H.Kabir.
+ * For commercial use, please contact acfly: https://www.acfly.cn
  *
  */
 
@@ -293,6 +294,9 @@ private:
 
     bool publish_sim_time;
 
+    /* message handlers */
+    /* 信息回调句柄 */
+
     void handle_system_time(const mavlink::mavlink_message_t  *msg,
                             mavlink::common::msg::SYSTEM_TIME &mtime) {
         // date -d @1234567890: Sat Feb 14 02:31:30 MSK 2009
@@ -337,30 +341,8 @@ private:
         }
     }
 
-    void sys_time_cb(const ros::WallTimerEvent &event) {
-        // For filesystem only
-        uint64_t time_unix_usec = ros::Time::now().toNSec() / 1000; // nano -> micro
-
-        mavlink::common::msg::SYSTEM_TIME mtime{};
-        mtime.time_unix_usec = time_unix_usec;
-
-        UAS_FCU(m_uas)->send_message_ignore_drop(mtime);
-    }
-
-    void timesync_cb(const ros::WallTimerEvent &event) {
-        auto ts_mode = m_uas->get_timesync_mode();
-        if (ts_mode == TSM::MAVLINK) {
-            send_timesync_msg(0, ros::Time::now().toNSec());
-        } else if (ts_mode == TSM::ONBOARD) {
-            // Calculate offset between CLOCK_REALTIME (ros::WallTime) and CLOCK_MONOTONIC
-            // 计算CLOCK_REALTIME和CLOCK_MONOTONIC的偏移
-            uint64_t realtime_now_ns  = ros::Time::now().toNSec();
-            uint64_t monotonic_now_ns = get_monotonic_now();
-
-            add_timesync_observation(realtime_now_ns - monotonic_now_ns, realtime_now_ns,
-                                     monotonic_now_ns);
-        }
-    }
+    /* mid-level functions */
+    /* 中间件函数 */
 
     void send_timesync_msg(uint64_t tc1, uint64_t ts1) {
         mavlink::common::msg::TIMESYNC tsync{};
@@ -520,6 +502,34 @@ private:
         clock_gettime(CLOCK_MONOTONIC, &spec);
 
         return spec.tv_sec * 1000000000ULL + spec.tv_nsec;
+    }
+
+    /* ros callbacks */
+    /* ros回调函数 */
+
+    void sys_time_cb(const ros::WallTimerEvent &event) {
+        // For filesystem only
+        uint64_t time_unix_usec = ros::Time::now().toNSec() / 1000; // nano -> micro
+
+        mavlink::common::msg::SYSTEM_TIME mtime{};
+        mtime.time_unix_usec = time_unix_usec;
+
+        UAS_FCU(m_uas)->send_message_ignore_drop(mtime);
+    }
+
+    void timesync_cb(const ros::WallTimerEvent &event) {
+        auto ts_mode = m_uas->get_timesync_mode();
+        if (ts_mode == TSM::MAVLINK) {
+            send_timesync_msg(0, ros::Time::now().toNSec());
+        } else if (ts_mode == TSM::ONBOARD) {
+            // Calculate offset between CLOCK_REALTIME (ros::WallTime) and CLOCK_MONOTONIC
+            // 计算CLOCK_REALTIME和CLOCK_MONOTONIC的偏移
+            uint64_t realtime_now_ns  = ros::Time::now().toNSec();
+            uint64_t monotonic_now_ns = get_monotonic_now();
+
+            add_timesync_observation(realtime_now_ns - monotonic_now_ns, realtime_now_ns,
+                                     monotonic_now_ns);
+        }
     }
 };
 } // namespace std_plugins

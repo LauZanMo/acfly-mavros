@@ -8,6 +8,7 @@
  *
  * @copyright Copyright (c) 2022 acfly
  * @copyright Copyright 2014,2015,2016,2017 Vladimir Ermakov.
+ * For commercial use, please contact acfly: https://www.acfly.cn
  *
  */
 
@@ -523,7 +524,7 @@ private:
     using M_VehicleInfo = std::unordered_map<uint16_t, mavros_msgs::VehicleInfo>;
     M_VehicleInfo vehicles;
 
-    /* mid-level helpers */
+    /* mid-level functions */
     /* 中间件函数 */
 
     // Get vehicle key for the unordered map containing all vehicles
@@ -545,7 +546,7 @@ private:
             v.compid         = compid;
             v.available_info = 0;
 
-            auto res = vehicles.emplace(key, v); //-> pair<iterator, bool>
+            auto res = vehicles.emplace(key, v);
             ret      = res.first;
         }
 
@@ -710,7 +711,7 @@ private:
     void handle_sys_status(const mavlink::mavlink_message_t *msg,
                            mavlink::common::msg::SYS_STATUS &stat) {
         float volt = stat.voltage_battery / 1000.0f;  // mV
-        float curr = stat.current_battery / 100.0f;   // 10 mA或-1
+        float curr = stat.current_battery / 100.0f;   // 10mA或-1
         float rem  = stat.battery_remaining / 100.0f; // 或-1
 
         battery_voltage = volt;
@@ -750,7 +751,7 @@ private:
     void handle_battery2(const mavlink::mavlink_message_t      *msg,
                          mavlink::ardupilotmega::msg::BATTERY2 &batt) {
         float volt = batt.voltage / 1000.0f;        // mV
-        float curr = batt.current_battery / 100.0f; // 10 mA or -1
+        float curr = batt.current_battery / 100.0f; // 10mA或-1
 
         auto batt_msg          = boost::make_shared<BatteryMsg>();
         batt_msg->header.stamp = ros::Time::now();
@@ -955,6 +956,7 @@ private:
         bool ret = false;
 
         // Request from all first 3 times, then fallback to unicast
+        // 请求三次后，退回到单播
         bool do_broadcast = version_retries > RETRIES_COUNT / 2;
 
         try {
@@ -1058,6 +1060,7 @@ private:
 
         if (req.sysid == 0 && req.compid == 0) {
             // use target
+            // 使用目标
             req_sysid  = m_uas->get_tgt_system();
             req_compid = m_uas->get_tgt_component();
         }
@@ -1067,6 +1070,7 @@ private:
 
         if (it == vehicles.end()) {
             // Vehicle not found
+            // 载具搜索不到
             res.success = false;
             return res.success;
         }
