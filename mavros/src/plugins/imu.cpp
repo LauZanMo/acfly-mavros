@@ -1,17 +1,15 @@
 /**
- * @brief IMU and attitude data parser plugin
  * @file imu.cpp
+ * @author LauZanMo (LauZanMo@whu.edu.cn)
  * @author Vladimir Ermakov <vooon341@gmail.com>
+ * @brief This file is from mavros open source respository, thanks for their contribution.
+ * @version 1.0
+ * @date 2022-01-24
  *
- * @addtogroup plugin
- * @{
- */
-/*
- * Copyright 2013-2017 Vladimir Ermakov.
+ * @copyright Copyright (c) 2022 acfly
+ * @copyright Copyright 2014,2015,2016,2017 Vladimir Ermakov.
+ * For commercial use, please contact acfly: https://www.acfly.cn
  *
- * This file is part of the mavros package and subject to the license terms
- * in the top-level LICENSE file of the mavros repository.
- * https://github.com/mavlink/mavros/tree/master/LICENSE.md
  */
 
 #include <cmath>
@@ -26,22 +24,27 @@
 
 namespace mavros {
 namespace std_plugins {
-//! Gauss to Tesla coeff
+// 单位转换比例系数
+// Gauss to Tesla coeff
 static constexpr double GAUSS_TO_TESLA = 1.0e-4;
-//! millTesla to Tesla coeff
+// millTesla to Tesla coeff
 static constexpr double MILLIT_TO_TESLA = 1000.0;
-//! millRad/Sec to Rad/Sec coeff
+// millRad/Sec to Rad/Sec coeff
 static constexpr double MILLIRS_TO_RADSEC = 1.0e-3;
-//! millG to m/s**2 coeff
+// millG to m/s**2 coeff
 static constexpr double MILLIG_TO_MS2 = 9.80665 / 1000.0;
-//! millm/s**2 to m/s**2 coeff
+// millm/s**2 to m/s**2 coeff
 static constexpr double MILLIMS2_TO_MS2 = 1.0e-3;
-//! millBar to Pascal coeff
+// millBar to Pascal coeff
 static constexpr double MILLIBAR_TO_PASCAL = 1.0e2;
-//! Radians to degrees
+// Radians to degrees
 static constexpr double RAD_TO_DEG = 180.0 / M_PI;
 
-//! @brief IMU and attitude data publication plugin
+/**
+ * @brief IMU and attitude data publication plugin
+ * @brief IMU和角度数据发布ROS插件
+ * @note 该插件会将IMU，气压计，磁力计和角度数据进行存储，供其他组件使用，并以ROS信息发布
+ */
 class IMUPlugin : public plugin::PluginBase {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -62,12 +65,17 @@ public:
          * Additionally, it is reported the orientation of the vehicle to describe the
          * transformation from the ENU frame to the base_link frame (ENU <-> base_link).
          * THIS ORIENTATION IS NOT THE SAME AS THAT REPORTED BY THE FCU (NED <-> aircraft).
+         *
+         * @warning 从aircraft坐标系到base_link坐标系的旋转已被启用，另外，载具的旋转描述的是从东北
+         * 天坐标系到前左上坐标系的变换(ENU <->base_link)，该旋转与飞控发送的信息不一致，飞控发的
+         * mavlink信息是从北东地坐标系到前右下坐标系的变换(NED <-> aircraft)
          */
-        imu_nh.param<std::string>("frame_id", frame_id, "base_link");
+        imu_nh.param<std::string>("base_frame_flu_id", base_frame_flu_id, "ac_base_flu");
+        imu_nh.param<std::string>("base_frame_frd_id", base_frame_frd_id, "ac_base_frd");
         imu_nh.param("linear_acceleration_stdev", linear_stdev,
-                     0.0003); // check default by MPU6000 spec
+                     0.0003); // MPU6000默认参数
         imu_nh.param("angular_velocity_stdev", angular_stdev,
-                     0.02 * (M_PI / 180.0)); // check default by MPU6000 spec
+                     0.02 * (M_PI / 180.0)); // MPU6000默认参数
         imu_nh.param("orientation_stdev", orientation_stdev, 1.0);
         imu_nh.param("magnetic_stdev", mag_stdev, 0.0);
 
@@ -85,7 +93,8 @@ public:
         diff_press_pub   = imu_nh.advertise<sensor_msgs::FluidPressure>("diff_pressure", 10);
         imu_raw_pub      = imu_nh.advertise<sensor_msgs::Imu>("data_raw", 10);
 
-        // Reset has_* flags on connection change
+        // Reset flags on connection change
+        // 状态变化后重置标志
         enable_connection_cb();
     }
 
@@ -102,7 +111,7 @@ public:
 
 private:
     ros::NodeHandle imu_nh;
-    std::string     frame_id;
+    std::string     base_frame_flu_id, base_frame_frd_id;
 
     ros::Publisher imu_pub;
     ros::Publisher imu_raw_pub;
@@ -125,13 +134,14 @@ private:
     ftf::Covariance3d unk_orientation_cov;
     ftf::Covariance3d magnetic_cov;
 
-    /* -*- helpers -*- */
+    /* mid-level functions */
+    /* 中间件函数 */
 
     /**
-     * @brief Setup 3x3 covariance matrix
-     * @param cov		Covariance matrix
-     * @param stdev		Standard deviation
-     * @remarks		Diagonal computed from the stdev
+     * @brief 初始化3*3协方差矩阵
+     * @param cov		协方差矩阵
+     * @param stdev		标准差
+     * @remarks		    由协方差计算对角矩阵
      */
     void setup_covariance(ftf::Covariance3d &cov, double stdev) {
         ftf::EigenMapCovariance3d c(cov.data());
@@ -146,12 +156,12 @@ private:
     }
 
     /**
-     * @brief Fill and publish IMU data message.
-     * @param time_boot_ms     Message timestamp (not syncronized)
-     * @param orientation_enu  Orientation in the base_link ENU frame
-     * @param orientation_ned  Orientation in the aircraft NED frame
-     * @param gyro_flu         Angular velocity/rate in the base_link Forward-Left-Up frame
-     * @param gyro_frd         Angular velocity/rate in the aircraft Forward-Right-Down frame
+     * @brief 构建并发布IMU data信息
+     * @param time_boot_ms     消息时间戳(未同步)
+     * @param orientation_enu  从ENU到FLU的旋转
+     * @param orientation_ned  从NED到FRD的旋转
+     * @param gyro_flu         FLU坐标系下的角速度
+     * @param gyro_frd         FRD坐标系下的角速度
      */
     void publish_imu_data(uint32_t time_boot_ms, Eigen::Quaterniond &orientation_enu,
                           Eigen::Quaterniond &orientation_ned, Eigen::Vector3d &gyro_flu,
@@ -160,27 +170,33 @@ private:
         auto imu_enu_msg = boost::make_shared<sensor_msgs::Imu>();
 
         // Fill message header
-        imu_enu_msg->header = m_uas->synchronized_header(frame_id, time_boot_ms);
-        imu_ned_msg->header = m_uas->synchronized_header("aircraft", time_boot_ms);
+        // 填充信息标头
+        imu_enu_msg->header = m_uas->synchronized_header(base_frame_flu_id, time_boot_ms);
+        imu_ned_msg->header = m_uas->synchronized_header(base_frame_frd_id, time_boot_ms);
 
         // Convert from Eigen::Quaternond to geometry_msgs::Quaternion
+        // 将信息从Eigen::Quaternond格式转化为to geometry_msgs::Quaternion格式
         tf::quaternionEigenToMsg(orientation_enu, imu_enu_msg->orientation);
         tf::quaternionEigenToMsg(orientation_ned, imu_ned_msg->orientation);
 
         // Convert from Eigen::Vector3d to geometry_msgs::Vector3
+        // 将信息从Eigen::Vector3d格式转化为geometry_msgs::Vector3格式
         tf::vectorEigenToMsg(gyro_flu, imu_enu_msg->angular_velocity);
         tf::vectorEigenToMsg(gyro_frd, imu_ned_msg->angular_velocity);
 
         // Eigen::Vector3d from HIGHRES_IMU or RAW_IMU, to geometry_msgs::Vector3
+        // 将信息从Eigen::Vector3d格式转化为geometry_msgs::Vector3格式
         tf::vectorEigenToMsg(linear_accel_vec_flu, imu_enu_msg->linear_acceleration);
         tf::vectorEigenToMsg(linear_accel_vec_frd, imu_ned_msg->linear_acceleration);
 
         // Pass ENU msg covariances
+        // 传递ENU信息的协方差
         imu_enu_msg->orientation_covariance         = orientation_cov;
         imu_enu_msg->angular_velocity_covariance    = angular_velocity_cov;
         imu_enu_msg->linear_acceleration_covariance = linear_acceleration_cov;
 
         // Pass NED msg covariances
+        // 传递NED信息的协方差
         imu_ned_msg->orientation_covariance         = orientation_cov;
         imu_ned_msg->angular_velocity_covariance    = angular_velocity_cov;
         imu_ned_msg->linear_acceleration_covariance = linear_acceleration_cov;
@@ -188,50 +204,53 @@ private:
         if (!received_linear_accel) {
             // Set element 0 of covariance matrix to -1 if no data received as per sensor_msgs/Imu
             // defintion
+            // 根据sensor_msgs/Imu定义,如果没有收到数据，则将协方差矩阵的元素0设置为-1
             imu_enu_msg->linear_acceleration_covariance[0] = -1;
             imu_ned_msg->linear_acceleration_covariance[0] = -1;
         }
 
-        /** Store attitude in base_link ENU
-         *  @snippet src/plugins/imu.cpp store_enu
+        /**
+         * Store attitude in base_link ENU
+         * 保存该角度
+         * @snippet src/plugins/imu.cpp store_enu
          */
-        // [store_enu]
         m_uas->update_attitude_imu_enu(imu_enu_msg);
-        // [store_enu]
 
-        /** Store attitude in aircraft NED
-         *  @snippet src/plugins/imu.cpp store_ned
+        /**
+         * Store attitude in aircraft NED
+         * 保存该角度
+         * @snippet src/plugins/imu.cpp store_ned
          */
-        // [store_enu]
         m_uas->update_attitude_imu_ned(imu_ned_msg);
-        // [store_ned]
 
-        /** Publish only base_link ENU message
-         *  @snippet src/plugins/imu.cpp pub_enu
+        /**
+         * Publish only base_link ENU message
+         * 仅发布ENU到FLU的imu信息
+         * @snippet src/plugins/imu.cpp pub_enu
          */
-        // [pub_enu]
         imu_pub.publish(imu_enu_msg);
-        // [pub_enu]
     }
 
     /**
-     * @brief Fill and publish IMU data_raw message; store linear acceleration for IMU data
-     * @param header      Message frame_id and timestamp
-     * @param gyro_flu    Orientation in the base_link Forward-Left-Up frame
-     * @param accel_flu   Linear acceleration in the base_link Forward-Left-Up frame
-     * @param accel_frd   Linear acceleration in the aircraft Forward-Right-Down frame
+     * @brief 构建并发布IMU data_raw信息，保存imu数据的线加速度
+     * @param header      信息坐标系id和时间戳
+     * @param gyro_flu    FLU坐标系下的角速度
+     * @param accel_flu   FLU坐标系下的线加速度
+     * @param accel_frd   FRD坐标系下的线加速度
      */
     void publish_imu_data_raw(std_msgs::Header &header, Eigen::Vector3d &gyro_flu,
                               Eigen::Vector3d &accel_flu, Eigen::Vector3d &accel_frd) {
         auto imu_msg = boost::make_shared<sensor_msgs::Imu>();
 
         // Fill message header
+        // 填充信息标头
         imu_msg->header = header;
 
         tf::vectorEigenToMsg(gyro_flu, imu_msg->angular_velocity);
         tf::vectorEigenToMsg(accel_flu, imu_msg->linear_acceleration);
 
         // Save readings
+        // 保存信息
         linear_accel_vec_flu  = accel_flu;
         linear_accel_vec_frd  = accel_frd;
         received_linear_accel = true;
@@ -240,12 +259,13 @@ private:
         imu_msg->angular_velocity_covariance    = angular_velocity_cov;
         imu_msg->linear_acceleration_covariance = linear_acceleration_cov;
 
-        // Publish message [ENU frame]
+        // Publish message [FLU frame]
+        // 发布FLU坐标系下的imu_raw信息
         imu_raw_pub.publish(imu_msg);
     }
 
     /**
-     * @brief Publish magnetic field data
+     * @brief 发布磁场信息
      * @param header	Message frame_id and timestamp
      * @param mag_field	Magnetic field in the base_link ENU frame
      */
@@ -253,99 +273,99 @@ private:
         auto magn_msg = boost::make_shared<sensor_msgs::MagneticField>();
 
         // Fill message header
+        // 填充信息标头
         magn_msg->header = header;
 
         tf::vectorEigenToMsg(mag_field, magn_msg->magnetic_field);
         magn_msg->magnetic_field_covariance = magnetic_cov;
 
         // Publish message [ENU frame]
+        // 发布ENU坐标系下的磁场信息
         magn_pub.publish(magn_msg);
     }
 
-    /* -*- message handlers -*- */
+    /* message handlers */
+    /* 信息回调句柄 */
 
-    /**
-     * @brief Handle ATTITUDE MAVlink message.
-     * Message specification: https://mavlink.io/en/messages/common.html#ATTITUDE
-     * @param msg	Received Mavlink msg
-     * @param att	ATTITUDE msg
-     */
     void handle_attitude(const mavlink::mavlink_message_t *msg,
-                         mavlink::common::msg::ATTITUDE &  att) {
+                         mavlink::common::msg::ATTITUDE   &att) {
         if (has_att_quat)
             return;
 
-        /** Orientation on the NED-aicraft frame:
-         *  @snippet src/plugins/imu.cpp ned_aircraft_orient1
+        /**
+         * Orientation on the NED-aicraft frame:
+         * 从NED坐标系到FRD坐标系的旋转
+         * @snippet src/plugins/imu.cpp ned_aircraft_orient1
          */
-        // [ned_aircraft_orient1]
         auto ned_aircraft_orientation = ftf::quaternion_from_rpy(att.roll, att.pitch, att.yaw);
-        // [ned_aircraft_orient1]
 
-        /** Angular velocity on the NED-aicraft frame:
-         *  @snippet src/plugins/imu.cpp ned_ang_vel1
+        /**
+         * Angular velocity on the NED-aicraft frame:
+         * 从NED坐标系到FRD坐标系的角速度
+         * @snippet src/plugins/imu.cpp ned_ang_vel1
          */
-        // [frd_ang_vel1]
         auto gyro_frd = Eigen::Vector3d(att.rollspeed, att.pitchspeed, att.yawspeed);
-        // [frd_ang_vel1]
 
-        /** The RPY describes the rotation: aircraft->NED.
-         *  It is required to change this to aircraft->base_link:
-         *  @snippet src/plugins/imu.cpp ned->baselink->enu
+        /**
+         * The RPY describes the rotation: aircraft->NED.
+         * It is required to change this to aircraft->base_link:
+         * 上传的欧拉角描述的旋转是：FRD->NED
+         * 需要转换为FLU坐标系，即描述：FLU->ENU
+         * @snippet src/plugins/imu.cpp ned->baselink->enu
          */
-        // [ned->baselink->enu]
         auto enu_baselink_orientation = ftf::transform_orientation_aircraft_baselink(
             ftf::transform_orientation_ned_enu(ned_aircraft_orientation));
-        // [ned->baselink->enu]
 
-        /** The angular velocity expressed in the aircraft frame.
-         *  It is required to apply the static rotation to get it into the base_link frame:
-         *  @snippet src/plugins/imu.cpp rotate_gyro
+        /**
+         * The angular velocity expressed in the aircraft frame.
+         * It is required to apply the static rotation to get it into the base_link frame:
+         * 上传的角速度是在FRD坐标系下的
+         * 将其做一个常值旋转转换到FLU坐标系
+         * @snippet src/plugins/imu.cpp rotate_gyro
          */
-        // [rotate_gyro]
         auto gyro_flu = ftf::transform_frame_aircraft_baselink(gyro_frd);
-        // [rotate_gyro]
 
         publish_imu_data(att.time_boot_ms, enu_baselink_orientation, ned_aircraft_orientation,
                          gyro_flu, gyro_frd);
     }
 
-    /**
-     * @brief Handle ATTITUDE_QUATERNION MAVlink message.
-     * Message specification: https://mavlink.io/en/messages/common.html/#ATTITUDE_QUATERNION
-     * @param msg		Received Mavlink msg
-     * @param att_q		ATTITUDE_QUATERNION msg
-     */
-    void handle_attitude_quaternion(const mavlink::mavlink_message_t *         msg,
+    void handle_attitude_quaternion(const mavlink::mavlink_message_t          *msg,
                                     mavlink::common::msg::ATTITUDE_QUATERNION &att_q) {
         ROS_INFO_COND_NAMED(!has_att_quat, "imu", "IMU: Attitude quaternion IMU detected!");
         has_att_quat = true;
 
-        /** Orientation on the NED-aicraft frame:
-         *  @snippet src/plugins/imu.cpp ned_aircraft_orient2
+        /**
+         * Orientation on the NED-aicraft frame:
+         * 从NED坐标系到FRD坐标系的旋转
+         * @snippet src/plugins/imu.cpp ned_aircraft_orient2
          */
-        // [ned_aircraft_orient2]
         auto ned_aircraft_orientation = Eigen::Quaterniond(att_q.q1, att_q.q2, att_q.q3, att_q.q4);
-        // [ned_aircraft_orient2]
 
-        /** Angular velocity on the NED-aicraft frame:
-         *  @snippet src/plugins/imu.cpp ned_ang_vel2
+        /**
+         * Angular velocity on the NED-aicraft frame:
+         * 从NED坐标系到FRD坐标系的角速度
+         * @snippet src/plugins/imu.cpp ned_ang_vel2
          */
-        // [frd_ang_vel2]
         auto gyro_frd = Eigen::Vector3d(att_q.rollspeed, att_q.pitchspeed, att_q.yawspeed);
-        // [frd_ang_vel2]
 
-        /** MAVLink quaternion exactly matches Eigen convention.
-         *  The RPY describes the rotation: aircraft->NED.
-         *  It is required to change this to aircraft->base_link:
-         *  @snippet src/plugins/imu.cpp ned->baselink->enu
+        /**
+         * MAVLink quaternion exactly matches Eigen convention.
+         * The RPY describes the rotation: aircraft->NED.
+         * It is required to change this to aircraft->base_link:
+         * mavlink四元数与Eigen完全一致
+         * 上传的欧拉角描述的旋转是：FRD->NED
+         * 需要转换为FLU坐标系，即描述：FLU->ENU
+         * @snippet src/plugins/imu.cpp ned->baselink->enu
          */
         auto enu_baselink_orientation = ftf::transform_orientation_aircraft_baselink(
             ftf::transform_orientation_ned_enu(ned_aircraft_orientation));
 
-        /** The angular velocity expressed in the aircraft frame.
-         *  It is required to apply the static rotation to get it into the base_link frame:
-         *  @snippet src/plugins/imu.cpp rotate_gyro
+        /**
+         * The angular velocity expressed in the aircraft frame.
+         * It is required to apply the static rotation to get it into the base_link frame:
+         * 上传的角速度是在FRD坐标系下的
+         * 将其做一个常值旋转转换到FLU坐标系
+         * @snippet src/plugins/imu.cpp rotate_gyro
          */
         auto gyro_flu = ftf::transform_frame_aircraft_baselink(gyro_frd);
 
@@ -353,26 +373,24 @@ private:
                          gyro_flu, gyro_frd);
     }
 
-    /**
-     * @brief Handle HIGHRES_IMU MAVlink message.
-     * Message specification: https://mavlink.io/en/messages/common.html/#HIGHRES_IMU
-     * @param msg		Received Mavlink msg
-     * @param imu_hr	HIGHRES_IMU msg
-     */
-    void handle_highres_imu(const mavlink::mavlink_message_t * msg,
+    void handle_highres_imu(const mavlink::mavlink_message_t  *msg,
                             mavlink::common::msg::HIGHRES_IMU &imu_hr) {
         ROS_INFO_COND_NAMED(!has_hr_imu, "imu", "IMU: High resolution IMU detected!");
         has_hr_imu = true;
 
-        auto header = m_uas->synchronized_header(frame_id, imu_hr.time_usec);
-        /** @todo Make more paranoic check of HIGHRES_IMU.fields_updated
+        auto header = m_uas->synchronized_header(base_frame_flu_id, imu_hr.time_usec);
+        /**
+         * @todo Make more paranoic check of HIGHRES_IMU.fields_updated
+         * @todo 对HIGHRES_IMU.fields_updated进行更细致的检查
          */
 
-        /** Check if accelerometer + gyroscope data are available.
-         *  Data is expressed in aircraft frame it is required to rotate to the base_link frame:
-         *  @snippet src/plugins/imu.cpp accel_available
+        /**
+         * Check if accelerometer + gyroscope data are available.
+         * Data is expressed in aircraft frame it is required to rotate to the base_link frame:
+         * 检查加速度计和陀螺数据是否可用
+         * 数据以FRD坐标系表示因此需要转化为FLU坐标系
+         * @snippet src/plugins/imu.cpp accel_available
          */
-        // [accel_available]
         if (imu_hr.fields_updated & ((7 << 3) | (7 << 0))) {
             auto gyro_flu = ftf::transform_frame_aircraft_baselink(
                 Eigen::Vector3d(imu_hr.xgyro, imu_hr.ygyro, imu_hr.zgyro));
@@ -382,24 +400,24 @@ private:
 
             publish_imu_data_raw(header, gyro_flu, accel_flu, accel_frd);
         }
-        // [accel_available]
 
-        /** Check if magnetometer data is available:
-         *  @snippet src/plugins/imu.cpp mag_available
+        /**
+         * Check if magnetometer data is available:
+         * 检查磁力计数据是否可用
+         * @snippet src/plugins/imu.cpp mag_available
          */
-        // [mag_available]
         if (imu_hr.fields_updated & (7 << 6)) {
             auto mag_field = ftf::transform_frame_aircraft_baselink<Eigen::Vector3d>(
                 Eigen::Vector3d(imu_hr.xmag, imu_hr.ymag, imu_hr.zmag) * GAUSS_TO_TESLA);
 
             publish_mag(header, mag_field);
         }
-        // [mag_available]
 
-        /** Check if static pressure sensor data is available:
-         *  @snippet src/plugins/imu.cpp static_pressure_available
+        /**
+         * Check if static pressure sensor data is available:
+         * 检查气压计数据是否可用
+         * @snippet src/plugins/imu.cpp static_pressure_available
          */
-        // [static_pressure_available]
         if (imu_hr.fields_updated & (1 << 9)) {
             auto static_pressure_msg = boost::make_shared<sensor_msgs::FluidPressure>();
 
@@ -408,12 +426,12 @@ private:
 
             static_press_pub.publish(static_pressure_msg);
         }
-        // [static_pressure_available]
 
-        /** Check if differential pressure sensor data is available:
-         *  @snippet src/plugins/imu.cpp differential_pressure_available
+        /**
+         * Check if differential pressure sensor data is available:
+         * 检查差分气压计数据是否可用
+         * @snippet src/plugins/imu.cpp differential_pressure_available
          */
-        // [differential_pressure_available]
         if (imu_hr.fields_updated & (1 << 10)) {
             auto differential_pressure_msg = boost::make_shared<sensor_msgs::FluidPressure>();
 
@@ -422,12 +440,12 @@ private:
 
             diff_press_pub.publish(differential_pressure_msg);
         }
-        // [differential_pressure_available]
 
-        /** Check if temperature data is available:
-         *  @snippet src/plugins/imu.cpp temperature_available
+        /**
+         * Check if temperature data is available:
+         * 检查温度数据是否可用
+         * @snippet src/plugins/imu.cpp temperature_available
          */
-        // [temperature_available]
         if (imu_hr.fields_updated & (1 << 12)) {
             auto temp_msg = boost::make_shared<sensor_msgs::Temperature>();
 
@@ -436,17 +454,10 @@ private:
 
             temp_imu_pub.publish(temp_msg);
         }
-        // [temperature_available]
     }
 
-    /**
-     * @brief Handle RAW_IMU MAVlink message.
-     * Message specification: https://mavlink.io/en/messages/common.html/#RAW_IMU
-     * @param msg		Received Mavlink msg
-     * @param imu_raw	RAW_IMU msg
-     */
     void handle_raw_imu(const mavlink::mavlink_message_t *msg,
-                        mavlink::common::msg::RAW_IMU &   imu_raw) {
+                        mavlink::common::msg::RAW_IMU    &imu_raw) {
         ROS_INFO_COND_NAMED(!has_raw_imu, "imu", "IMU: Raw IMU message used.");
         has_raw_imu = true;
 
@@ -454,10 +465,8 @@ private:
             return;
 
         auto imu_msg = boost::make_shared<sensor_msgs::Imu>();
-        auto header  = m_uas->synchronized_header(frame_id, imu_raw.time_usec);
+        auto header  = m_uas->synchronized_header(base_frame_flu_id, imu_raw.time_usec);
 
-        /** @note APM send SCALED_IMU data as RAW_IMU
-         */
         auto gyro_flu = ftf::transform_frame_aircraft_baselink<Eigen::Vector3d>(
             Eigen::Vector3d(imu_raw.xgyro, imu_raw.ygyro, imu_raw.zgyro) * MILLIRS_TO_RADSEC);
         auto accel_frd = Eigen::Vector3d(imu_raw.xacc, imu_raw.yacc, imu_raw.zacc);
@@ -482,23 +491,17 @@ private:
             linear_accel_vec_frd.setZero();
         }
 
-        /** Magnetic field data:
-         *  @snippet src/plugins/imu.cpp mag_field
+        /**
+         * Magnetic field data:
+         * 磁场数据
+         * @snippet src/plugins/imu.cpp mag_field
          */
-        // [mag_field]
         auto mag_field = ftf::transform_frame_aircraft_baselink<Eigen::Vector3d>(
             Eigen::Vector3d(imu_raw.xmag, imu_raw.ymag, imu_raw.zmag) * MILLIT_TO_TESLA);
-        // [mag_field]
 
         publish_mag(header, mag_field);
     }
 
-    /**
-     * @brief Handle SCALED_IMU MAVlink message.
-     * Message specification: https://mavlink.io/en/messages/common.html/#SCALED_IMU
-     * @param msg		Received Mavlink msg
-     * @param imu_raw	SCALED_IMU msg
-     */
     void handle_scaled_imu(const mavlink::mavlink_message_t *msg,
                            mavlink::common::msg::SCALED_IMU &imu_raw) {
         if (has_hr_imu)
@@ -508,7 +511,7 @@ private:
         has_scaled_imu = true;
 
         auto imu_msg = boost::make_shared<sensor_msgs::Imu>();
-        auto header  = m_uas->synchronized_header(frame_id, imu_raw.time_boot_ms);
+        auto header  = m_uas->synchronized_header(base_frame_flu_id, imu_raw.time_boot_ms);
 
         auto gyro_flu = ftf::transform_frame_aircraft_baselink<Eigen::Vector3d>(
             Eigen::Vector3d(imu_raw.xgyro, imu_raw.ygyro, imu_raw.zgyro) * MILLIRS_TO_RADSEC);
@@ -518,8 +521,10 @@ private:
 
         publish_imu_data_raw(header, gyro_flu, accel_flu, accel_frd);
 
-        /** Magnetic field data:
-         *  @snippet src/plugins/imu.cpp mag_field
+        /**
+         * Magnetic field data:
+         * 磁场数据
+         * @snippet src/plugins/imu.cpp mag_field
          */
         auto mag_field = ftf::transform_frame_aircraft_baselink<Eigen::Vector3d>(
             Eigen::Vector3d(imu_raw.xmag, imu_raw.ymag, imu_raw.zmag) * MILLIT_TO_TESLA);
@@ -527,18 +532,12 @@ private:
         publish_mag(header, mag_field);
     }
 
-    /**
-     * @brief Handle SCALED_PRESSURE MAVlink message.
-     * Message specification: https://mavlink.io/en/messages/common.html/#SCALED_PRESSURE
-     * @param msg		Received Mavlink msg
-     * @param press		SCALED_PRESSURE msg
-     */
-    void handle_scaled_pressure(const mavlink::mavlink_message_t *     msg,
+    void handle_scaled_pressure(const mavlink::mavlink_message_t      *msg,
                                 mavlink::common::msg::SCALED_PRESSURE &press) {
         if (has_hr_imu)
             return;
 
-        auto header = m_uas->synchronized_header(frame_id, press.time_boot_ms);
+        auto header = m_uas->synchronized_header(base_frame_flu_id, press.time_boot_ms);
 
         auto temp_msg         = boost::make_shared<sensor_msgs::Temperature>();
         temp_msg->header      = header;
@@ -557,6 +556,7 @@ private:
     }
 
     // Checks for connection and overrides variable values
+    // 检查连接并覆盖变量值
     void connection_cb(bool connected) override {
         has_hr_imu     = false;
         has_scaled_imu = false;
