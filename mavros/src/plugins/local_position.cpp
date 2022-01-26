@@ -91,6 +91,9 @@ private:
     bool        has_local_position_ned;
     bool        has_local_position_ned_cov;
 
+    /* mid-level functions */
+    /* 中间件函数 */
+
     void publish_tf(boost::shared_ptr<nav_msgs::Odometry> &odom) {
         if (tf_send) {
             geometry_msgs::TransformStamped transform;
@@ -104,6 +107,9 @@ private:
             m_uas->tf2_broadcaster.sendTransform(transform);
         }
     }
+
+    /* message handlers */
+    /* 信息回调句柄 */
 
     void handle_local_position_ned(const mavlink::mavlink_message_t         *msg,
                                    mavlink::common::msg::LOCAL_POSITION_NED &pos_ned) {
