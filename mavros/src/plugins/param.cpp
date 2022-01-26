@@ -156,44 +156,8 @@ public:
         return ret;
     }
 
-    //! Make PARAM_SET message. Set target ids manually!
-    PARAM_SET to_param_set_apm_qurk() {
-        PARAM_SET ret{};
-
-        mavlink::set_string(ret.param_id, param_id);
-
-        switch (param_value.getType()) {
-        // [[[cog:
-        // for a, b, c in xmlrpc_types:
-        //     cog.outl("case XmlRpcValue::%s:" % a)
-        //     cog.outl("\tret.param_value = static_cast<%s &>(param_value);" % c)
-        //     cog.outl("\tret.param_type = enum_value(MT::%s);" % b.upper())
-        //     cog.outl("\tbreak;")
-        // ]]]
-        case XmlRpcValue::TypeBoolean:
-            ret.param_value = static_cast<bool &>(param_value);
-            ret.param_type  = enum_value(MT::UINT8);
-            break;
-        case XmlRpcValue::TypeInt:
-            ret.param_value = static_cast<int32_t &>(param_value);
-            ret.param_type  = enum_value(MT::INT32);
-            break;
-        case XmlRpcValue::TypeDouble:
-            ret.param_value = static_cast<double &>(param_value);
-            ret.param_type  = enum_value(MT::REAL32);
-            break;
-            // [[[end]]] (checksum: 5b10c0e1f2e916f1c31313eaa5cc83e0)
-
-        default:
-            ROS_WARN_NAMED("param", "PR: Unsupported XmlRpcValue type: %u", param_value.getType());
-        }
-
-        return ret;
-    }
-
-    /**
-     * For get/set services
-     */
+    // For get/set services
+    // 用于获取与设置参数服务
     int64_t to_integer() {
         switch (param_value.getType()) {
         // [[[cog:
@@ -501,10 +465,7 @@ private:
         ROS_DEBUG_STREAM_NAMED("param", "PR:m: set param " << param.to_string());
 
         auto ps = ([this, &param]() -> mavlink::common::msg::PARAM_SET {
-            if (m_uas->is_ardupilotmega())
-                return param.to_param_set_apm_qurk();
-            else
-                return param.to_param_set();
+            return param.to_param_set();
         })();
 
         m_uas->msg_set_target(ps);
