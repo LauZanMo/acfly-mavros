@@ -1,19 +1,19 @@
 /**
- * @brief HomePosition plugin
  * @file home_position.cpp
+ * @author LauZanMo (LauZanMo@whu.edu.cn)
  * @author Thomas Stastny <thomas.stastny@mavt.ethz.ch>
  * @author Nuno Marques <n.marques21@hotmail.com>
+ * @brief This file is from mavros open source respository, thanks for their contribution.
+ * @version 1.0
+ * @date 2022-01-26
  *
- * @addtogroup plugin
- * @{
+ * @copyright Copyright (c) 2022 acfly
+ * @copyright Copyright 2014,2015,2016,2017 Thomas Stastny, Nuno Marques.
+ * For commercial use, please contact acfly: https://www.acfly.cn
+ * 
+ * @note 该插件acfly也许不需要，因为acfly的返航点是主动发送的，不需要请求
  */
-/*
- * Copyright 2017 Thomas Stastny, Nuno Marques.
- *
- * This file is part of the mavros package and subject to the license terms
- * in the top-level LICENSE file of the mavros repository.
- * https://github.com/mavlink/mavros/tree/master/LICENSE.md
- */
+
 #include <eigen_conversions/eigen_msg.h>
 #include <mavros/mavros_plugin.h>
 
@@ -85,7 +85,7 @@ private:
         return ret;
     }
 
-    void handle_home_position(const mavlink::mavlink_message_t *   msg,
+    void handle_home_position(const mavlink::mavlink_message_t    *msg,
                               mavlink::common::msg::HOME_POSITION &home_position) {
         poll_timer.stop();
 
