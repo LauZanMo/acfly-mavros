@@ -2130,7 +2130,7 @@ Changelog for package mavros
 * mavconn: Boost::asio cleanup.
 * plugin: Remove TimerService from UAS.
   Fix `#59 <https://github.com/vooon/mavros/issues/59>`_.
-* plugin: param: Add state check to sheduled pull.
+* plugin: param: Add state check to scheduled pull.
 * mavparam: Add force pull.
 * plugin: param: Use ros::Timer for timeouts
   Also new option for force pull parameters from FCU instead of cache.

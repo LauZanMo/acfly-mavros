@@ -258,8 +258,8 @@ public:
 
         param_value_pub = param_nh.advertise<mavros_msgs::Param>("param_value", 100);
 
-        shedule_timer = param_nh.createTimer(BOOTUP_TIME_DT, &ParamPlugin::shedule_cb, this, true);
-        shedule_timer.stop();
+        schedule_timer = param_nh.createTimer(BOOTUP_TIME_DT, &ParamPlugin::schedule_cb, this, true);
+        schedule_timer.stop();
         timeout_timer =
             param_nh.createTimer(PARAM_TIMEOUT_DT, &ParamPlugin::timeout_cb, this, true);
         timeout_timer.stop();
@@ -286,7 +286,7 @@ private:
 
     ros::Publisher param_value_pub;
 
-    ros::Timer shedule_timer; // for startup shedule fetch
+    ros::Timer schedule_timer; // for startup schedule fetch
                               // 启动时调用拉取
     ros::Timer timeout_timer; // for timeout resend
                               // 用于超时重发
@@ -479,28 +479,28 @@ private:
     void connection_cb(bool connected) override {
         lock_guard lock(mutex);
         if (connected) {
-            shedule_pull(BOOTUP_TIME_DT);
+            schedule_pull(BOOTUP_TIME_DT);
         } else {
-            shedule_timer.stop();
+            schedule_timer.stop();
         }
     }
 
-    void shedule_pull(const ros::Duration &dt) {
-        shedule_timer.stop();
-        shedule_timer.setPeriod(dt);
-        shedule_timer.start();
+    void schedule_pull(const ros::Duration &dt) {
+        schedule_timer.stop();
+        schedule_timer.setPeriod(dt);
+        schedule_timer.start();
     }
 
-    void shedule_cb(const ros::TimerEvent &event) {
+    void schedule_cb(const ros::TimerEvent &event) {
         lock_guard lock(mutex);
         if (param_state != PR::IDLE) {
             // try later
             // 延后
-            ROS_DEBUG_NAMED("param", "PR: busy, reshedule pull");
-            shedule_pull(BOOTUP_TIME_DT);
+            ROS_DEBUG_NAMED("param", "PR: busy, reschedule pull");
+            schedule_pull(BOOTUP_TIME_DT);
         }
 
-        ROS_DEBUG_NAMED("param", "PR: start sheduled pull");
+        ROS_DEBUG_NAMED("param", "PR: start scheduled pull");
         param_state      = PR::RXLIST;
         param_rx_retries = RETRIES_COUNT;
         parameters.clear();
@@ -664,7 +664,7 @@ private:
             param_rx_retries = RETRIES_COUNT;
             parameters.clear();
 
-            shedule_timer.stop();
+            schedule_timer.stop();
             restart_timeout_timer();
             param_request_list();
 
