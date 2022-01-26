@@ -44,6 +44,7 @@ static constexpr double RAD_TO_DEG = 180.0 / M_PI;
  * @brief IMU and attitude data publication plugin
  * @brief IMU和角度数据发布ROS插件
  * @note 该插件会将IMU，气压计，磁力计和角度数据进行存储，供其他组件使用，并以ROS信息发布
+ * @warning 该插件依赖于sys_time插件提供time_offset用于消除飞控与机载电脑的时钟偏移
  */
 class IMUPlugin : public plugin::PluginBase {
 public:

@@ -87,7 +87,9 @@ public:
     }
 
     Subscriptions get_subscriptions() override {
-        return {make_handler(&CommandPlugin::handle_command_ack)};
+        return {
+            make_handler(&CommandPlugin::handle_command_ack),
+        };
     }
 
 private:
