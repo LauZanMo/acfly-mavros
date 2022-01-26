@@ -92,12 +92,6 @@ public:
         gp_set_global_origin_sub =
             gp_nh.subscribe("set_gp_origin", 10, &GlobalPositionPlugin::set_gp_origin_cb, this);
 
-        // home position subscriber to set "map" origin
-        // TODO: use UAS
-        // 始终以返航点为rviz表示的地图原点
-        // TODO: 使用UAS作为组件间数据传输的媒介，而不是ROS
-        hp_sub = gp_nh.subscribe("home", 10, &GlobalPositionPlugin::home_position_cb, this);
-
         // offset from local position to the global origin ("earth")
         // 局部定位与全球定位原点之间的偏移
         gp_global_offset_pub = gp_nh.advertise<geometry_msgs::PoseStamped>("gp_lp_offset", 10);
@@ -109,6 +103,7 @@ public:
             make_handler(&GlobalPositionPlugin::handle_global_position_int),
             make_handler(&GlobalPositionPlugin::handle_gps_global_origin),
             make_handler(&GlobalPositionPlugin::handle_lpned_system_global_offset),
+            make_handler(&GlobalPositionPlugin::handle_home_position),
         };
     }
 
@@ -126,7 +121,6 @@ private:
     ros::Publisher gp_global_offset_pub;
 
     ros::Subscriber gp_set_global_origin_sub;
-    ros::Subscriber hp_sub;
 
     std::string frame_id;
     std::string child_frame_id;
@@ -492,6 +486,37 @@ private:
         }
     }
 
+    // handle home position to set "map" origin
+    // 获取返航点用于设置map原点
+    // 注意：acfly的返航点是主动发送的，不需要请求，与px4不同
+    void handle_home_position(const mavlink::mavlink_message_t    *msg,
+                              mavlink::common::msg::HOME_POSITION &home_position) {
+        auto hp        = boost::make_shared<mavros_msgs::HomePosition>();
+        map_origin.x() = hp->geo.latitude = home_position.latitude / 1E7;   // deg 度
+        map_origin.y() = hp->geo.longitude = home_position.longitude / 1E7; // deg 度
+        map_origin.z() =
+            home_position.altitude / 1E3 + m_uas->geoid_to_ellipsoid_height(&hp->geo); // meter 米
+
+        try {
+            /**
+             * @brief Conversion from geodetic coordinates (LLA) to ECEF (Earth-Centered,
+             * Earth-Fixed)
+             * @brief 纬经高转换为地心地固坐标系下的坐标
+             */
+            GeographicLib::Geocentric map(GeographicLib::Constants::WGS84_a(),
+                                          GeographicLib::Constants::WGS84_f());
+
+            // map_origin to ECEF
+            // map坐标系原点的地心地固坐标系坐标
+            map.Forward(map_origin.x(), map_origin.y(), map_origin.z(), ecef_origin.x(),
+                        ecef_origin.y(), ecef_origin.z());
+        } catch (const std::exception &e) {
+            ROS_INFO_STREAM("GP: Caught exception: " << e.what() << std::endl);
+        }
+
+        is_map_init = true;
+    }
+
     /* diagnostics */
     /* 诊断 */
     void gps_diag_run(diagnostic_updater::DiagnosticStatusWrapper &stat) {
@@ -525,31 +550,6 @@ private:
 
     /* ros callbacks */
     /* ROS回调函数 */
-
-    void home_position_cb(const mavros_msgs::HomePosition::ConstPtr &req) {
-        map_origin.x() = req->geo.latitude;
-        map_origin.y() = req->geo.longitude;
-        map_origin.z() = req->geo.altitude;
-
-        try {
-            /**
-             * @brief Conversion from geodetic coordinates (LLA) to ECEF (Earth-Centered,
-             * Earth-Fixed)
-             * @brief 纬经高转换为地心地固坐标系下的坐标
-             */
-            GeographicLib::Geocentric map(GeographicLib::Constants::WGS84_a(),
-                                          GeographicLib::Constants::WGS84_f());
-
-            // map_origin to ECEF
-            // map坐标系原点的地心地固坐标系坐标
-            map.Forward(map_origin.x(), map_origin.y(), map_origin.z(), ecef_origin.x(),
-                        ecef_origin.y(), ecef_origin.z());
-        } catch (const std::exception &e) {
-            ROS_INFO_STREAM("GP: Caught exception: " << e.what() << std::endl);
-        }
-
-        is_map_init = true;
-    }
 
     void set_gp_origin_cb(const geographic_msgs::GeoPointStamped::ConstPtr &req) {
         mavlink::common::msg::SET_GPS_GLOBAL_ORIGIN gpo = {};
