@@ -1,0 +1,12 @@
+# land local for indoor
+
+float32 target
+float32 offset
+float32 descend_rate
+float32 yaw
+float32 x
+float32 y
+float32 z
+---
+bool success
+uint8 result

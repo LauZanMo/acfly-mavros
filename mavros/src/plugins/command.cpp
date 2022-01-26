@@ -20,9 +20,11 @@
 #include <mavros_msgs/CommandBool.h>
 #include <mavros_msgs/CommandHome.h>
 #include <mavros_msgs/CommandInt.h>
+#include <mavros_msgs/CommandLandLocal.h>
 #include <mavros_msgs/CommandLong.h>
 #include <mavros_msgs/CommandSetMode.h>
 #include <mavros_msgs/CommandTOL.h>
+#include <mavros_msgs/CommandTakeoffLocal.h>
 #include <mavros_msgs/CommandTriggerControl.h>
 #include <mavros_msgs/CommandTriggerInterval.h>
 #include <mavros_msgs/CommandVtolTransition.h>
@@ -78,6 +80,9 @@ public:
         set_home_srv = cmd_nh.advertiseService("set_home", &CommandPlugin::set_home_cb, this);
         takeoff_srv  = cmd_nh.advertiseService("takeoff", &CommandPlugin::takeoff_cb, this);
         land_srv     = cmd_nh.advertiseService("land", &CommandPlugin::land_cb, this);
+        takeoff_local_srv =
+            cmd_nh.advertiseService("takeoff_local", &CommandPlugin::takeoff_local_cb, this);
+        land_local_srv = cmd_nh.advertiseService("land_local", &CommandPlugin::land_local_cb, this);
         trigger_control_srv =
             cmd_nh.advertiseService("trigger_control", &CommandPlugin::trigger_control_cb, this);
         trigger_interval_srv =
@@ -106,6 +111,8 @@ private:
     ros::ServiceServer set_home_srv;
     ros::ServiceServer takeoff_srv;
     ros::ServiceServer land_srv;
+    ros::ServiceServer takeoff_local_srv;
+    ros::ServiceServer land_local_srv;
     ros::ServiceServer trigger_control_srv;
     ros::ServiceServer trigger_interval_srv;
     ros::ServiceServer vtol_transition_srv;
@@ -411,6 +418,22 @@ private:
         return send_command_long_and_wait(false, enum_value(MAV_CMD::NAV_LAND), 1, 0, 0, 0, req.yaw,
                                           req.latitude, req.longitude, req.altitude, res.success,
                                           res.result);
+    }
+
+    bool takeoff_local_cb(mavros_msgs::CommandTakeoffLocal::Request  &req,
+                          mavros_msgs::CommandTakeoffLocal::Response &res) {
+        using mavlink::common::MAV_CMD;
+        return send_command_long_and_wait(false, enum_value(MAV_CMD::NAV_TAKEOFF_LOCAL), 1,
+                                          req.pitch, 0, req.ascend_rate, req.yaw, req.x, req.y,
+                                          req.z, res.success, res.result);
+    }
+
+    bool land_local_cb(mavros_msgs::CommandLandLocal::Request  &req,
+                       mavros_msgs::CommandLandLocal::Response &res) {
+        using mavlink::common::MAV_CMD;
+        return send_command_long_and_wait(false, enum_value(MAV_CMD::NAV_LAND_LOCAL), 1, req.target,
+                                          req.offset, req.descend_rate, req.yaw, req.x, req.y,
+                                          req.z, res.success, res.result);
     }
 
     bool trigger_control_cb(mavros_msgs::CommandTriggerControl::Request  &req,

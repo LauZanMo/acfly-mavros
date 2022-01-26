@@ -83,6 +83,8 @@ add_service_files(
   CommandLong.srv
   CommandSetMode.srv
   CommandTOL.srv
+  CommandTakeoffLocal.srv
+  CommandLandLocal.srv
   CommandTriggerControl.srv
   CommandTriggerInterval.srv
   CommandVtolTransition.srv
