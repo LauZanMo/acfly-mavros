@@ -1,19 +1,17 @@
 /**
- * @brief LocalPosition plugin
  * @file local_position.cpp
+ * @author LauZanMo (LauZanMo@whu.edu.cn)
  * @author Vladimir Ermakov <vooon341@gmail.com>
  * @author Glenn Gregory
  * @author Eddy Scott <scott.edward@aurora.aero>
+ * @brief This file is from mavros open source respository, thanks for their contribution.
+ * @version 1.0
+ * @date 2022-01-26
  *
- * @addtogroup plugin
- * @{
- */
-/*
- * Copyright 2014,2016 Vladimir Ermakov.
+ * @copyright Copyright (c) 2022 acfly
+ * @copyright Copyright 2014,2015,2016,2017 Vladimir Ermakov, Glenn Gregory, Eddy Scott.
+ * For commercial use, please contact acfly: https://www.acfly.cn
  *
- * This file is part of the mavros package and subject to the license terms
- * in the top-level LICENSE file of the mavros repository.
- * https://github.com/mavlink/mavros/tree/master/LICENSE.md
  */
 
 #include <eigen_conversions/eigen_msg.h>
@@ -32,8 +30,10 @@ namespace mavros {
 namespace std_plugins {
 /**
  * @brief Local position plugin.
- * Publish local position to TF, PositionStamped, TwistStamped
- * and Odometry
+ * @note publish local position to TF, PositionStamped, TwistStamped and Odometry
+ * @brief 局部位置的ROS插件
+ * @note 该插件可以通过TF，PositionStamped，TwistStamped和Odometry格式发布局部位置
+ * @warning 该插件依赖于sys_time插件提供time_offset用于消除飞控与机载电脑的时钟偏移
  */
 class LocalPositionPlugin : public plugin::PluginBase {
 public:
@@ -44,15 +44,17 @@ public:
     void initialize(UAS &uas_) override {
         PluginBase::initialize(uas_);
 
-        // header frame_id.
-        // default to map (world-fixed,ENU as per REP-105).
-        lp_nh.param<std::string>("frame_id", frame_id, "map");
-        // Important tf subsection
-        // Report the transform from world to base_link here.
+        // general params
+        // 通用参数
+        lp_nh.param<std::string>("frame_id", frame_id, "ac_map_enu");
+        // tf subsection
+        // tf子块
         lp_nh.param("tf/send", tf_send, false);
-        lp_nh.param<std::string>("tf/frame_id", tf_frame_id, "map");
-        lp_nh.param<std::string>("tf/child_frame_id", tf_child_frame_id, "base_link");
+        lp_nh.param<std::string>("tf/frame_id", tf_frame_id, "ac_map_enu");
+        lp_nh.param<std::string>("tf/child_frame_id", tf_child_frame_id, "ac_base_enu");
 
+        // fused local position
+        // 融合的局部位置
         local_position = lp_nh.advertise<geometry_msgs::PoseStamped>("pose", 10);
         local_position_cov =
             lp_nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("pose_cov", 10);
@@ -65,8 +67,10 @@ public:
     }
 
     Subscriptions get_subscriptions() override {
-        return {make_handler(&LocalPositionPlugin::handle_local_position_ned),
-                make_handler(&LocalPositionPlugin::handle_local_position_ned_cov)};
+        return {
+            make_handler(&LocalPositionPlugin::handle_local_position_ned),
+            make_handler(&LocalPositionPlugin::handle_local_position_ned_cov),
+        };
     }
 
 private:
@@ -80,9 +84,9 @@ private:
     ros::Publisher local_accel;
     ros::Publisher local_odom;
 
-    std::string frame_id;          //!< frame for Pose
-    std::string tf_frame_id;       //!< origin for TF
-    std::string tf_child_frame_id; //!< frame for TF
+    std::string frame_id;
+    std::string tf_frame_id;
+    std::string tf_child_frame_id;
     bool        tf_send;
     bool        has_local_position_ned;
     bool        has_local_position_ned_cov;
@@ -101,18 +105,21 @@ private:
         }
     }
 
-    void handle_local_position_ned(const mavlink::mavlink_message_t *        msg,
+    void handle_local_position_ned(const mavlink::mavlink_message_t         *msg,
                                    mavlink::common::msg::LOCAL_POSITION_NED &pos_ned) {
         has_local_position_ned = true;
 
-        //--------------- Transform FCU position and Velocity Data ---------------//
+        // transform FCU position and velocity data
+        // 转换飞控上传的位置和速度数据
         auto enu_position =
             ftf::transform_frame_ned_enu(Eigen::Vector3d(pos_ned.x, pos_ned.y, pos_ned.z));
         auto enu_velocity =
             ftf::transform_frame_ned_enu(Eigen::Vector3d(pos_ned.vx, pos_ned.vy, pos_ned.vz));
 
-        //--------------- Get Odom Information ---------------//
-        // Note this orientation describes baselink->ENU transform
+        // get odom information
+        // Note: this orientation describes baselink->ENU transform
+        // 构建里程计数据
+        // 注意：该旋转描述了FLU到ENU之间的变换
         auto               enu_orientation_msg  = m_uas->get_attitude_orientation_enu();
         auto               baselink_angular_msg = m_uas->get_attitude_angular_velocity_enu();
         Eigen::Quaterniond enu_orientation;
@@ -130,18 +137,21 @@ private:
         odom->twist.twist.angular = baselink_angular_msg;
 
         // publish odom if we don't have LOCAL_POSITION_NED_COV
+        // 如果没有LOCAL_POSITION_NED_COV信息则发布里程计数据
         if (!has_local_position_ned_cov) {
             local_odom.publish(odom);
         }
 
-        // publish pose always
+        // publish pose
+        // 发布位姿
         auto pose    = boost::make_shared<geometry_msgs::PoseStamped>();
         pose->header = odom->header;
         pose->pose   = odom->pose.pose;
         local_position.publish(pose);
 
-        // publish velocity always
+        // publish velocity
         // velocity in the body frame
+        // 发布速度，速度坐标系为FLU
         auto twist_body             = boost::make_shared<geometry_msgs::TwistStamped>();
         twist_body->header.stamp    = odom->header.stamp;
         twist_body->header.frame_id = tf_child_frame_id;
@@ -150,6 +160,7 @@ private:
         local_velocity_body.publish(twist_body);
 
         // velocity in the local frame
+        // 将速度转到ENU
         auto twist_local             = boost::make_shared<geometry_msgs::TwistStamped>();
         twist_local->header.stamp    = twist_body->header.stamp;
         twist_local->header.frame_id = tf_child_frame_id;
@@ -160,11 +171,12 @@ private:
 
         local_velocity_local.publish(twist_local);
 
-        // publish tf
+        // publish TF
+        // 发布TF
         publish_tf(odom);
     }
 
-    void handle_local_position_ned_cov(const mavlink::mavlink_message_t *            msg,
+    void handle_local_position_ned_cov(const mavlink::mavlink_message_t             *msg,
                                        mavlink::common::msg::LOCAL_POSITION_NED_COV &pos_ned) {
         has_local_position_ned_cov = true;
 
@@ -198,16 +210,19 @@ private:
         odom->twist.covariance[14] = pos_ned.covariance[35]; // vz
         // TODO: orientation + angular velocity covariances from ATTITUDE_QUATERION_COV
 
-        // publish odom always
+        // publish odom
+        // 发布里程计数据
         local_odom.publish(odom);
 
-        // publish pose_cov always
+        // publish pose_cov
+        // 发布带协方差的位姿
         auto pose_cov    = boost::make_shared<geometry_msgs::PoseWithCovarianceStamped>();
         pose_cov->header = odom->header;
         pose_cov->pose   = odom->pose;
         local_position_cov.publish(pose_cov);
 
-        // publish velocity_cov always
+        // publish velocity_cov
+        // 发布带协方差的速度
         auto twist_cov          = boost::make_shared<geometry_msgs::TwistWithCovarianceStamped>();
         twist_cov->header.stamp = odom->header.stamp;
         twist_cov->header.frame_id = odom->child_frame_id;
@@ -215,6 +230,7 @@ private:
         local_velocity_cov.publish(twist_cov);
 
         // publish pose, velocity, tf if we don't have LOCAL_POSITION_NED
+        // 如果没有LOCAL_POSITION_NED信息则发布位姿，速度和TF
         if (!has_local_position_ned) {
             auto pose    = boost::make_shared<geometry_msgs::PoseStamped>();
             pose->header = odom->header;
@@ -227,11 +243,13 @@ private:
             twist->twist           = odom->twist.twist;
             local_velocity_body.publish(twist);
 
-            // publish tf
+            // publish TF
+            // 发布TF
             publish_tf(odom);
         }
 
         // publish accelerations
+        // 发布加速度
         auto accel    = boost::make_shared<geometry_msgs::AccelWithCovarianceStamped>();
         accel->header = odom->header;
 
@@ -239,9 +257,9 @@ private:
             ftf::transform_frame_ned_enu(Eigen::Vector3d(pos_ned.ax, pos_ned.ay, pos_ned.az));
         tf::vectorEigenToMsg(enu_accel, accel->accel.accel.linear);
 
-        accel->accel.covariance[0]  = pos_ned.covariance[39]; // ax
-        accel->accel.covariance[7]  = pos_ned.covariance[42]; // ay
-        accel->accel.covariance[14] = pos_ned.covariance[44]; // az
+        accel->accel.covariance[0]  = pos_ned.covariance[39];
+        accel->accel.covariance[7]  = pos_ned.covariance[42];
+        accel->accel.covariance[14] = pos_ned.covariance[44];
 
         local_accel.publish(accel);
     }
