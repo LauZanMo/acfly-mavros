@@ -39,7 +39,7 @@ namespace std_plugins {
  *
  * @brief 全球位置的ROS插件
  * @note 发布全球位置，从GPS纬经高到地心地固坐标系的转换(与GPS原点，即起飞点或自设定的点)，
- * 使得该插件能通过tf和PoseWithCovarianceStamped格式发布局部位置
+ * 使得该插件能通过TF和PoseWithCovarianceStamped格式发布全球位置的局部形式
  * @warning 该插件依赖于sys_time插件提供time_offset用于消除飞控与机载电脑的时钟偏移
  */
 class GlobalPositionPlugin : public plugin::PluginBase {
@@ -48,7 +48,7 @@ public:
 
     GlobalPositionPlugin()
         : PluginBase(), gp_nh("~global_position"), tf_send(false), use_relative_alt(true),
-          is_map_init(false), outdoor_switch(false), rot_cov(99999.0) {}
+          is_map_init(false), outdoor_switch(true), rot_cov(99999.0) {}
 
     void initialize(UAS &uas_) override {
         PluginBase::initialize(uas_);
@@ -171,8 +171,11 @@ private:
 
         fix->status.service = sensor_msgs::NavSatStatus::SERVICE_GPS;
         if (raw_gps.fix_type > 2) {
+            if (!outdoor_switch) {
+                ROS_INFO_NAMED("global_position", "GP: GPS fix again");
+                outdoor_switch = true;
+            }
             fix->status.status = sensor_msgs::NavSatStatus::STATUS_FIX;
-            outdoor_switch     = true;
         } else {
             if (outdoor_switch) {
                 ROS_WARN_NAMED("global_position", "GP: No GPS fix");
