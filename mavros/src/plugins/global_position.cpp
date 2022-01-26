@@ -129,10 +129,11 @@ private:
     std::string tf_global_frame_id;
     std::string tf_child_frame_id;
 
-    bool tf_send;
-    bool use_relative_alt;
-    bool outdoor_switch;
-    bool is_map_init;
+    bool                                tf_send;
+    bool                                use_relative_alt;
+    bool                                outdoor_switch;
+    bool                                is_map_init;
+    mavlink::common::msg::HOME_POSITION record_home;
 
     double rot_cov;
     double gps_uere;
@@ -491,30 +492,38 @@ private:
     // 注意：acfly的返航点是主动发送的，不需要请求，与px4不同
     void handle_home_position(const mavlink::mavlink_message_t    *msg,
                               mavlink::common::msg::HOME_POSITION &home_position) {
-        auto hp        = boost::make_shared<mavros_msgs::HomePosition>();
-        map_origin.x() = hp->geo.latitude = home_position.latitude / 1E7;   // deg 度
-        map_origin.y() = hp->geo.longitude = home_position.longitude / 1E7; // deg 度
-        map_origin.z() =
-            home_position.altitude / 1E3 + m_uas->geoid_to_ellipsoid_height(&hp->geo); // meter 米
+        // 返航点与之前不一致才计算，减少计算量
+        if (record_home.latitude != home_position.latitude ||
+            record_home.longitude != home_position.longitude ||
+            record_home.altitude != home_position.altitude) {
+            auto hp        = boost::make_shared<mavros_msgs::HomePosition>();
+            map_origin.x() = hp->geo.latitude = home_position.latitude / 1E7;   // deg 度
+            map_origin.y() = hp->geo.longitude = home_position.longitude / 1E7; // deg 度
+            map_origin.z()                     = home_position.altitude / 1E3 +
+                             m_uas->geoid_to_ellipsoid_height(&hp->geo); // meter 米
 
-        try {
-            /**
-             * @brief Conversion from geodetic coordinates (LLA) to ECEF (Earth-Centered,
-             * Earth-Fixed)
-             * @brief 纬经高转换为地心地固坐标系下的坐标
-             */
-            GeographicLib::Geocentric map(GeographicLib::Constants::WGS84_a(),
-                                          GeographicLib::Constants::WGS84_f());
+            try {
+                /**
+                 * @brief Conversion from geodetic coordinates (LLA) to ECEF (Earth-Centered,
+                 * Earth-Fixed)
+                 * @brief 纬经高转换为地心地固坐标系下的坐标
+                 */
+                GeographicLib::Geocentric map(GeographicLib::Constants::WGS84_a(),
+                                              GeographicLib::Constants::WGS84_f());
 
-            // map_origin to ECEF
-            // map坐标系原点的地心地固坐标系坐标
-            map.Forward(map_origin.x(), map_origin.y(), map_origin.z(), ecef_origin.x(),
-                        ecef_origin.y(), ecef_origin.z());
-        } catch (const std::exception &e) {
-            ROS_INFO_STREAM("GP: Caught exception: " << e.what() << std::endl);
+                // map_origin to ECEF
+                // map坐标系原点的地心地固坐标系坐标
+                map.Forward(map_origin.x(), map_origin.y(), map_origin.z(), ecef_origin.x(),
+                            ecef_origin.y(), ecef_origin.z());
+            } catch (const std::exception &e) {
+                ROS_INFO_STREAM("GP: Caught exception: " << e.what() << std::endl);
+            }
+
+            is_map_init           = true;
+            record_home.latitude  = home_position.latitude;
+            record_home.longitude = home_position.longitude;
+            record_home.altitude  = home_position.altitude;
         }
-
-        is_map_init = true;
     }
 
     /* diagnostics */
