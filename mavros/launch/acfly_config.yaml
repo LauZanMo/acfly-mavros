@@ -1,0 +1,72 @@
+# ACFLY通用配置
+
+# 节点:
+startup_px4_usb_quirk: true
+
+# --- 系统插件 --- #
+
+# sys_status和sys_time的连接选项
+conn:
+  heartbeat_rate: 1.0     # 发送心跳频率(hz)
+  timeout: 10.0           # 心跳超时(s)
+  timesync_rate: 5.0      # 时间同步频率(hz)，如果设置为0则禁用
+  system_time_rate: 1.0   # 发送系统时间给飞控的频率
+
+# sys_status
+sys:
+  min_voltage: 10.0       # 诊断的最低电压
+  disable_diag: false     # 禁用所有诊断，除了心跳
+
+# sys_time
+time:
+  time_ref_source: "fcu"  # 参考时间源
+  timesync_mode: MAVLINK  # 时间同步模式，为同步飞控与电脑的模式
+  timesync_avg_alpha: 0.6 # 时间同步平均系数
+  convergence_window: 500 # 收敛滑窗大小，可大致认为收敛时间=滑窗/时间同步频率
+
+# --- mavros插件(首字母顺序) --- #
+
+# command
+cmd:
+  use_comp_id_system_control: false # 有些老飞控的选项
+
+# global_position
+global_position:
+  rot_covariance: 99999.0   # 角度协方差
+  gps_uere: 1.0             # GPS的用户等效测距误差(m)
+  use_relative_alt: true    # 对于局部坐标使用相对高度
+  tf:
+    send: false
+
+# imu
+imu:
+  # 与IMU实际传感器参数有关，下面为MPU6000的实际值
+  linear_acceleration_stdev: 0.0003
+  angular_velocity_stdev: 0.0003490659 # 0.02 degrees
+  orientation_stdev: 1.0
+  magnetic_stdev: 0.0
+
+# local_position
+local_position:
+  tf:
+    send: false
+
+# param
+# 无
+
+# rc_io
+# 无
+
+# setpoint_raw
+setpoint_raw:
+  thrust_scaling: 1.0         # 推力比例因子，应该在0~1之间
+
+# setpoint_velocity
+setpoint_velocity:
+  mav_frame: BODY_NED         # 合法输入为LOCAL_NED，LOCAL_OFFSET_NED，BODY_NED，BODY_OFFSET_NED
+
+
+# waypoint
+mission:
+  pull_after_gcs: true        # 如果地面站更新，则更新任务
+  use_mission_item_int: true  # 使用MISSION_ITEM_INT代替MISSION_ITEM(MISSION_ITEM_INT精度更高)
