@@ -26,7 +26,7 @@ namespace std_plugins {
  * @brief Setpoint RAW plugin
  * @note Send position setpoints and publish current state (return loop).
  * User can decide what set of filed needed for operation via IGNORE bits.
- * @brief offboard模式飞控控制ROS插件，使用Setpoint RAW信息
+ * @brief offboard模式飞控控制ROS插件，接收标准mavlink的ROS信息
  * @note 分别发送SET_ATTITUDE_TARGET，SET_POSITION_TARGET_LOCAL_NED和
  * SET_POSITION_TARGET_GLOBAL_INT信息并对相应应答信息进行监控。
  * @warning 该插件依赖于sys_time插件提供time_offset用于消除飞控与机载电脑的时钟偏移
@@ -91,16 +91,18 @@ private:
     /* message handlers */
     /* 信息回调句柄 */
 
-    //! @warning: 下面的坐标系原来的代码坐标系转换好像和实际不符，需要测试
+    //! @warning: 原来的代码坐标系转换好像和实际不符，但是效果一致
     void handle_position_target_local_ned(const mavlink::mavlink_message_t                *msg,
                                           mavlink::common::msg::POSITION_TARGET_LOCAL_NED &tgt) {
         // Transform desired position,velocities,and accels from NED to ENU frame
         // 将期望的位置、速度和加速度从NED转到ENU
-        auto  position = ftf::transform_frame_ned_enu(Eigen::Vector3d(tgt.x, tgt.y, tgt.z));
-        auto  velocity = ftf::transform_frame_ned_enu(Eigen::Vector3d(tgt.vx, tgt.vy, tgt.vz));
-        auto  af       = ftf::transform_frame_ned_enu(Eigen::Vector3d(tgt.afx, tgt.afy, tgt.afz));
-        float yaw      = ftf::quaternion_get_yaw(ftf::transform_orientation_aircraft_baselink(
-                 ftf::transform_orientation_ned_enu(ftf::quaternion_from_rpy(0.0, 0.0, tgt.yaw))));
+        auto position = ftf::transform_frame_ned_enu(Eigen::Vector3d(tgt.x, tgt.y, tgt.z));
+        auto velocity = ftf::transform_frame_ned_enu(Eigen::Vector3d(tgt.vx, tgt.vy, tgt.vz));
+        auto af       = ftf::transform_frame_ned_enu(Eigen::Vector3d(tgt.afx, tgt.afy, tgt.afz));
+        // 为什么这里只用了相对坐标系？怀疑原作者偷懒
+        float yaw = ftf::quaternion_get_yaw(ftf::transform_orientation_aircraft_baselink(
+            ftf::transform_orientation_ned_enu(ftf::quaternion_from_rpy(0.0, 0.0, tgt.yaw))));
+        // 只在Z轴有值的向量ENU->NED和FLU->FRD结果一样，这一步属于节省篇幅
         Eigen::Vector3d ang_vel_ned(0.0, 0.0, tgt.yaw_rate);
         auto            ang_vel_enu = ftf::transform_frame_ned_enu(ang_vel_ned);
         float           yaw_rate    = ang_vel_enu.z();
@@ -223,7 +225,8 @@ private:
                 velocity = ftf::transform_frame_baselink_aircraft(velocity);
                 af       = ftf::transform_frame_baselink_aircraft(af);
                 yaw      = ftf::quaternion_get_yaw(
-                         ftf::transform_orientation_absolute_frame_baselink_aircraft(
+                         // 视FLU为绝对坐标系
+                    ftf::transform_orientation_absolute_frame_baselink_aircraft(
                              ftf::quaternion_from_rpy(0.0, 0.0, req->yaw)));
             } else {
                 position = ftf::transform_frame_enu_ned(position);
@@ -234,6 +237,7 @@ private:
                              ftf::quaternion_from_rpy(0.0, 0.0, req->yaw))));
             }
 
+            // 只在Z轴有值的向量ENU->NED和FLU->FRD结果一样，这一步属于节省篇幅
             Eigen::Vector3d ang_vel_enu(0.0, 0.0, req->yaw_rate);
             auto            ang_vel_ned = ftf::transform_frame_enu_ned(ang_vel_enu);
             yaw_rate                    = ang_vel_ned.z();
