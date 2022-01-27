@@ -172,7 +172,7 @@ private:
         fix->status.service = sensor_msgs::NavSatStatus::SERVICE_GPS;
         if (raw_gps.fix_type > 2) {
             if (!outdoor_switch) {
-                ROS_INFO_NAMED("global_position", "GP: GPS fix again");
+                ROS_INFO_NAMED("global_position", "GP: GPS fix");
                 outdoor_switch = true;
             }
             fix->status.status = sensor_msgs::NavSatStatus::STATUS_FIX;
