@@ -228,13 +228,18 @@ private:
                          // 视FLU为绝对坐标系
                     ftf::transform_orientation_absolute_frame_baselink_aircraft(
                              ftf::quaternion_from_rpy(0.0, 0.0, req->yaw)));
-            } else {
+            } else if (req->coordinate_frame == mavros_msgs::PositionTarget::FRAME_LOCAL_NED ||
+                       req->coordinate_frame ==
+                           mavros_msgs::PositionTarget::FRAME_LOCAL_OFFSET_NED) {
                 position = ftf::transform_frame_enu_ned(position);
                 velocity = ftf::transform_frame_enu_ned(velocity);
                 af       = ftf::transform_frame_enu_ned(af);
                 yaw      = ftf::quaternion_get_yaw(
                          ftf::transform_orientation_baselink_aircraft(ftf::transform_orientation_enu_ned(
                              ftf::quaternion_from_rpy(0.0, 0.0, req->yaw))));
+            } else {
+                ROS_ERROR_NAMED("setpoint_raw", "SPR: Invalid frame.");
+                return;
             }
 
             // 只在Z轴有值的向量ENU->NED和FLU->FRD结果一样，这一步属于节省篇幅

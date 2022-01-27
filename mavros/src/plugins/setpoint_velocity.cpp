@@ -49,9 +49,10 @@ public:
 
         // mav_frame
         // 发送信息的坐标系
+        // 仅LOCAL_NED，LOCAL_OFFSET_NED，BODY_NED，BODY_OFFSET_NED可用
         std::string mav_frame_str;
         if (!sp_nh.getParam("mav_frame", mav_frame_str)) {
-            mav_frame = MAV_FRAME::LOCAL_NED;
+            mav_frame = MAV_FRAME::BODY_NED;
         } else {
             mav_frame = utils::mav_frame_from_str(mav_frame_str);
         }
@@ -155,10 +156,19 @@ private:
 
     bool set_mav_frame_cb(mavros_msgs::SetMavFrame::Request  &req,
                           mavros_msgs::SetMavFrame::Response &res) {
-        mav_frame                       = static_cast<MAV_FRAME>(req.mav_frame);
-        const std::string mav_frame_str = utils::to_string(mav_frame);
-        sp_nh.setParam("mav_frame", mav_frame_str);
-        res.success = true;
+        //检查设置坐标系格式
+        if (static_cast<MAV_FRAME>(req.mav_frame) == MAV_FRAME::LOCAL_NED ||
+            static_cast<MAV_FRAME>(req.mav_frame) == MAV_FRAME::LOCAL_OFFSET_NED ||
+            static_cast<MAV_FRAME>(req.mav_frame) == MAV_FRAME::BODY_NED ||
+            static_cast<MAV_FRAME>(req.mav_frame) == MAV_FRAME::BODY_OFFSET_NED) {
+            mav_frame                       = static_cast<MAV_FRAME>(req.mav_frame);
+            const std::string mav_frame_str = utils::to_string(mav_frame);
+            sp_nh.setParam("mav_frame", mav_frame_str);
+            res.success = true;
+        } else {
+            ROS_ERROR_NAMED("setpoint_velocity", "SPV: Invalid frame.");
+            res.success = false;
+        }
         return true;
     }
 };
