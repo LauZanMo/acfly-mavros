@@ -119,7 +119,7 @@ private:
 class SystemTimePlugin : public plugin::PluginBase {
 public:
     SystemTimePlugin()
-        : PluginBase(), st_nh("~"), dt_diag("Time Sync", 10), time_offset(0.0), time_skew(0.0),
+        : PluginBase(), nh("~"), dt_diag("Time Sync", 10), time_offset(0.0), time_skew(0.0),
           sequence(0), filter_alpha(0), filter_beta(0), high_rtt_count(0), high_deviation_count(0) {
     }
 
@@ -135,17 +135,17 @@ public:
         ros::WallDuration conn_system_time;
         ros::WallDuration conn_timesync;
 
-        if (st_nh.getParam("conn/system_time_rate", conn_system_time_d) &&
+        if (nh.getParam("conn/system_time_rate", conn_system_time_d) &&
             conn_system_time_d != 0.0) {
             conn_system_time = ros::WallDuration(ros::Rate(conn_system_time_d));
         }
 
-        if (st_nh.getParam("conn/timesync_rate", conn_timesync_d) && conn_timesync_d != 0.0) {
+        if (nh.getParam("conn/timesync_rate", conn_timesync_d) && conn_timesync_d != 0.0) {
             conn_timesync = ros::WallDuration(ros::Rate(conn_timesync_d));
         }
 
-        st_nh.param<std::string>("time/time_ref_source", time_ref_source, "fcu");
-        st_nh.param<std::string>("time/timesync_mode", ts_mode_str, "MAVLINK");
+        nh.param<std::string>("time/time_ref_source", time_ref_source, "fcu");
+        nh.param<std::string>("time/timesync_mode", ts_mode_str, "MAVLINK");
 
         // Filter gains
         //
@@ -165,10 +165,10 @@ public:
         //
         // Beta：用于平滑时钟斜率估计，该值较小能更精确地估计斜率(也就是导数)，但滤波器对时钟斜率的反应速度更慢
         // (如振荡器温度变化引起的偏差)，该值较大则会导致斜率较大的振幅振荡。
-        st_nh.param("time/timesync_alpha_initial", filter_alpha_initial, 0.05f);
-        st_nh.param("time/timesync_beta_initial", filter_beta_initial, 0.05f);
-        st_nh.param("time/timesync_alpha_final", filter_alpha_final, 0.003f);
-        st_nh.param("time/timesync_beta_final", filter_beta_final, 0.003f);
+        nh.param("time/timesync_alpha_initial", filter_alpha_initial, 0.05f);
+        nh.param("time/timesync_beta_initial", filter_beta_initial, 0.05f);
+        nh.param("time/timesync_alpha_final", filter_alpha_final, 0.003f);
+        nh.param("time/timesync_beta_final", filter_beta_final, 0.003f);
         filter_alpha = filter_alpha_initial;
         filter_beta  = filter_beta_initial;
 
@@ -183,7 +183,7 @@ public:
         //
         // 当交换的时间同步数据包的数量小于收敛窗口时，滤波器在初始和最终增益之间进行插值。该值较低的值将允许时间
         // 同步更快地收敛，但初始偏移和偏斜估计可能不太准确。
-        st_nh.param("time/convergence_window", convergence_window, 500);
+        nh.param("time/convergence_window", convergence_window, 500);
 
         // Outlier rejection and filter reset
         //
@@ -201,10 +201,10 @@ public:
         // 计算出的时钟偏移量大于当前估计的max_deviation_sample参数的样本不用于 更新滤波器。
         // 连续超过max_consecutive_high_deviation参数的此类事件将重置滤波器。这通常由于远端系统
         // (飞控)上的时间跳跃而发生。
-        st_nh.param("time/max_rtt_sample", max_rtt_sample, 10);              // in ms
-        st_nh.param("time/max_deviation_sample", max_deviation_sample, 100); // in ms
-        st_nh.param("time/max_consecutive_high_rtt", max_cons_high_rtt, 5);
-        st_nh.param("time/max_consecutive_high_deviation", max_cons_high_deviation, 5);
+        nh.param("time/max_rtt_sample", max_rtt_sample, 10);              // in ms
+        nh.param("time/max_deviation_sample", max_deviation_sample, 100); // in ms
+        nh.param("time/max_consecutive_high_rtt", max_cons_high_rtt, 5);
+        nh.param("time/max_consecutive_high_deviation", max_cons_high_deviation, 5);
 
         // Set timesync mode
         // 设置同步模式
@@ -212,22 +212,22 @@ public:
         m_uas->set_timesync_mode(ts_mode);
         ROS_INFO_STREAM_NAMED("time", "TM: Timesync mode: " << utils::to_string(ts_mode));
 
-        st_nh.param("time/publish_sim_time", publish_sim_time, false);
+        nh.param("time/publish_sim_time", publish_sim_time, false);
         if (publish_sim_time) {
-            sim_time_pub = st_nh.advertise<rosgraph_msgs::Clock>("/clock", 10);
+            sim_time_pub = nh.advertise<rosgraph_msgs::Clock>("/clock", 10);
             ROS_INFO_STREAM_NAMED("time", "TM: Publishing sim time");
         } else {
             ROS_INFO_STREAM_NAMED("time", "TM: Not publishing sim time");
         }
-        time_ref_pub = st_nh.advertise<sensor_msgs::TimeReference>("time_reference", 10);
+        time_ref_pub = nh.advertise<sensor_msgs::TimeReference>("time_reference", 10);
 
-        timesync_status_pub = st_nh.advertise<mavros_msgs::TimesyncStatus>("timesync_status", 10);
+        timesync_status_pub = nh.advertise<mavros_msgs::TimesyncStatus>("timesync_status", 10);
 
         // timer for sending system time messages
         // 用于发送系统时间信息的定时器
         if (!conn_system_time.isZero()) {
             sys_time_timer =
-                st_nh.createWallTimer(conn_system_time, &SystemTimePlugin::sys_time_cb, this);
+                nh.createWallTimer(conn_system_time, &SystemTimePlugin::sys_time_cb, this);
             sys_time_timer.start();
         }
 
@@ -239,7 +239,7 @@ public:
             UAS_DIAG(m_uas).add(dt_diag);
 
             timesync_timer =
-                st_nh.createWallTimer(conn_timesync, &SystemTimePlugin::timesync_cb, this);
+                nh.createWallTimer(conn_timesync, &SystemTimePlugin::timesync_cb, this);
             timesync_timer.start();
         }
     }
@@ -252,7 +252,7 @@ public:
     }
 
 private:
-    ros::NodeHandle st_nh;
+    ros::NodeHandle nh;
     ros::Publisher  sim_time_pub;
     ros::Publisher  time_ref_pub;
     ros::Publisher  timesync_status_pub;

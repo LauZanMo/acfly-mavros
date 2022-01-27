@@ -399,7 +399,7 @@ private:
 class SystemStatusPlugin : public plugin::PluginBase {
 public:
     SystemStatusPlugin()
-        : PluginBase(), ss_nh("~"), hb_diag("Heartbeat", 10), sys_diag("System"),
+        : PluginBase(), nh("~"), hb_diag("Heartbeat", 10), sys_diag("System"),
           batt_diag("Battery"), conn_heartbeat_mav_type(MAV_TYPE::ONBOARD_CONTROLLER),
           version_retries(RETRIES_COUNT), disable_diag(false), has_battery_status(false),
           battery_voltage(0.0) {}
@@ -415,19 +415,19 @@ public:
         double      min_voltage;
         std::string conn_heartbeat_mav_type_str;
 
-        ss_nh.param("conn/timeout", conn_timeout_d, 10.0);
-        ss_nh.param("sys/min_voltage", min_voltage, 10.0);
-        ss_nh.param("sys/disable_diag", disable_diag, false);
+        nh.param("conn/timeout", conn_timeout_d, 10.0);
+        nh.param("sys/min_voltage", min_voltage, 10.0);
+        nh.param("sys/disable_diag", disable_diag, false);
 
         // heartbeat rate parameter
         // 心跳速率参数
-        if (ss_nh.getParam("conn/heartbeat_rate", conn_heartbeat_d) && conn_heartbeat_d != 0.0) {
+        if (nh.getParam("conn/heartbeat_rate", conn_heartbeat_d) && conn_heartbeat_d != 0.0) {
             conn_heartbeat = ros::WallDuration(ros::Rate(conn_heartbeat_d));
         }
 
         // heartbeat mav type parameter
         // 心跳mavlink格式参数
-        if (ss_nh.getParam("conn/heartbeat_mav_type", conn_heartbeat_mav_type_str)) {
+        if (nh.getParam("conn/heartbeat_mav_type", conn_heartbeat_mav_type_str)) {
             conn_heartbeat_mav_type = utils::mav_type_from_str(conn_heartbeat_mav_type_str);
         }
 
@@ -443,34 +443,34 @@ public:
 
         // one-shot timeout timer
         // 单次超时定时器(不会被自动重置)
-        timeout_timer = ss_nh.createWallTimer(ros::WallDuration(conn_timeout_d),
+        timeout_timer = nh.createWallTimer(ros::WallDuration(conn_timeout_d),
                                               &SystemStatusPlugin::timeout_cb, this, true);
 
         if (!conn_heartbeat.isZero()) {
             heartbeat_timer =
-                ss_nh.createWallTimer(conn_heartbeat, &SystemStatusPlugin::heartbeat_cb, this);
+                nh.createWallTimer(conn_heartbeat, &SystemStatusPlugin::heartbeat_cb, this);
         }
 
         // version request timer
         // 版本请求定时器
-        autopilot_version_timer = ss_nh.createWallTimer(
+        autopilot_version_timer = nh.createWallTimer(
             ros::WallDuration(1.0), &SystemStatusPlugin::autopilot_version_cb, this);
         autopilot_version_timer.stop();
 
-        state_pub          = ss_nh.advertise<mavros_msgs::State>("state", 10, true);
-        extended_state_pub = ss_nh.advertise<mavros_msgs::ExtendedState>("extended_state", 10);
-        batt_pub           = ss_nh.advertise<BatteryMsg>("battery", 10);
-        batt2_pub          = ss_nh.advertise<BatteryMsg>("battery2", 10);
+        state_pub          = nh.advertise<mavros_msgs::State>("state", 10, true);
+        extended_state_pub = nh.advertise<mavros_msgs::ExtendedState>("extended_state", 10);
+        batt_pub           = nh.advertise<BatteryMsg>("battery", 10);
+        batt2_pub          = nh.advertise<BatteryMsg>("battery2", 10);
         estimator_status_pub =
-            ss_nh.advertise<mavros_msgs::EstimatorStatus>("estimator_status", 10);
-        statustext_pub = ss_nh.advertise<mavros_msgs::StatusText>("statustext/recv", 10);
+            nh.advertise<mavros_msgs::EstimatorStatus>("estimator_status", 10);
+        statustext_pub = nh.advertise<mavros_msgs::StatusText>("statustext/recv", 10);
         statustext_sub =
-            ss_nh.subscribe("statustext/send", 10, &SystemStatusPlugin::statustext_cb, this);
+            nh.subscribe("statustext/send", 10, &SystemStatusPlugin::statustext_cb, this);
         rate_srv =
-            ss_nh.advertiseService("set_stream_rate", &SystemStatusPlugin::set_rate_cb, this);
-        vehicle_info_get_srv = ss_nh.advertiseService(
+            nh.advertiseService("set_stream_rate", &SystemStatusPlugin::set_rate_cb, this);
+        vehicle_info_get_srv = nh.advertiseService(
             "vehicle_info_get", &SystemStatusPlugin::vehicle_info_get_cb, this);
-        message_interval_srv = ss_nh.advertiseService(
+        message_interval_srv = nh.advertiseService(
             "set_message_interval", &SystemStatusPlugin::set_message_interval_cb, this);
 
         // init state topic
@@ -494,7 +494,7 @@ public:
     }
 
 private:
-    ros::NodeHandle ss_nh;
+    ros::NodeHandle nh;
 
     HeartbeatStatus   hb_diag;
     SystemStatusDiag  sys_diag;
@@ -960,7 +960,7 @@ private:
         bool do_broadcast = version_retries > RETRIES_COUNT / 2;
 
         try {
-            auto client = ss_nh.serviceClient<mavros_msgs::CommandLong>("cmd/command");
+            auto client = nh.serviceClient<mavros_msgs::CommandLong>("cmd/command");
 
             mavros_msgs::CommandLong cmd{};
 
@@ -1085,7 +1085,7 @@ private:
         using mavlink::common::MAV_CMD;
 
         try {
-            auto client = ss_nh.serviceClient<mavros_msgs::CommandLong>("cmd/command");
+            auto client = nh.serviceClient<mavros_msgs::CommandLong>("cmd/command");
 
             // calculate interval
             // 计算间隔
