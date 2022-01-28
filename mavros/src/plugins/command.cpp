@@ -15,6 +15,7 @@
 #include <chrono>
 #include <condition_variable>
 #include <mavros/mavros_plugin.h>
+#include <mavros/px4_custom_mode.h>
 
 #include <mavros_msgs/CommandAck.h>
 #include <mavros_msgs/CommandBool.h>
@@ -383,11 +384,12 @@ private:
             base_mode |= (m_uas->get_hil_state()) ? enum_value(MAV_MODE_FLAG::HIL_ENABLED) : 0;
             base_mode |= enum_value(MAV_MODE_FLAG::CUSTOM_MODE_ENABLED);
         }
+        px4::custom_mode cm(custom_mode);
 
         using mavlink::common::MAV_CMD;
         return send_command_long_and_wait(false, enum_value(MAV_CMD::DO_SET_MODE), 1,
-                                          (float)base_mode, (float)custom_mode, 0, 0, 0, 0, 0,
-                                          res.success, res.result);
+                                          (float)base_mode, (float)cm.main_mode, (float)cm.sub_mode,
+                                          0, 0, 0, 0, res.success, res.result);
     }
 
     bool arming_cb(mavros_msgs::CommandBool::Request  &req,
