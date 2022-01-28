@@ -132,10 +132,10 @@ private:
 
     void vel_cb(const geometry_msgs::TwistStamped::ConstPtr &req) {
         if (set_position_local_support_confirmed) {
-            Eigen::Vector3d vel_enu;
+            Eigen::Vector3d vel_req;
 
-            tf::vectorMsgToEigen(req->twist.linear, vel_enu);
-            send_setpoint_velocity(req->header.stamp, vel_enu, req->twist.angular.z);
+            tf::vectorMsgToEigen(req->twist.linear, vel_req);
+            send_setpoint_velocity(req->header.stamp, vel_req, req->twist.angular.z);
         } else {
             ROS_WARN_NAMED("setpoint_raw",
                            "SPR: Operation error, please check capabilities of FCU!");
@@ -144,10 +144,10 @@ private:
 
     void vel_unstamped_cb(const geometry_msgs::Twist::ConstPtr &req) {
         if (set_position_local_support_confirmed) {
-            Eigen::Vector3d vel_enu;
+            Eigen::Vector3d vel_req;
 
-            tf::vectorMsgToEigen(req->linear, vel_enu);
-            send_setpoint_velocity(ros::Time::now(), vel_enu, req->angular.z);
+            tf::vectorMsgToEigen(req->linear, vel_req);
+            send_setpoint_velocity(ros::Time::now(), vel_req, req->angular.z);
         } else {
             ROS_WARN_NAMED("setpoint_raw",
                            "SPR: Operation error, please check capabilities of FCU!");

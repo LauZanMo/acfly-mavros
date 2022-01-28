@@ -48,7 +48,7 @@ public:
 
     GlobalPositionPlugin()
         : PluginBase(), gp_nh("~global_position"), tf_send(false), use_relative_alt(true),
-          is_map_init(false), outdoor_switch(true), rot_cov(99999.0) {}
+          is_map_init(false), outdoor_switch(false), rot_cov(99999.0) {}
 
     void initialize(UAS &uas_) override {
         PluginBase::initialize(uas_);
