@@ -18,7 +18,6 @@
 #include <mavros_msgs/EstimatorStatus.h>
 #include <mavros_msgs/ExtendedState.h>
 #include <mavros_msgs/MessageInterval.h>
-#include <mavros_msgs/SetMode.h>
 #include <mavros_msgs/State.h>
 #include <mavros_msgs/StatusText.h>
 #include <mavros_msgs/StreamRate.h>
@@ -399,10 +398,9 @@ private:
 class SystemStatusPlugin : public plugin::PluginBase {
 public:
     SystemStatusPlugin()
-        : PluginBase(), nh("~"), hb_diag("Heartbeat", 10), sys_diag("System"),
-          batt_diag("Battery"), conn_heartbeat_mav_type(MAV_TYPE::ONBOARD_CONTROLLER),
-          version_retries(RETRIES_COUNT), disable_diag(false), has_battery_status(false),
-          battery_voltage(0.0) {}
+        : PluginBase(), nh("~"), hb_diag("Heartbeat", 10), sys_diag("System"), batt_diag("Battery"),
+          conn_heartbeat_mav_type(MAV_TYPE::ONBOARD_CONTROLLER), version_retries(RETRIES_COUNT),
+          disable_diag(false), has_battery_status(false), battery_voltage(0.0) {}
 
     // ROS插件动态加载后会执行该函数，相当于构造函数
     void initialize(UAS &uas_) override {
@@ -444,7 +442,7 @@ public:
         // one-shot timeout timer
         // 单次超时定时器(不会被自动重置)
         timeout_timer = nh.createWallTimer(ros::WallDuration(conn_timeout_d),
-                                              &SystemStatusPlugin::timeout_cb, this, true);
+                                           &SystemStatusPlugin::timeout_cb, this, true);
 
         if (!conn_heartbeat.isZero()) {
             heartbeat_timer =
@@ -457,19 +455,17 @@ public:
             ros::WallDuration(1.0), &SystemStatusPlugin::autopilot_version_cb, this);
         autopilot_version_timer.stop();
 
-        state_pub          = nh.advertise<mavros_msgs::State>("state", 10, true);
-        extended_state_pub = nh.advertise<mavros_msgs::ExtendedState>("extended_state", 10);
-        batt_pub           = nh.advertise<BatteryMsg>("battery", 10);
-        batt2_pub          = nh.advertise<BatteryMsg>("battery2", 10);
-        estimator_status_pub =
-            nh.advertise<mavros_msgs::EstimatorStatus>("estimator_status", 10);
-        statustext_pub = nh.advertise<mavros_msgs::StatusText>("statustext/recv", 10);
+        state_pub            = nh.advertise<mavros_msgs::State>("state", 10, true);
+        extended_state_pub   = nh.advertise<mavros_msgs::ExtendedState>("extended_state", 10);
+        batt_pub             = nh.advertise<BatteryMsg>("battery", 10);
+        batt2_pub            = nh.advertise<BatteryMsg>("battery2", 10);
+        estimator_status_pub = nh.advertise<mavros_msgs::EstimatorStatus>("estimator_status", 10);
+        statustext_pub       = nh.advertise<mavros_msgs::StatusText>("statustext/recv", 10);
         statustext_sub =
             nh.subscribe("statustext/send", 10, &SystemStatusPlugin::statustext_cb, this);
-        rate_srv =
-            nh.advertiseService("set_stream_rate", &SystemStatusPlugin::set_rate_cb, this);
-        vehicle_info_get_srv = nh.advertiseService(
-            "vehicle_info_get", &SystemStatusPlugin::vehicle_info_get_cb, this);
+        rate_srv = nh.advertiseService("set_stream_rate", &SystemStatusPlugin::set_rate_cb, this);
+        vehicle_info_get_srv =
+            nh.advertiseService("vehicle_info_get", &SystemStatusPlugin::vehicle_info_get_cb, this);
         message_interval_srv = nh.advertiseService(
             "set_message_interval", &SystemStatusPlugin::set_message_interval_cb, this);
 
