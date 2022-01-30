@@ -49,9 +49,9 @@ public:
         lp_nh.param<std::string>("frame_id", frame_id, "ac_map_enu");
         // tf subsection
         // tf子块
-        lp_nh.param("tf/send", tf_send, false);
+        lp_nh.param("tf/send", tf_send, true);
         lp_nh.param<std::string>("tf/frame_id", tf_frame_id, "ac_map_enu");
-        lp_nh.param<std::string>("tf/child_frame_id", tf_child_frame_id, "ac_base_enu");
+        lp_nh.param<std::string>("tf/child_frame_id", tf_child_frame_id, "ac_base_flu");
 
         // fused local position
         // 融合的局部位置

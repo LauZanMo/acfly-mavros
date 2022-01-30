@@ -4,7 +4,6 @@
 
 <launch>
   <!-- mavlink连接参数 -->
-  <arg name="mavlink_on" default="true"/>
   <arg name="fcu_url" default="/dev/ttyACM0:115200" />
   <arg name="gcs_url" default="" />
   <arg name="tgt_system" default="1" />
@@ -18,7 +17,7 @@
   <arg name="config_yaml" value="$(find mavros)/launch/acfly_config.yaml" />
 
   <!-- 启动mavlink通信 -->
-  <include if="$(arg mavlink_on)" file="$(find mavros)/launch/node.launch">
+  <include file="$(find mavros)/launch/node.launch">
     <arg name="pluginlists_yaml" default="$(arg pluginlists_yaml)"/>
     <arg name="config_yaml" default="$(arg config_yaml)"/>
 

@@ -49,7 +49,7 @@ imu:
 # local_position
 local_position:
   tf:
-    send: false
+    send: true
 
 # param
 # 无
@@ -64,7 +64,6 @@ setpoint_raw:
 # setpoint_velocity
 setpoint_velocity:
   mav_frame: BODY_NED         # 合法输入为LOCAL_NED，LOCAL_OFFSET_NED，BODY_NED，BODY_OFFSET_NED
-
 
 # waypoint
 mission:
