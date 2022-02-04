@@ -6259,7 +6259,7 @@
 	<message id="206" name="ACFlyPosSensor_INFO">
       <description>ACFly Position Sensor Info</description>
       <field type="uint64_t" name="time_usec" units="us">Timestamp. The receiving end can infer timestamp format (since 1.1.1970 or since system boot) by checking for the magnitude of the number.</field>
-      <field type="char[16]" name="name">position sensor name</field>
+      <field type="char[16]" name="sensor_name">position sensor name</field>
 	  <field type="int8_t" name="ind">Position sensor index.</field>
 	  <field type="uint8_t" name="type" enum="ACFLY_POSTYPE_FLAGS">Position sensor type.</field>
 	  <field type="uint8_t" name="DataFrame">Velocity data frame 0:ENU 1:bodyFLU bit7:sensor available.</field>
@@ -6276,14 +6276,14 @@
 	  <field type="float" name="trustXY">Sensor trust in meters in XY direction</field>
 	  <field type="float" name="trustZ">Sensor trust in meters in Z direction</field>
 	  <extensions/>
-	  <field type="uint8_t[4]" name="additionInfo1">Additional info according to sesnor type.</field>
-	  <field type="float[8]" name="additionInfo2">Additional info according to sesnor type.</field>
+	  <field type="uint8_t[4]" name="additionInfo1">Addition info according to sensor type.</field>
+	  <field type="float[8]" name="additionInfo2">Addition info according to sensor type.</field>
     </message>
 	<message id="208" name="ACFly_RegeisterPosSensor">
       <description>ACFly Position Sensor Register</description>
       <field type="uint8_t" name="target_system">System ID</field>
       <field type="uint8_t" name="target_component">Component ID</field>
-      <field type="char[16]" name="name">position sensor name</field>
+      <field type="char[16]" name="sensor_name">position sensor name</field>
 	  <field type="int8_t" name="ind">Position sensor index.</field>
 	  <field type="uint8_t" name="type" enum="ACFLY_POSTYPE_FLAGS">Position sensor type.</field>
 	  <field type="uint8_t" name="DataFrame">0:position in ENU velocity in ENU   1:position in ENU velocity in bodyFLU   4:position in SLAM frame velocity in ENU   5:position in SLAM frame velocity in bodyFLU   bit7:sensor available.   bit6:1 to Unregister sensor.</field>

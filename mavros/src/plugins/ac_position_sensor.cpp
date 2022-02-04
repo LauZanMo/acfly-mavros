@@ -117,7 +117,7 @@ private:
         mavlink::commonACFly::msg::ACFly_RegeisterPosSensor rp{};
         rp.target_system    = m_uas->get_tgt_system();
         rp.target_component = m_uas->get_tgt_component();
-        mavlink::set_string(rp.name, sensor_name);
+        mavlink::set_string(rp.sensor_name, sensor_name);
         rp.ind       = static_cast<int8_t>(sensor_ind);
         rp.type      = static_cast<uint8_t>(sensor_type);
         rp.DataFrame = static_cast<uint8_t>(sensor_data_frame);
