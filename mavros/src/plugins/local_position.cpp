@@ -46,12 +46,12 @@ public:
 
         // general params
         // 通用参数
-        lp_nh.param<std::string>("frame_id", frame_id, "ac_map_enu");
+        lp_nh.param<std::string>("frame_id", frame_id, "ac_local_enu");
         // tf subsection
         // tf子块
         lp_nh.param("tf/send", tf_send, true);
-        lp_nh.param<std::string>("tf/frame_id", tf_frame_id, "ac_map_enu");
-        lp_nh.param<std::string>("tf/child_frame_id", tf_child_frame_id, "ac_base_flu");
+        lp_nh.param<std::string>("tf/frame_id", tf_frame_id, "ac_base_flu");
+        lp_nh.param<std::string>("tf/child_frame_id", tf_child_frame_id, "ac_local_enu");
 
         // fused local position
         // 融合的局部位置
@@ -97,13 +97,17 @@ private:
     void publish_tf(boost::shared_ptr<nav_msgs::Odometry> &odom) {
         if (tf_send) {
             geometry_msgs::TransformStamped transform;
+            Eigen::Quaterniond              q;
+            geometry_msgs::Quaternion       q_msg;
             transform.header.stamp            = odom->header.stamp;
             transform.header.frame_id         = tf_frame_id;
             transform.child_frame_id          = tf_child_frame_id;
-            transform.transform.translation.x = odom->pose.pose.position.x;
-            transform.transform.translation.y = odom->pose.pose.position.y;
-            transform.transform.translation.z = odom->pose.pose.position.z;
-            transform.transform.rotation      = odom->pose.pose.orientation;
+            transform.transform.translation.x = -odom->pose.pose.position.x;
+            transform.transform.translation.y = -odom->pose.pose.position.y;
+            transform.transform.translation.z = -odom->pose.pose.position.z;
+            tf::quaternionMsgToEigen(odom->pose.pose.orientation, q);
+            tf::quaternionEigenToMsg(q.inverse(), q_msg);
+            transform.transform.rotation = q_msg;
             m_uas->tf2_broadcaster.sendTransform(transform);
         }
     }

@@ -55,8 +55,8 @@ public:
 
         // general params
         // 通用参数
-        gp_nh.param<std::string>("frame_id", frame_id, "ac_map_enu");
-        gp_nh.param<std::string>("child_frame_id", child_frame_id, "ac_base_enu");
+        gp_nh.param<std::string>("frame_id", frame_id, "ac_local_enu");
+        gp_nh.param<std::string>("child_frame_id", child_frame_id, "ac_base_flu");
         gp_nh.param<std::string>("global_frame_id", global_frame_id, "ac_earth");
         gp_nh.param("rot_covariance", rot_cov, 99999.0);
         gp_nh.param("gps_uere", gps_uere, 1.0);
@@ -64,12 +64,12 @@ public:
         // tf subsection
         // tf子块
         gp_nh.param("tf/send", tf_send, false);
-        gp_nh.param<std::string>("tf/frame_id", tf_frame_id, "ac_map_enu");
+        gp_nh.param<std::string>("tf/frame_id", tf_frame_id, "ac_base_flu");
         gp_nh.param<std::string>("tf/global_frame_id", tf_global_frame_id,
                                  "ac_earth"); // The global_origin should be represented as "earth"
                                               // coordinate frame (ECEF) (REP 105)
                                               // 全球定位原点应以地心地固坐标系表示
-        gp_nh.param<std::string>("tf/child_frame_id", tf_child_frame_id, "ac_base_enu");
+        gp_nh.param<std::string>("tf/child_frame_id", tf_child_frame_id, "ac_local_enu");
 
         UAS_DIAG(m_uas).add("GPS", this, &GlobalPositionPlugin::gps_diag_run);
 
@@ -438,13 +438,17 @@ private:
 
             // set rotation
             // 设置旋转
-            transform.transform.rotation = odom->pose.pose.orientation;
+            Eigen::Quaterniond        q;
+            geometry_msgs::Quaternion q_msg;
+            tf::quaternionMsgToEigen(odom->pose.pose.orientation, q);
+            tf::quaternionEigenToMsg(q.inverse(), q_msg);
+            transform.transform.rotation = q_msg;
 
             // set origin
             // 设置原点
-            transform.transform.translation.x = odom->pose.pose.position.x;
-            transform.transform.translation.y = odom->pose.pose.position.y;
-            transform.transform.translation.z = odom->pose.pose.position.z;
+            transform.transform.translation.x = -odom->pose.pose.position.x;
+            transform.transform.translation.y = -odom->pose.pose.position.y;
+            transform.transform.translation.z = -odom->pose.pose.position.z;
 
             m_uas->tf2_broadcaster.sendTransform(transform);
         }
@@ -454,7 +458,7 @@ private:
         const mavlink::mavlink_message_t                              *msg,
         mavlink::common::msg::LOCAL_POSITION_NED_SYSTEM_GLOBAL_OFFSET &offset) {
         auto global_offset    = boost::make_shared<geometry_msgs::PoseStamped>();
-        global_offset->header = m_uas->synchronized_header(tf_global_frame_id, offset.time_boot_ms);
+        global_offset->header = m_uas->synchronized_header(global_frame_id, offset.time_boot_ms);
 
         auto enu_position =
             ftf::transform_frame_ned_enu(Eigen::Vector3d(offset.x, offset.y, offset.z));
@@ -473,18 +477,22 @@ private:
             geometry_msgs::TransformStamped transform;
 
             transform.header.stamp    = global_offset->header.stamp;
-            transform.header.frame_id = tf_global_frame_id;
-            transform.child_frame_id  = tf_frame_id;
+            transform.header.frame_id = tf_child_frame_id;
+            transform.child_frame_id  = tf_global_frame_id;
 
             // set rotation
             // 设置旋转
-            transform.transform.rotation = global_offset->pose.orientation;
+            Eigen::Quaterniond        q;
+            geometry_msgs::Quaternion q_msg;
+            tf::quaternionMsgToEigen(global_offset->pose.orientation, q);
+            tf::quaternionEigenToMsg(q.inverse(), q_msg);
+            transform.transform.rotation = q_msg;
 
             // set origin
             // 设置原点
-            transform.transform.translation.x = global_offset->pose.position.x;
-            transform.transform.translation.y = global_offset->pose.position.y;
-            transform.transform.translation.z = global_offset->pose.position.z;
+            transform.transform.translation.x = -global_offset->pose.position.x;
+            transform.transform.translation.y = -global_offset->pose.position.y;
+            transform.transform.translation.z = -global_offset->pose.position.z;
 
             m_uas->tf2_broadcaster.sendTransform(transform);
         }
