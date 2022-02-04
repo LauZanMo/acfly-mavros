@@ -47,9 +47,9 @@ UAS::UAS()
     add_static_transform("ac_local_enu", "ac_local_ned",
                          Eigen::Affine3d(ftf::quaternion_from_rpy(M_PI, 0, M_PI_2)),
                          transform_vector);
-    add_static_transform("ac_odom_enu", "ac_odom_ned",
-                         Eigen::Affine3d(ftf::quaternion_from_rpy(M_PI, 0, M_PI_2)),
-                         transform_vector);
+    // add_static_transform("ac_odom_enu", "ac_odom_ned",
+    //                      Eigen::Affine3d(ftf::quaternion_from_rpy(M_PI, 0, M_PI_2)),
+    //                      transform_vector);
     add_static_transform("ac_base_flu", "ac_base_frd",
                          Eigen::Affine3d(ftf::quaternion_from_rpy(M_PI, 0, 0)), transform_vector);
 
