@@ -27,6 +27,7 @@ plugin_blacklist:
 - hil
 - home_position
 - wind_estimation
+- acfly_position_sensor
 
 # mavros extra plugins
 - adsb
@@ -65,3 +66,4 @@ plugin_whitelist:
 - local_position
 - setpoint_raw
 - setpoint_velocity
+- acfly_position_sensor
