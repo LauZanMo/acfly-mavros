@@ -21,7 +21,8 @@
 namespace mavros {
 namespace std_plugins {
 /**
- * @brief
+ * @brief acfly position sensor send plugin
+ * @brief acfly位置传感器发送插件
  * @warning acfly自定义的信息全部直接以ENU-FLU系发送，与PX4不同
  */
 class AcPositionSensorPlugin : public plugin::PluginBase,
