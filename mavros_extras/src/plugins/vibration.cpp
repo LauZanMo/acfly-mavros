@@ -1,17 +1,16 @@
 /**
- * @brief Vibration plugin
  * @file vibration.cpp
+ * @author LauZanMo (LauZanMo@whu.edu.cn)
+ * @author Vladimir Ermakov <vooon341@gmail.com>
  * @author Nuno Marques <n.marques21@hotmail.com>
+ * @brief This file is from mavros open source respository, thanks for their contribution.
+ * @version 1.0
+ * @date 2022-02-05
  *
- * @addtogroup plugin
- * @{
- */
-/*
- * Copyright 2015 Nuno Marques.
+ * @copyright Copyright (c) 2022 acfly
+ * @copyright Copyright 2014,2015,2016,2017 Vladimir Ermakov, Nuno Marques.
+ * For commercial use, please contact acfly: https://www.acfly.cn
  *
- * This file is part of the mavros package and subject to the license terms
- * in the top-level LICENSE file of the mavros repository.
- * https://github.com/mavlink/mavros/tree/master/LICENSE.md
  */
 
 #include <eigen_conversions/eigen_msg.h>
@@ -23,19 +22,22 @@ namespace mavros {
 namespace extra_plugins {
 /**
  * @brief Vibration plugin
- *
- * This plugin is intended to publish MAV vibration levels and accelerometer clipping from FCU.
+ * @brief 描述无人机振动的ROS插件
+ * @note This plugin is intended to publish MAV vibration levels and accelerometer clipping from
+ * FCU.
+ * @note 该插件用于发布从飞控发来的无人机振动等级和加速度计限幅
+ * @warning 振动发布的坐标系为ENU系
  */
 class VibrationPlugin : public plugin::PluginBase {
 public:
-    VibrationPlugin() : PluginBase(), vibe_nh("~vibration") {}
+    VibrationPlugin() : PluginBase(), v_nh("~vibration") {}
 
     void initialize(UAS &uas_) override {
         PluginBase::initialize(uas_);
 
-        vibe_nh.param<std::string>("frame_id", frame_id, "base_link");
+        v_nh.param<std::string>("frame_id", frame_id, "ac_base_flu");
 
-        vibration_pub = vibe_nh.advertise<mavros_msgs::Vibration>("raw/vibration", 10);
+        vibration_pub = v_nh.advertise<mavros_msgs::Vibration>("raw/vibration", 10);
     }
 
     Subscriptions get_subscriptions() override {
@@ -43,14 +45,17 @@ public:
     }
 
 private:
-    ros::NodeHandle vibe_nh;
+    ros::NodeHandle v_nh;
 
     std::string frame_id;
 
     ros::Publisher vibration_pub;
 
+    /* message handlers */
+    /* 信息回调句柄 */
+
     void handle_vibration(const mavlink::mavlink_message_t *msg,
-                          mavlink::common::msg::VIBRATION & vibration) {
+                          mavlink::common::msg::VIBRATION  &vibration) {
         auto vibe_msg = boost::make_shared<mavros_msgs::Vibration>();
 
         vibe_msg->header = m_uas->synchronized_header(frame_id, vibration.time_usec);

@@ -90,3 +90,8 @@ setpoint_velocity:
 mission:
   pull_after_gcs: true        # 如果地面站更新，则更新任务
   use_mission_item_int: true  # 使用MISSION_ITEM_INT代替MISSION_ITEM(MISSION_ITEM_INT精度更高)
+
+# --- mavros extra插件(首字母顺序) --- #
+
+# vibration
+# 无
