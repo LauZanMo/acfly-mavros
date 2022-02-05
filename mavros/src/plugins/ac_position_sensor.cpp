@@ -115,8 +115,7 @@ private:
 
     void register_position_sensor() {
         mavlink::commonACFly::msg::ACFly_RegeisterPosSensor rp{};
-        rp.target_system    = m_uas->get_tgt_system();
-        rp.target_component = m_uas->get_tgt_component();
+        m_uas->msg_set_target(rp);
         mavlink::set_string(rp.sensor_name, sensor_name);
         rp.ind       = static_cast<int8_t>(sensor_ind);
         rp.type      = static_cast<uint8_t>(sensor_type);
@@ -139,10 +138,9 @@ private:
 
         // 消息标头和传感器基本信息
         mavlink::commonACFly::msg::ACFly_UpdatePosSensor up{};
-        up.target_system    = m_uas->get_tgt_system();
-        up.target_component = m_uas->get_tgt_component();
-        up.ind              = sensor_ind;
-        up.DataType         = -1; // -1为保持不变
+        m_uas->msg_set_target(up);
+        up.ind      = sensor_ind;
+        up.DataType = -1; // -1为保持不变
 
         // 定位信息
         up.posX       = tr.translation().x();
