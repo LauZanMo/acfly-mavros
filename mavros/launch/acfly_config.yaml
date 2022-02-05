@@ -34,7 +34,7 @@ acfly_position_sensor:
   sensor_body_translation: [0.0, 0.0, 0.0]  # 传感器与body之间的位移xyz(ENU-FLU)
   sensor:
     index: 15                               # 飞控注册定位传感器索引号(C9最高为16路)
-    delay: 0.05                             # 传感器延时(s)
+    delay: 0.05                             # 默认传感器延时(s)
     trust_xy: 0.01                          # 传感器xy方向方差(m^2)
     trust_z: 0.01                           # 传感器z方向方差(m^2)
   tf:
@@ -73,6 +73,10 @@ local_position:
 
 # rc_io
 # 无
+
+# setpoint_accel
+setpoint_accel:
+  send_force: false           # 是否发送力
 
 # setpoint_raw
 setpoint_raw:
