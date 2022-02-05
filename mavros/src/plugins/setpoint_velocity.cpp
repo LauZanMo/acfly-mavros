@@ -55,6 +55,11 @@ public:
             mav_frame = MAV_FRAME::BODY_NED;
         } else {
             mav_frame = utils::mav_frame_from_str(mav_frame_str);
+            if (mav_frame != MAV_FRAME::LOCAL_NED && mav_frame != MAV_FRAME::LOCAL_OFFSET_NED &&
+                mav_frame != MAV_FRAME::BODY_NED && mav_frame != MAV_FRAME::BODY_OFFSET_NED) {
+                mav_frame = MAV_FRAME::BODY_NED;
+                ROS_WARN_NAMED("setpoint_velocity", "SPV: Invalid frame, set frame to BODY_NED.");
+            }
         }
 
         enable_capabilities_cb();
@@ -137,8 +142,8 @@ private:
             tf::vectorMsgToEigen(req->twist.linear, vel_req);
             send_setpoint_velocity(req->header.stamp, vel_req, req->twist.angular.z);
         } else {
-            ROS_WARN_NAMED("setpoint_raw",
-                           "SPR: Operation error, please check capabilities of FCU!");
+            ROS_WARN_NAMED("setpoint_velocity",
+                           "SPV: Operation error, please check capabilities of FCU!");
         }
     }
 
@@ -149,8 +154,8 @@ private:
             tf::vectorMsgToEigen(req->linear, vel_req);
             send_setpoint_velocity(ros::Time::now(), vel_req, req->angular.z);
         } else {
-            ROS_WARN_NAMED("setpoint_raw",
-                           "SPR: Operation error, please check capabilities of FCU!");
+            ROS_WARN_NAMED("setpoint_velocity",
+                           "SPV: Operation error, please check capabilities of FCU!");
         }
     }
 
