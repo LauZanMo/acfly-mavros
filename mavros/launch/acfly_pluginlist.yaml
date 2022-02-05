@@ -72,3 +72,4 @@ plugin_whitelist:
 
 # mavros extra plugins
 - vibration
+- play_tune

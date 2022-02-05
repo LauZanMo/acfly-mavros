@@ -93,5 +93,8 @@ mission:
 
 # --- mavros extra插件(首字母顺序) --- #
 
+# play_tune
+# 无
+
 # vibration
 # 无
