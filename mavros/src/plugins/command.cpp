@@ -130,8 +130,9 @@ private:
                             mavlink::common::msg::COMMAND_ACK &ack) {
         lock_guard lock(mutex);
 
-        // TODO: place here source ids check
-        // 需要进行源id检查
+        if (ack.target_system != m_uas->fcu_link->get_system_id() ||
+            ack.target_component != m_uas->fcu_link->get_component_id())
+            return;
 
         for (auto &tr : ack_waiting_list) {
             if (tr.expected_command_ == ack.command) {
