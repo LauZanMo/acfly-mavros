@@ -31,7 +31,7 @@ public:
         PluginBase::initialize(uas_);
         playtune_raw_sub = pt_nh.subscribe("raw", 1, &PlayTunePlugin::playtune_raw_cb, this);
         acfly_default_tune_sub =
-            pt_nh.subscribe("acfly_default", 1, &PlayTunePlugin::playtune_raw_cb, this);
+            pt_nh.subscribe("acfly_default", 1, &PlayTunePlugin::acfly_default_tune_cb, this);
     }
 
     Subscriptions get_subscriptions() override {
@@ -63,9 +63,12 @@ private:
         auto msg = mavlink::common::msg::PLAY_TUNE_V2{};
         m_uas->msg_set_target(msg);
         msg.format = uint32_t(mavlink::common::TUNE_FORMAT::QBASIC1_1);
-        if (ind->data < acfly_default_tune.size())
+        if (ind->data < acfly_default_tune.size()) {
             mavlink::set_string_z(msg.tune, acfly_default_tune[ind->data]);
-        UAS_FCU(m_uas)->send_message_ignore_drop(msg);
+            UAS_FCU(m_uas)->send_message_ignore_drop(msg);
+        } else {
+            ROS_WARN_NAMED("play_tune", "PT: Invalid index of default tune.");
+        }
     }
 };
 } // namespace extra_plugins
