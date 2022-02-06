@@ -43,7 +43,9 @@ using ::mavlink::mavlink_message_t;
 // warning: taking address of packed member of ‘mavlink::__mavlink_message’ may result in an
 // unaligned pointer value
 #pragma GCC diagnostic push
+#if __GNUC__ >= 9
 #pragma GCC diagnostic ignored "-Waddress-of-packed-member"
+#endif
 
 /**
  * @brief Convert mavros_msgs/Mavlink message to mavlink_message_t
