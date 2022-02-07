@@ -229,7 +229,7 @@ private:
         }
 
         // publish satellite count
-        // 打印可见星数
+        // 发布可见星数
         auto sat_cnt  = boost::make_shared<std_msgs::UInt32>();
         sat_cnt->data = raw_gps.satellites_visible;
         raw_sat_pub.publish(sat_cnt);
@@ -308,6 +308,9 @@ private:
             // 不知道协方差，使用缺省值
             fill_unknown_cov(fix);
         }
+
+        // 存储全球位置，供其他组件使用
+        m_uas->update_global_position(fix);
 
         relative_alt->data    = gpos.relative_alt / 1E3;                         // in meters
         compass_heading->data = (gpos.hdg != UINT16_MAX) ? gpos.hdg / 1E2 : NAN; // in degrees

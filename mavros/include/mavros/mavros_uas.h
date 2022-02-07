@@ -29,6 +29,7 @@
 
 #include <GeographicLib/Geoid.hpp>
 
+#include <geometry_msgs/PoseStamped.h>
 #include <sensor_msgs/Imu.h>
 #include <sensor_msgs/NavSatFix.h>
 
@@ -94,7 +95,7 @@ public:
         return connected;
     }
 
-    /* -*- HEARTBEAT data -*- */
+    /* HEARTBEAT data */
 
     /**
      * Update autopilot type on every HEARTBEAT
@@ -145,7 +146,7 @@ public:
         return base_mode_ & utils::enum_value(MAV_MODE_FLAG::HIL_ENABLED);
     }
 
-    /* -*- FCU target id pair -*- */
+    /* FCU target id pair */
 
     /**
      * @brief Return communication target system
@@ -166,7 +167,7 @@ public:
         target_component = comp;
     }
 
-    /* -*- IMU data -*- */
+    /* IMU data */
 
     /**
      * @brief Store IMU data [ENU]
@@ -212,19 +213,33 @@ public:
      */
     geometry_msgs::Vector3 get_attitude_angular_velocity_ned();
 
-    /* -*- GPS data -*- */
+    /* GPS data */
 
-    //! Store GPS RAW data
+    // Store GPS RAW data
     void update_gps_fix_epts(sensor_msgs::NavSatFix::Ptr &fix, float eph, float epv, int fix_type,
                              int satellites_visible);
 
-    //! Returns EPH, EPV, Fix type and satellites visible
+    // Returns EPH, EPV, Fix type and satellites visible
     void get_gps_epts(float &eph, float &epv, int &fix_type, int &satellites_visible);
 
-    //! Retunrs last GPS RAW message
+    // Returns last GPS RAW message
     sensor_msgs::NavSatFix::Ptr get_gps_fix();
 
-    /* -*- GograpticLib utils -*- */
+    /* FCU position data */
+
+    // Store global position data
+    void update_global_position(sensor_msgs::NavSatFix::Ptr &gp);
+
+    // Returns last global position
+    sensor_msgs::NavSatFix::Ptr get_global_position();
+
+    // Store local position data
+    void update_local_position(geometry_msgs::PoseStamped::Ptr &lp);
+
+    // Returns last local position
+    geometry_msgs::PoseStamped::Ptr get_local_position();
+
+    /* GograpticLib utils */
 
     /**
      * @brief Geoid dataset used to convert between AMSL and WGS-84
@@ -257,7 +272,7 @@ public:
             return 0.0;
     }
 
-    /* -*- transform -*- */
+    /* transform */
 
     tf2_ros::Buffer                     tf2_buffer;
     tf2_ros::TransformListener          tf2_listener;
@@ -287,7 +302,7 @@ public:
     void publish_static_transform(const std::string &frame_id, const std::string &child_id,
                                   const Eigen::Affine3d &tr);
 
-    /* -*- time sync -*- */
+    /* time sync */
 
     inline void set_time_offset(uint64_t offset_ns) {
         time_offset = offset_ns;
@@ -305,7 +320,7 @@ public:
         return tsync_mode;
     }
 
-    /* -*- autopilot version -*- */
+    /* autopilot version */
     uint64_t get_capabilities();
 
     /**
@@ -373,7 +388,7 @@ public:
         return out;
     }
 
-    /* -*- utils -*- */
+    /* utils */
 
     /**
      * Helper template to set target id's of message.
@@ -459,6 +474,9 @@ private:
     float                       gps_epv;
     int                         gps_fix_type;
     int                         gps_satellites_visible;
+
+    sensor_msgs::NavSatFix::Ptr     global_position;
+    geometry_msgs::PoseStamped::Ptr local_position;
 
     std::atomic<uint64_t> time_offset;
     timesync_mode         tsync_mode;

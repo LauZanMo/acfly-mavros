@@ -159,6 +159,9 @@ private:
         pose->pose   = odom->pose.pose;
         local_position.publish(pose);
 
+        // 存储局部位置，供其他组件使用
+        m_uas->update_local_position(pose);
+
         // publish velocity
         // velocity in the body frame
         // 发布速度，速度坐标系为FLU

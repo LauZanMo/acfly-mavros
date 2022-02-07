@@ -56,7 +56,7 @@ UAS::UAS()
     tf2_static_broadcaster.sendTransform(transform_vector);
 }
 
-/* -*- heartbeat handlers -*- */
+/* heartbeat handlers */
 
 void UAS::update_heartbeat(uint8_t type_, uint8_t autopilot_, uint8_t base_mode_) {
     type      = type_;
@@ -79,7 +79,7 @@ void UAS::add_connection_change_handler(UAS::ConnectionCb cb) {
     connection_cb_vec.push_back(cb);
 }
 
-/* -*- autopilot version -*- */
+/* autopilot version */
 
 static uint64_t get_default_caps(UAS::MAV_AUTOPILOT ap_type) {
     // TODO: return default caps mask for known FCU's
@@ -124,7 +124,7 @@ void UAS::add_capabilities_change_handler(UAS::CapabilitiesCb cb) {
     capabilities_cb_vec.push_back(cb);
 }
 
-/* -*- IMU data -*- */
+/* IMU data */
 
 void UAS::update_attitude_imu_enu(sensor_msgs::Imu::Ptr &imu) {
     lock_guard lock(mutex);
@@ -196,7 +196,7 @@ geometry_msgs::Vector3 UAS::get_attitude_angular_velocity_ned() {
     }
 }
 
-/* -*- GPS data -*- */
+/* GPS data */
 
 void UAS::update_gps_fix_epts(sensor_msgs::NavSatFix::Ptr &fix, float eph, float epv, int fix_type,
                               int satellites_visible) {
@@ -209,7 +209,7 @@ void UAS::update_gps_fix_epts(sensor_msgs::NavSatFix::Ptr &fix, float eph, float
     gps_satellites_visible = satellites_visible;
 }
 
-//! Returns EPH, EPV, Fix type and satellites visible
+// Returns EPH, EPV, Fix type and satellites visible
 void UAS::get_gps_epts(float &eph, float &epv, int &fix_type, int &satellites_visible) {
     lock_guard lock(mutex);
 
@@ -219,15 +219,41 @@ void UAS::get_gps_epts(float &eph, float &epv, int &fix_type, int &satellites_vi
     satellites_visible = gps_satellites_visible;
 }
 
-//! Retunrs last GPS RAW message
+// Returns last GPS RAW message
 sensor_msgs::NavSatFix::Ptr UAS::get_gps_fix() {
     lock_guard lock(mutex);
     return gps_fix;
 }
 
-/* -*- transform -*- */
+/* FCU position data */
 
-//! Stack static transform into vector
+// Store global position data
+void UAS::update_global_position(sensor_msgs::NavSatFix::Ptr &gp) {
+    lock_guard lock(mutex);
+    global_position = gp;
+}
+
+// Returns last global position
+sensor_msgs::NavSatFix::Ptr UAS::get_global_position() {
+    lock_guard lock(mutex);
+    return global_position;
+}
+
+// Store local position data
+void UAS::update_local_position(geometry_msgs::PoseStamped::Ptr &lp) {
+    lock_guard lock(mutex);
+    local_position = lp;
+}
+
+// Returns last local position
+geometry_msgs::PoseStamped::Ptr UAS::get_local_position() {
+    lock_guard lock(mutex);
+    return local_position;
+}
+
+/* transform */
+
+// Stack static transform into vector
 void UAS::add_static_transform(const std::string &frame_id, const std::string &child_id,
                                const Eigen::Affine3d                        &tr,
                                std::vector<geometry_msgs::TransformStamped> &vector) {
@@ -241,7 +267,7 @@ void UAS::add_static_transform(const std::string &frame_id, const std::string &c
     vector.emplace_back(static_transform);
 }
 
-//! Publishes static transform
+// Publishes static transform
 void UAS::publish_static_transform(const std::string &frame_id, const std::string &child_id,
                                    const Eigen::Affine3d &tr) {
     geometry_msgs::TransformStamped static_transformStamped;
