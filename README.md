@@ -1,82 +1,77 @@
-MAVROS
-======
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/mavlink/mavros)](https://github.com/mavlink/mavros/releases)  [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/mavlink/mavros?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)  [![CI](https://github.com/mavlink/mavros/actions/workflows/main.yml/badge.svg)](https://github.com/mavlink/mavros/actions/workflows/main.yml)
+# ACFLY MAVROS
 
-MAVLink extendable communication node for ROS.
+> Author & Maintainer: LauZanMo
+>
+> 基于acfly-MAVLink的ROS扩展通信节点
 
-- Since 2014-08-11 this repository contains several packages.
-- Since 2014-11-02 hydro support separated from master to hydro-devel branch.
-- Since 2015-03-04 all packages also dual licensed under terms of BSD license.
-- Since 2015-08-10 all messages moved to mavros\_msgs package
-- Since 2016-02-05 (v0.17) frame conversion changed again
-- Since 2016-06-22 (pre v0.18) Indigo and Jade separated from master to indigo-devel branch.
-- Since 2016-06-23 (0.18.0) support MAVLink 2.0 without signing.
-- Since 2017-08-23 (0.20.0) [GeographicLib][geolib] and it's datasets are required. Used to convert AMSL (FCU) and WGS84 (ROS) altitudes.
-- Since 2018-05-11 (0.25.0) support building master for Indigo and Jade stopped. Mainly because update of console-bridge package.
-- Since 2018-05-14 (0.25.1) support for Indigo returned. We use compatibility layer for console-bridge.
-- Since 2019-01-03 (0.28.0) support for Indigo by master not guaranteed. Consider update to more recent distro.
-- 2020-01-01 version 1.0.0 released, please see [#1369][iss1369] for reasons and its purpose.
-- 2021-05-28 version 2.0.0 released, it's the first alpha release for ROS2.
+[TOC]
 
+## 依赖
 
-mavros package
---------------
+- [ROS](https://www.ros.org/)
+- (仿真可选)[PX4-Autopilot](https://github.com/PX4/PX4-Autopilot)
 
-It is the main package, please see its [README][mrrm].
-Here you may read [installation instructions][inst].
+## 安装
 
+请确保每条指令都执行成功：
 
-mavros\_extras package
-----------------------
+```bash
+sudo apt-get install python-catkin-tools python-rosinstall-generator -y
+# 如果用的ROS版本是Noetic则使用
+# sudo apt install python3-catkin-tools python3-rosinstall-generator python3-osrf-pycommon -y
 
-This package contains some extra nodes and plugins for mavros, please see its [README][exrm].
+# 需要替换你的ROS版本，且以下指令需要在同一个终端执行
+source /opt/ros/${你的ROS版本}/setup.bash
 
+# 因为acfly增加了自定义mavlink信息，若之前有通过二进制安装过mavros则需要卸载，没有则跳过
+sudo apt remove ros-${ROS_DISTRO}-mavlink ros-${ROS_DISTRO}-mavros
 
-libmavconn package
-------------------
+# 构建ROS工作空间，可以自行修改路径
+mkdir -p ~/acfly_ws/src && cd ~/acfly_ws
+catkin init
 
-This package contain mavconn library, see its [README][libmc].
-LibMAVConn may be used outside of ROS environment.
+# 下载mavlink和acfly-mavros
+cd src
+git clone -b release/${ROS_DISTRO}/mavlink/2022.1.5-1 https://gitee.com/LauZanMo/mavlink
+# 将acfly-mavros工程复制到src下
 
+# 安装依赖，如果rosdep update没执行则需要执行成功才能继续
+cd .. && rosdep install --from-paths src --ignore-src -y
 
-test\_mavros package
---------------------
+# 安装GeographicLib:
+./src/acfly-mavros/mavros/scripts/install_geographiclib_datasets.sh
 
-This package contain hand-tests and [manual page][test] for APM and PX4 SITL.
-Please see [README][test] first!
+# 第一次编译请执行acfly提供的脚本
+./src/acfly-mavros/update_custom_msg.sh
+# 后续更改mavros源码只需要执行catkin build
 
+# 每一次开启终端都需要设置环境变量
+source devel/setup.bash
+```
 
-mavros\_msgs package
---------------------
+## 启动
 
-This package contains messages and services used in MAVROS.
+提供官方的launch文件为acfly-mavros/mavros/launch/acfly.launch
 
+启动前请连上飞控串口，将mavlink连接参数中的fcu_url参数修改成实际参数(串口名称，波特率)，再执行：
 
-Support forums and chats
-------------------------
+```bash
+roslaunch mavros acfly.launch
+```
 
-Please ask your questions not related to bugs/feature or requests on:
+配置插件文件为acfly-mavros/mavros/launch/acfly_pluginlist.yaml，其中白名单中的插件名为正在使用的插件(黑名单不用管)。
 
-- [MAVROS discussion in Gitter IM](https://gitter.im/mavlink/mavros)
-- [PX4 Discuss Forum](https://discuss.px4.io/)
-- [PX4 Slack](https://slack.px4.io/)
-- [Ardupilot Discuss Forum](https://discuss.ardupilot.org/)
-- [ArduPilot/VisionProjects in Gitter IM](https://gitter.im/ArduPilot/ardupilot/VisionProjects)
+插件参数文件为acfly-mavros/mavros/launch/acfly_config.yaml，可根据自己需要进行修改，后续出参数讲解。
 
-We'd like to keep the project bug tracker as free as possible, so please contact via the above methods. You can also PM us via Gitter and the PX4 Slack.
+还可以通过udp形式连接acfly地面站(具体请参考mavros与QGC连接)
 
+## 仿真
 
-CI Statuses
------------
+仿真需要在编译了PX4固件后才能使用。
 
-  - ROS Melodic: [![Build Status](http://build.ros.org/buildStatus/icon?job=Mdev__mavros__ubuntu_bionic_amd64)](http://build.ros.org/job/Mdev__mavros__ubuntu_bionic_amd64/)
-  - ROS Noetic: [![Build Status](http://build.ros.org/buildStatus/icon?job=Ndev__mavros__ubuntu_focal_amd64)](http://build.ros.org/job/Ndev__mavros__ubuntu_focal_amd64/)
+提供官方的单，多个无人机仿真launch文件为
 
+- acfly-mavros/test_mavros/launch/acfly/acfly_sitl.launch
+- acfly-mavros/test_mavros/launch/acfly/multi_uav_acfly_sitl.launch
 
-[mrrm]: https://github.com/mavlink/mavros/blob/master/mavros/README.md
-[exrm]: https://github.com/mavlink/mavros/blob/master/mavros_extras/README.md
-[libmc]: https://github.com/mavlink/mavros/blob/master/libmavconn/README.md
-[test]: https://github.com/mavlink/mavros/blob/master/test_mavros/README.md
-[inst]: https://github.com/mavlink/mavros/blob/master/mavros/README.md#installation
-[geolib]: https://geographiclib.sourceforge.io/
-[iss1369]: https://github.com/mavlink/mavros/issues/1369
+需要配置好参数才能执行。
