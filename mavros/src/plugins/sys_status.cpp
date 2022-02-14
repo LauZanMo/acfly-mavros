@@ -134,7 +134,7 @@ public:
     SystemStatusDiag(const std::string &name)
         : diagnostic_updater::DiagnosticTask(name), last_st_{} {}
 
-    void set(mavlink::common::msg::SYS_STATUS &st) {
+    void set(mavlink::ACFly::msg::SYS_STATUS &st) {
         std::lock_guard<std::mutex> lock(mutex_);
         last_st_ = st;
     }
@@ -328,6 +328,12 @@ public:
                      (last_st_.onboard_control_sensors_health & enum_value(STS::PROPULSION))
                          ? "Ok"
                          : "Fail");
+        for (uint8_t i = 0; i < 16; i++) {
+            if (last_st_.pos_Cflags & (1 << i))
+                stat.add("AC position sensor " + std::to_string(i + 1),
+                         last_st_.pos_Aflags & (1 << i) ? "Ok" : "Fail");
+        }
+
         // [[[end]]] (checksum: 24471e5532db5c99f411475509d41f72)
 
         stat.addf("CPU Load (%)", "%.1f", last_st_.load / 10.0);
@@ -340,8 +346,8 @@ public:
     }
 
 private:
-    std::mutex                       mutex_;
-    mavlink::common::msg::SYS_STATUS last_st_;
+    std::mutex                      mutex_;
+    mavlink::ACFly::msg::SYS_STATUS last_st_;
 };
 
 /**
@@ -705,7 +711,7 @@ private:
     }
 
     void handle_sys_status(const mavlink::mavlink_message_t *msg,
-                           mavlink::common::msg::SYS_STATUS &stat) {
+                           mavlink::ACFly::msg::SYS_STATUS  &stat) {
         float volt = stat.voltage_battery / 1000.0f;  // mV
         float curr = stat.current_battery / 100.0f;   // 10mA或-1
         float rem  = stat.battery_remaining / 100.0f; // 或-1

@@ -114,7 +114,7 @@ private:
     /* 底层发送 */
 
     void register_position_sensor() {
-        mavlink::commonACFly::msg::ACFly_RegeisterPosSensor rp{};
+        mavlink::ACFly::msg::ACFly_RegeisterPosSensor rp{};
         m_uas->msg_set_target(rp);
         mavlink::set_string(rp.sensor_name, sensor_name);
         rp.ind       = static_cast<int8_t>(sensor_ind);
@@ -137,7 +137,7 @@ private:
         last_transform_stamp = stamp;
 
         // 消息标头和传感器基本信息
-        mavlink::commonACFly::msg::ACFly_UpdatePosSensor up{};
+        mavlink::ACFly::msg::ACFly_UpdatePosSensor up{};
         m_uas->msg_set_target(up);
         up.ind      = sensor_ind;
         up.DataType = -1; // -1为保持不变
