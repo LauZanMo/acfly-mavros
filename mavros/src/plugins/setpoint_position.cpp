@@ -84,7 +84,9 @@ public:
         }
     }
 
-    Subscriptions get_subscriptions() override { return {/* Rx disabled */}; }
+    Subscriptions get_subscriptions() override {
+        return {/* Rx disabled */};
+    }
 
 private:
     friend class SetPositionTargetLocalNEDMixin;
@@ -92,20 +94,20 @@ private:
     friend class TF2ListenerMixin;
 
     ros::NodeHandle    sp_nh;
-    ros::NodeHandle    spg_nh; //!< to get local position and gps coord which are not under sp_h()
+    ros::NodeHandle    spg_nh; // to get local position and gps coord which are not under sp_h()
     ros::Subscriber    setpoint_sub;
-    ros::Subscriber    setpointg_sub;   //!< Global setpoint
-    ros::Subscriber    setpointg2l_sub; //!< Global setpoint converted to local setpoint
-    ros::Subscriber    gps_sub;         //!< current GPS
-    ros::Subscriber    local_sub;       //!< current local ENU
+    ros::Subscriber    setpointg_sub;   // Global setpoint
+    ros::Subscriber    setpointg2l_sub; // Global setpoint converted to local setpoint
+    ros::Subscriber    gps_sub;         // current GPS
+    ros::Subscriber    local_sub;       // current local ENU
     ros::ServiceServer mav_frame_srv;
 
     /* Stores current gps state. */
     // sensor_msgs::NavSatFix current_gps_msg;
-    Eigen::Vector3d current_gps;       //!< geodetic coordinates LLA
-    Eigen::Vector3d current_local_pos; //!< Current local position in ENU
+    Eigen::Vector3d current_gps;       // geodetic coordinates LLA
+    Eigen::Vector3d current_local_pos; // Current local position in ENU
     uint32_t        old_gps_stamp =
-        0; //!< old time gps time stamp in [ms], to check if new gps msg is received
+        0; // old time gps time stamp in [ms], to check if new gps msg is received
 
     std::string tf_frame_id;
     std::string tf_child_frame_id;
@@ -115,7 +117,7 @@ private:
 
     MAV_FRAME mav_frame;
 
-    /* -*- mid-level helpers -*- */
+    /* mid-level helpers */
 
     /**
      * @brief Send setpoint to FCU position controller.
@@ -158,7 +160,7 @@ private:
                                       Eigen::Vector3d::Zero(), ftf::quaternion_get_yaw(q), 0.0);
     }
 
-    /* -*- callbacks -*- */
+    /* callbacks */
 
     /* common TF listener moved to mixin */
     void transform_cb(const geometry_msgs::TransformStamped &transform) {
@@ -268,7 +270,7 @@ private:
         current_local_pos = ftf::to_eigen(msg->pose.position);
     }
 
-    bool set_mav_frame_cb(mavros_msgs::SetMavFrame::Request & req,
+    bool set_mav_frame_cb(mavros_msgs::SetMavFrame::Request  &req,
                           mavros_msgs::SetMavFrame::Response &res) {
         mav_frame                       = static_cast<MAV_FRAME>(req.mav_frame);
         const std::string mav_frame_str = utils::to_string(mav_frame);
