@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="vehicle" default="iris_rplidar"/>
+    <arg name="world" default="$(find test_mavros)/worlds/cloister.world"/>
+
+    <node pkg="tf" name="tf_rplidar" type="static_transform_publisher" args="-0.12 0 0 3.1415926 0 0 base_link rplidar_link 100"/>
+
+    <include file="$(find test_mavros)/launch/acfly/acfly_sitl.launch">
+        <arg name="world" value="$(arg world)"/>
+        <arg name="vehicle" value="$(arg vehicle)"/>
+    </include>
+</launch>
