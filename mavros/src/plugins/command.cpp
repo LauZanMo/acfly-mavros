@@ -130,6 +130,7 @@ private:
                             mavlink::common::msg::COMMAND_ACK &ack) {
         lock_guard lock(mutex);
 
+        // 源id仅接受FCU的应答
         if (ack.target_system != m_uas->fcu_link->get_system_id() ||
             ack.target_component != m_uas->fcu_link->get_component_id())
             return;
