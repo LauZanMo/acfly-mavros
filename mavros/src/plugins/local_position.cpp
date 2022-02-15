@@ -50,7 +50,7 @@ public:
         // tf subsection
         // tf子块
         lp_nh.param("tf/send", tf_send, true);
-        lp_nh.param<std::string>("tf/frame_id", tf_frame_id, "ac_base_flu");
+        lp_nh.param<std::string>("tf/frame_id", tf_frame_id, "base_link");
         lp_nh.param<std::string>("tf/child_frame_id", tf_child_frame_id, "ac_local_enu");
 
         // fused local position

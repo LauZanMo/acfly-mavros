@@ -29,7 +29,7 @@ time:
 # acfly_position_sensor
 acfly_position_sensor:
   sensor_id: "camera"                       # 传感器TF名(插件将其与body_id之间建立静态tf)
-  body_id: "ac_base_flu"                    # 飞控body系(通常不需要修改)
+  body_id: "base_link"                    # 飞控body系(通常不需要修改)
   sensor_body_rotation: [0.0, 0.0, 0.0]     # 传感器与body之间的旋转，以欧拉角rpy表示(ENU-FLU)
   sensor_body_translation: [0.0, 0.0, 0.0]  # 传感器与body之间的位移xyz(ENU-FLU)
   sensor:
@@ -40,7 +40,7 @@ acfly_position_sensor:
   tf:
     listen: false                           # 通过监听tf来获取位置信息(false则通过订阅来获取tf信息)
     frame_id: "map"                         # 传感器建图坐标系(通常为map)
-    child_frame_id: "ac_base_flu"           # 飞控body系(通常不需要修改)
+    child_frame_id: "base_link"           # 飞控body系(通常不需要修改)
     rate_limit: 10.0                        # 监听频率
 
 # command

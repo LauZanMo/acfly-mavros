@@ -71,8 +71,8 @@ public:
          * 天坐标系到前左上坐标系的变换(ENU <->base_link)，该旋转与飞控发送的信息不一致，飞控发的
          * mavlink信息是从北东地坐标系到前右下坐标系的变换(NED <-> aircraft)
          */
-        imu_nh.param<std::string>("base_frame_flu_id", base_frame_flu_id, "ac_base_flu");
-        imu_nh.param<std::string>("base_frame_frd_id", base_frame_frd_id, "ac_base_frd");
+        imu_nh.param<std::string>("base_frame_flu_id", base_frame_flu_id, "base_link");
+        imu_nh.param<std::string>("base_frame_frd_id", base_frame_frd_id, "base_link_frd");
         imu_nh.param("linear_acceleration_stdev", linear_stdev,
                      0.0003); // MPU6000默认参数
         imu_nh.param("angular_velocity_stdev", angular_stdev,

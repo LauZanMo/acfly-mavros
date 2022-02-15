@@ -56,7 +56,7 @@ public:
         // general params
         // 通用参数
         gp_nh.param<std::string>("frame_id", frame_id, "ac_local_enu");
-        gp_nh.param<std::string>("child_frame_id", child_frame_id, "ac_base_flu");
+        gp_nh.param<std::string>("child_frame_id", child_frame_id, "base_link");
         gp_nh.param<std::string>("global_frame_id", global_frame_id, "ac_earth");
         gp_nh.param("rot_covariance", rot_cov, 99999.0);
         gp_nh.param("gps_uere", gps_uere, 1.0);
@@ -64,7 +64,7 @@ public:
         // tf subsection
         // tf子块
         gp_nh.param("tf/send", tf_send, false);
-        gp_nh.param<std::string>("tf/frame_id", tf_frame_id, "ac_base_flu");
+        gp_nh.param<std::string>("tf/frame_id", tf_frame_id, "base_link");
         gp_nh.param<std::string>("tf/global_frame_id", tf_global_frame_id,
                                  "ac_earth"); // The global_origin should be represented as "earth"
                                               // coordinate frame (ECEF) (REP 105)

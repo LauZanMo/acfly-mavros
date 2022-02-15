@@ -38,7 +38,7 @@ public:
         std::vector<double> rot{}, trans{};
         std::string         sensor_id, body_id;
         aps_nh.param<std::string>("sensor_id", sensor_id, "camera");
-        aps_nh.param<std::string>("body_id", body_id, "ac_base_flu");
+        aps_nh.param<std::string>("body_id", body_id, "base_link");
         aps_nh.getParam("sensor_body_rotation", rot);
         aps_nh.getParam("sensor_body_translation", trans);
         Eigen::Affine3d tr_sensor_body(ftf::quaternion_from_rpy(rot[0], rot[1], rot[2]));
@@ -58,7 +58,7 @@ public:
         bool tf_listen;
         aps_nh.param("tf/listen", tf_listen, true);
         aps_nh.param<std::string>("tf/frame_id", tf_frame_id, "map");
-        aps_nh.param<std::string>("tf/child_frame_id", tf_child_frame_id, "ac_base_flu");
+        aps_nh.param<std::string>("tf/child_frame_id", tf_child_frame_id, "base_link");
         aps_nh.param("tf/rate_limit", tf_rate, 10.0);
 
         // 添加静态tf(SLAM传感器与飞控body系之间的变换)

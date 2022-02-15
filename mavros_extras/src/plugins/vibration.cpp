@@ -35,7 +35,7 @@ public:
     void initialize(UAS &uas_) override {
         PluginBase::initialize(uas_);
 
-        v_nh.param<std::string>("frame_id", frame_id, "ac_base_flu");
+        v_nh.param<std::string>("frame_id", frame_id, "base_link");
 
         vibration_pub = v_nh.advertise<mavros_msgs::Vibration>("raw/vibration", 10);
     }
