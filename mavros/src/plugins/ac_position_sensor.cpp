@@ -41,7 +41,7 @@ public:
         aps_nh.param<std::string>("sensor_id", sensor_id, "camera");
         aps_nh.param<std::string>("body_id", body_id, "base_link");
         // 获取sensor->body的变换
-        if (!aps_nh.getParam("sensor_body_rotation", rot)) {
+        if (aps_nh.getParam("sensor_body_rotation", rot)) {
             tr_sensor_body = Eigen::Affine3d(ftf::quaternion_from_rpy(rot[0], rot[1], rot[2]));
         } else {
             tr_sensor_body = Eigen::Affine3d(ftf::quaternion_from_rpy(0, 0, 0));
@@ -49,7 +49,7 @@ public:
                 "acfly_position_sensor",
                 "APS: No rotation parameter between sensor and body, set to default(0, 0, 0)");
         }
-        if (!aps_nh.getParam("sensor_body_translation", trans)) {
+        if (aps_nh.getParam("sensor_body_translation", trans)) {
             tr_sensor_body.translation() = Eigen::Vector3d(trans[0], trans[1], trans[2]);
         } else {
             tr_sensor_body.translation() = Eigen::Vector3d(0, 0, 0);
