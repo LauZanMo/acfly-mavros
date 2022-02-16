@@ -66,6 +66,7 @@ plugin_whitelist:
 - global_position
 - local_position
 - setpoint_raw
+- setpoint_position
 - setpoint_velocity
 - setpoint_accel
 - acfly_position_sensor
