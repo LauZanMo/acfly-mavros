@@ -35,14 +35,28 @@ public:
         PluginBase::initialize(uas_);
 
         // 传感器到飞控body系的三维变换
+        Eigen::Affine3d     tr_sensor_body{};
         std::vector<double> rot{}, trans{};
         std::string         sensor_id, body_id;
         aps_nh.param<std::string>("sensor_id", sensor_id, "camera");
         aps_nh.param<std::string>("body_id", body_id, "base_link");
-        aps_nh.getParam("sensor_body_rotation", rot);
-        aps_nh.getParam("sensor_body_translation", trans);
-        Eigen::Affine3d tr_sensor_body(ftf::quaternion_from_rpy(rot[0], rot[1], rot[2]));
-        tr_sensor_body.translation() = Eigen::Vector3d(trans[0], trans[1], trans[2]);
+        // 获取sensor->body的变换
+        if (!aps_nh.getParam("sensor_body_rotation", rot)) {
+            tr_sensor_body = Eigen::Affine3d(ftf::quaternion_from_rpy(rot[0], rot[1], rot[2]));
+        } else {
+            tr_sensor_body = Eigen::Affine3d(ftf::quaternion_from_rpy(0, 0, 0));
+            ROS_WARN_STREAM_NAMED(
+                "acfly_position_sensor",
+                "APS: No rotation parameter between sensor and body, set to default(0, 0, 0)");
+        }
+        if (!aps_nh.getParam("sensor_body_translation", trans)) {
+            tr_sensor_body.translation() = Eigen::Vector3d(trans[0], trans[1], trans[2]);
+        } else {
+            tr_sensor_body.translation() = Eigen::Vector3d(0, 0, 0);
+            ROS_WARN_STREAM_NAMED(
+                "acfly_position_sensor",
+                "APS: No translation parameter between sensor and body, set to default(0, 0, 0)");
+        }
 
         // 传感器参数
         aps_nh.param<std::string>("sensor/name", sensor_name, "ROS");
