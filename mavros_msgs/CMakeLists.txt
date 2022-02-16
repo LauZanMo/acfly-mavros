@@ -109,6 +109,7 @@ add_service_files(
   ParamPush.srv
   ParamSet.srv
   SetMavFrame.srv
+  SetTFListen.srv
   StreamRate.srv
   VehicleInfoGet.srv
   WaypointClear.srv

@@ -20,6 +20,7 @@
 
 #include <geographic_msgs/GeoPoseStamped.h>
 #include <mavros_msgs/SetMavFrame.h>
+#include <mavros_msgs/SetTFListen.h>
 
 #include <GeographicLib/Geocentric.hpp>
 
@@ -39,7 +40,8 @@ class SetpointPositionPlugin
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    SetpointPositionPlugin() : PluginBase(), sp_nh("~setpoint_position"), tf_rate(10.0) {}
+    SetpointPositionPlugin()
+        : PluginBase(), sp_nh("~setpoint_position"), tf_listen(false), tf_rate(10.0) {}
 
     void initialize(UAS &uas_) override {
         PluginBase::initialize(uas_);
@@ -55,6 +57,13 @@ public:
                                                        << tf_frame_id << " -> "
                                                        << tf_child_frame_id);
         tf2_start("setpoint_position_tf", &SetpointPositionPlugin::transform_cb);
+        ROS_INFO_STREAM_NAMED(
+            "setpoint_position",
+            "SPP: Always call set_tf_listen service before and after setting local position.");
+        std::string state = tf_listen ? "ON" : "OFF";
+        ROS_INFO_STREAM_NAMED("setpoint_position", "SPP: Current listen state is: " + state);
+        set_tf_listen_srv = sp_nh.advertiseService("set_tf_listen",
+                                                   &SetpointPositionPlugin::set_tf_listen_cb, this);
 
         // 通过订阅方式设置全球位置
         setpoint_global_sub =
@@ -95,10 +104,12 @@ private:
     ros::NodeHandle    sp_nh;
     ros::Subscriber    setpoint_global_sub;
     ros::ServiceServer global_mav_frame_srv;
+    ros::ServiceServer set_tf_listen_srv;
 
     std::string tf_frame_id;
     std::string tf_child_frame_id;
 
+    bool   tf_listen;
     double tf_rate;
 
     MAV_FRAME global_mav_frame;
@@ -152,10 +163,13 @@ private:
 
     void transform_cb(const geometry_msgs::TransformStamped &transform) {
         if (set_position_local_support_confirmed) {
-            Eigen::Affine3d tr;
-            // TODO: tf2 5.12版本发布需要将下面的函数替换成tf2::convert()
-            tf::transformMsgToEigen(transform.transform, tr);
-            send_position_target(transform.header.stamp, tr);
+            // 控制局部位置需要通过服务将tf_listen打开
+            if (tf_listen) {
+                Eigen::Affine3d tr;
+                // TODO: tf2 5.12版本发布需要将下面的函数替换成tf2::convert()
+                tf::transformMsgToEigen(transform.transform, tr);
+                send_position_target(transform.header.stamp, tr);
+            }
         } else {
             ROS_WARN_NAMED("setpoint_position",
                            "SPP: Operation error, please check capabilities of FCU!");
@@ -203,6 +217,15 @@ private:
             ROS_ERROR_NAMED("setpoint_position", "SPP: Invalid frame.");
             res.success = false;
         }
+        return true;
+    }
+
+    bool set_tf_listen_cb(mavros_msgs::SetTFListen::Request  &req,
+                          mavros_msgs::SetTFListen::Response &res) {
+        tf_listen         = req.value;
+        res.result        = true;
+        std::string state = tf_listen ? "ON" : "OFF";
+        ROS_INFO_STREAM_NAMED("setpoint_position", "SPP: Current listen state is: " + state);
         return true;
     }
 };
