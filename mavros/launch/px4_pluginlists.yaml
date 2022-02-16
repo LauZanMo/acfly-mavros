@@ -7,6 +7,7 @@ plugin_blacklist:
 - distance_sensor
 - rangefinder
 - wheel_odometry
+- 'acfly*'
 
 
 plugin_whitelist: []
