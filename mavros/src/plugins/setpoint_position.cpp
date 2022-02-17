@@ -19,6 +19,7 @@
 #include <geometry_msgs/PoseStamped.h>
 
 #include <geographic_msgs/GeoPoseStamped.h>
+#include <geometry_msgs/Twist.h>
 #include <mavros_msgs/SetMavFrame.h>
 #include <mavros_msgs/SetTFListen.h>
 
@@ -41,7 +42,7 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     SetpointPositionPlugin()
-        : PluginBase(), sp_nh("~setpoint_position"), tf_listen(false), tf_rate(10.0) {}
+        : PluginBase(), sp_nh("~setpoint_position"), tf_listen(false), tf_rate(10.0), set_twist() {}
 
     void initialize(UAS &uas_) override {
         PluginBase::initialize(uas_);
@@ -57,6 +58,10 @@ public:
                                                        << tf_frame_id << " -> "
                                                        << tf_child_frame_id);
         tf2_start("setpoint_position_tf", &SetpointPositionPlugin::transform_cb);
+        set_twist_sub =
+            sp_nh.subscribe("set_twist", 10, &SetpointPositionPlugin::set_twist_cb, this);
+
+        // 需要通过服务打开tf_listen开关才能设置局部位置
         ROS_INFO_STREAM_NAMED(
             "setpoint_position",
             "SPP: Always call set_tf_listen service before and after setting local position.");
@@ -103,14 +108,16 @@ private:
 
     ros::NodeHandle    sp_nh;
     ros::Subscriber    setpoint_global_sub;
+    ros::Subscriber    set_twist_sub;
     ros::ServiceServer global_mav_frame_srv;
     ros::ServiceServer set_tf_listen_srv;
 
     std::string tf_frame_id;
     std::string tf_child_frame_id;
 
-    bool   tf_listen;
-    double tf_rate;
+    bool                 tf_listen;
+    double               tf_rate;
+    geometry_msgs::Twist set_twist;
 
     MAV_FRAME global_mav_frame;
     bool      set_position_local_support_confirmed;
@@ -122,8 +129,6 @@ private:
     // Acts when capabilities of the fcu are changed
     // 当飞控兼容性改变时执行该函数
     void capabilities_cb(UAS::MAV_CAP capabilities) override {
-        lock_guard lock(mutex);
-
         if (m_uas->has_capability(UAS::MAV_CAP::SET_POSITION_TARGET_LOCAL_NED)) {
             set_position_local_support_confirmed = true;
         } else {
@@ -139,23 +144,38 @@ private:
 
     void send_position_target(const ros::Time &stamp, const Eigen::Affine3d &tr) {
         using mavlink::common::POSITION_TARGET_TYPEMASK;
+        lock_guard lock(mutex);
 
-        const uint16_t type_mask = uint16_t(POSITION_TARGET_TYPEMASK::VX_IGNORE) |
-                                   uint16_t(POSITION_TARGET_TYPEMASK::VY_IGNORE) |
-                                   uint16_t(POSITION_TARGET_TYPEMASK::VZ_IGNORE) |
-                                   uint16_t(POSITION_TARGET_TYPEMASK::AX_IGNORE) |
-                                   uint16_t(POSITION_TARGET_TYPEMASK::AY_IGNORE) |
-                                   uint16_t(POSITION_TARGET_TYPEMASK::AZ_IGNORE) |
-                                   uint16_t(POSITION_TARGET_TYPEMASK::YAW_RATE_IGNORE);
+        uint16_t type_mask;
+        if (set_twist != geometry_msgs::Twist()) {
+            type_mask = uint16_t(POSITION_TARGET_TYPEMASK::AX_IGNORE) |
+                        uint16_t(POSITION_TARGET_TYPEMASK::AY_IGNORE) |
+                        uint16_t(POSITION_TARGET_TYPEMASK::AZ_IGNORE);
+        } else {
+            type_mask = uint16_t(POSITION_TARGET_TYPEMASK::VX_IGNORE) |
+                        uint16_t(POSITION_TARGET_TYPEMASK::VY_IGNORE) |
+                        uint16_t(POSITION_TARGET_TYPEMASK::VZ_IGNORE) |
+                        uint16_t(POSITION_TARGET_TYPEMASK::AX_IGNORE) |
+                        uint16_t(POSITION_TARGET_TYPEMASK::AY_IGNORE) |
+                        uint16_t(POSITION_TARGET_TYPEMASK::AZ_IGNORE) |
+                        uint16_t(POSITION_TARGET_TYPEMASK::YAW_RATE_IGNORE);
+        }
 
         auto p = ftf::transform_frame_enu_ned(Eigen::Vector3d(tr.translation()));
 
         auto q = ftf::transform_orientation_enu_ned(
             ftf::transform_orientation_baselink_aircraft(Eigen::Quaterniond(tr.rotation())));
 
+        Eigen::Vector3d vel_req;
+        tf::vectorMsgToEigen(set_twist.linear, vel_req);
+        auto v = ftf::transform_frame_enu_ned(vel_req);
+
+        auto yaw_rate =
+            ftf::transform_frame_enu_ned(Eigen::Vector3d(0.0, 0.0, set_twist.angular.z));
+
         set_position_target_local_ned(
-            stamp.toNSec() / 1000000, utils::enum_value(MAV_FRAME::LOCAL_NED), type_mask, p,
-            Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero(), ftf::quaternion_get_yaw(q), 0.0);
+            stamp.toNSec() / 1000000, utils::enum_value(MAV_FRAME::LOCAL_NED), type_mask, p, v,
+            Eigen::Vector3d::Zero(), ftf::quaternion_get_yaw(q), yaw_rate.z());
     }
 
     /* ros callbacks */
@@ -174,6 +194,11 @@ private:
             ROS_WARN_NAMED("setpoint_position",
                            "SPP: Operation error, please check capabilities of FCU!");
         }
+    }
+
+    void set_twist_cb(const geometry_msgs::Twist::ConstPtr &req) {
+        lock_guard lock(mutex);
+        set_twist = *req;
     }
 
     void setpoint_global_cb(const geographic_msgs::GeoPoseStamped::ConstPtr &req) {
