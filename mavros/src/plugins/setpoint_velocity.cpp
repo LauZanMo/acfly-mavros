@@ -70,9 +70,6 @@ public:
     }
 
 private:
-    using lock_guard = std::lock_guard<std::recursive_mutex>;
-    std::recursive_mutex mutex;
-
     friend class SetPositionTargetLocalNEDMixin;
     ros::NodeHandle sp_nh;
 
@@ -89,8 +86,6 @@ private:
     // Acts when capabilities of the fcu are changed
     // 当飞控兼容性改变时执行该函数
     void capabilities_cb(UAS::MAV_CAP capabilities) override {
-        lock_guard lock(mutex);
-
         if (m_uas->has_capability(UAS::MAV_CAP::SET_POSITION_TARGET_LOCAL_NED)) {
             set_position_local_support_confirmed = true;
         } else {

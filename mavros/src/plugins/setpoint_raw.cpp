@@ -72,9 +72,6 @@ public:
     }
 
 private:
-    using lock_guard = std::lock_guard<std::recursive_mutex>;
-    std::recursive_mutex mutex;
-
     friend class SetPositionTargetLocalNEDMixin;
     friend class SetPositionTargetGlobalIntMixin;
     friend class SetAttitudeTargetMixin;
@@ -177,7 +174,6 @@ private:
     // Acts when capabilities of the fcu are changed
     // 当飞控兼容性改变时执行该函数
     void capabilities_cb(UAS::MAV_CAP capabilities) override {
-        lock_guard lock(mutex);
         if (m_uas->has_capability(UAS::MAV_CAP::SET_ATTITUDE_TARGET)) {
             set_attitude_support_confirmed = true;
             ROS_INFO_NAMED("setpoint_raw", "SPR: Set attitude target command is supported.");
