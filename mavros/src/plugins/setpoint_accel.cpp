@@ -133,8 +133,8 @@ private:
             tf::vectorMsgToEigen(req->vector, accel_req);
             send_setpoint_acceleration(req->header.stamp, accel_req);
         } else {
-            ROS_WARN_NAMED("setpoint_accel",
-                           "SPA: Operation error, please check capabilities of FCU!");
+            ROS_WARN_THROTTLE_NAMED(5, "setpoint_accel",
+                                    "SPA: Operation error, please check capabilities of FCU!");
         }
     }
 
@@ -145,8 +145,8 @@ private:
             tf::vectorMsgToEigen(*req, accel_req);
             send_setpoint_acceleration(ros::Time::now(), accel_req);
         } else {
-            ROS_WARN_NAMED("setpoint_accel",
-                           "SPA: Operation error, please check capabilities of FCU!");
+            ROS_WARN_THROTTLE_NAMED(5, "setpoint_accel",
+                                    "SPA: Operation error, please check capabilities of FCU!");
         }
     }
 

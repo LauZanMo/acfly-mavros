@@ -191,8 +191,8 @@ private:
                 send_position_target(transform.header.stamp, tr);
             }
         } else {
-            ROS_WARN_NAMED("setpoint_position",
-                           "SPP: Operation error, please check capabilities of FCU!");
+            ROS_WARN_THROTTLE_NAMED(5, "setpoint_position",
+                                    "SPP: Operation error, please check capabilities of FCU!");
         }
     }
 
@@ -223,8 +223,8 @@ private:
                 req->pose.position.altitude, Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero(),
                 ftf::quaternion_get_yaw(q), 0);
         } else {
-            ROS_WARN_NAMED("setpoint_position",
-                           "SPP: Operation error, please check capabilities of FCU!");
+            ROS_WARN_THROTTLE_NAMED(5, "setpoint_position",
+                                    "SPP: Operation error, please check capabilities of FCU!");
         }
     }
 

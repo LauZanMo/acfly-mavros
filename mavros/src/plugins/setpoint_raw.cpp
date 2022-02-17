@@ -234,7 +234,7 @@ private:
                          ftf::transform_orientation_baselink_aircraft(ftf::transform_orientation_enu_ned(
                              ftf::quaternion_from_rpy(0.0, 0.0, req->yaw))));
             } else {
-                ROS_ERROR_NAMED("setpoint_raw", "SPR: Invalid frame.");
+                ROS_ERROR_THROTTLE_NAMED(5, "setpoint_raw", "SPR: Invalid frame.");
                 return;
             }
 
@@ -247,8 +247,8 @@ private:
                                           req->coordinate_frame, req->type_mask, position, velocity,
                                           af, yaw, yaw_rate);
         } else {
-            ROS_WARN_NAMED("setpoint_raw",
-                           "SPR: Operation error, please check capabilities of FCU!");
+            ROS_WARN_THROTTLE_NAMED(5, "setpoint_raw",
+                                    "SPR: Operation error, please check capabilities of FCU!");
         }
     }
 
@@ -259,6 +259,13 @@ private:
 
             tf::vectorMsgToEigen(req->velocity, velocity);
             tf::vectorMsgToEigen(req->acceleration_or_force, af);
+            if (req->coordinate_frame != mavros_msgs::GlobalPositionTarget::FRAME_GLOBAL_INT &&
+                req->coordinate_frame != mavros_msgs::GlobalPositionTarget::FRAME_GLOBAL_REL_ALT &&
+                req->coordinate_frame !=
+                    mavros_msgs::GlobalPositionTarget::FRAME_GLOBAL_TERRAIN_ALT) {
+                ROS_ERROR_THROTTLE_NAMED(5, "setpoint_raw", "SPR: Invalid frame.");
+                return;
+            }
 
             // Transform frame ENU->NED
             // 坐标系从ENU转到NED
@@ -275,8 +282,8 @@ private:
                                            req->latitude * 1e7, req->longitude * 1e7, req->altitude,
                                            velocity, af, yaw, yaw_rate);
         } else {
-            ROS_WARN_NAMED("setpoint_raw",
-                           "SPR: Operation error, Please check capabilities of FCU!");
+            ROS_WARN_THROTTLE_NAMED(5, "setpoint_raw",
+                                    "SPR: Operation error, Please check capabilities of FCU!");
         }
     }
 
@@ -292,15 +299,16 @@ private:
             auto ignore_thrust = req->thrust != 0.0 && thrust_scaling < 0.0;
 
             if (ignore_thrust) {
-                ROS_ERROR_NAMED(
-                    "setpoint_raw",
+                ROS_ERROR_THROTTLE_NAMED(
+                    5, "setpoint_raw",
                     "SPR: Recieved thrust, but ignore_thrust is true: the most likely cause of "
                     "this is a failure to specify the thrust_scaling parameters on "
                     "px4/apm_config.yaml. Actuation will be ignored.");
                 return;
             } else {
                 if (thrust_scaling == 0.0) {
-                    ROS_WARN_NAMED("setpoint_raw", "thrust_scaling parameter is set to zero.");
+                    ROS_WARN_THROTTLE_NAMED(5, "setpoint_raw",
+                                            "thrust_scaling parameter is set to zero.");
                 }
                 thrust = std::min(1.0, std::max(0.0, req->thrust * thrust_scaling));
             }
@@ -320,8 +328,8 @@ private:
             set_attitude_target(req->header.stamp.toNSec() / 1000000, req->type_mask,
                                 ned_desired_orientation, body_rate, thrust);
         } else {
-            ROS_WARN_NAMED("setpoint_raw",
-                           "SPR: Operation error, Please check capabilities of FCU!");
+            ROS_WARN_THROTTLE_NAMED(5, "setpoint_raw",
+                                    "SPR: Operation error, Please check capabilities of FCU!");
         }
     }
 };

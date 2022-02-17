@@ -137,8 +137,8 @@ private:
             tf::vectorMsgToEigen(req->twist.linear, vel_req);
             send_setpoint_velocity(req->header.stamp, vel_req, req->twist.angular.z);
         } else {
-            ROS_WARN_NAMED("setpoint_velocity",
-                           "SPV: Operation error, please check capabilities of FCU!");
+            ROS_WARN_THROTTLE_NAMED(5, "setpoint_velocity",
+                                    "SPV: Operation error, please check capabilities of FCU!");
         }
     }
 
@@ -149,8 +149,8 @@ private:
             tf::vectorMsgToEigen(req->linear, vel_req);
             send_setpoint_velocity(ros::Time::now(), vel_req, req->angular.z);
         } else {
-            ROS_WARN_NAMED("setpoint_velocity",
-                           "SPV: Operation error, please check capabilities of FCU!");
+            ROS_WARN_THROTTLE_NAMED(5, "setpoint_velocity",
+                                    "SPV: Operation error, please check capabilities of FCU!");
         }
     }
 
