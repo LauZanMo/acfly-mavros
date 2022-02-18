@@ -26,8 +26,8 @@ time:
 
 # --- mavros插件(首字母顺序) --- #
 
-# acfly_position_sensor
-acfly_position_sensor:
+# acfly_slam_sensor
+acfly_slam_sensor:
   sensor_id: "camera"                       # 传感器TF名(插件将其与body_id之间建立静态tf)
   body_id: "base_link"                      # 飞控body系(通常不需要修改)
   sensor_body_rotation: [0.0, 0.0, 0.0]     # 传感器与body之间的旋转，以欧拉角rpy表示(ENU-FLU)
