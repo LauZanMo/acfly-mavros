@@ -54,7 +54,7 @@ public:
         sp_nh.param("tf/rate_limit", tf_rate, 10.0);
 
         // 仅支持通过tf方式设置局部位置，免于用户转换
-        ROS_INFO_STREAM_NAMED("setpoint_position", "Listen to position setpoint transform "
+        ROS_INFO_STREAM_NAMED("setpoint_position", "SPP: Listen to position setpoint transform "
                                                        << tf_frame_id << " -> "
                                                        << tf_child_frame_id);
         tf2_start("setpoint_position_tf", &SetpointPositionPlugin::transform_cb);
