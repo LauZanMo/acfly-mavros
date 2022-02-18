@@ -1,8 +1,25 @@
+/**
+ * @file acfly_position_sensor_mixin.h
+ * @author LauZanMo (LauZanMo@whu.edu.cn)
+ * @author Vladimir Ermakov <vooon341@gmail.com>
+ * @brief acfly position sensor template
+ * @version 1.0
+ * @date 2022-02-18
+ * 
+ * @copyright Copyright (c) 2022 acfly
+ * For commercial use, please contact acfly: https://www.acfly.cn
+ * 
+ */
+
 #include <mavros/mavros_plugin.h>
 #include <mavros/utils.h>
 
 namespace mavros {
 namespace plugin {
+/**
+ * @brief acfly位置传感器模板类
+ * @note 具体使用方法请参考acfly_slam_sensor插件
+ */
 template <class D> class AcflyPositionSensorMixin {
 public:
     void register_position_sensor() {
