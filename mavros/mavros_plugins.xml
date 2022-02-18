@@ -87,7 +87,7 @@
   <class name="wind_estimation" type="mavros::std_plugins::WindEstimationPlugin" base_class_type="mavros::plugin::PluginBase">
     <description>Publish wind estimates</description>
   </class>
-  <class name="acfly_position_sensor" type="mavros::std_plugins::AcPositionSensorPlugin" base_class_type="mavros::plugin::PluginBase">
-    <description>Send position sensor data to acfly</description>
+  <class name="acfly_slam_sensor" type="mavros::std_plugins::AcflySlamSensorPlugin" base_class_type="mavros::plugin::PluginBase">
+    <description>Send slam sensor data to acfly</description>
   </class>
 </library>

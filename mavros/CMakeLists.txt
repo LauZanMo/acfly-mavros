@@ -148,7 +148,7 @@ add_library(mavros_plugins
   src/plugins/vfr_hud.cpp
   src/plugins/waypoint.cpp
   src/plugins/wind_estimation.cpp
-  src/plugins/ac_position_sensor.cpp
+  src/plugins/acfly_slam_sensor.cpp
 )
 add_dependencies(mavros_plugins
   mavros
