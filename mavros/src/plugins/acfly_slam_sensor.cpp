@@ -11,7 +11,7 @@
  */
 
 #include <eigen_conversions/eigen_msg.h>
-#include <mavros/acfly_position_sensor_mixin.h>
+#include <mavros/acfly_position_sensor_base.h>
 #include <mavros/mavros_plugin.h>
 #include <mavros/setpoint_mixin.h>
 
@@ -26,15 +26,17 @@ namespace std_plugins {
  * @brief acfly位置传感器发送插件，专门用来发送slam信息
  * @warning acfly自定义的信息全部直接以ENU-FLU系发送，与PX4不同
  */
-class AcflySlamSensorPlugin : public plugin::PluginBase,
-                              private plugin::TF2ListenerMixin<AcflySlamSensorPlugin>,
-                              private plugin::AcflyPositionSensorMixin<AcflySlamSensorPlugin> {
+class AcflySlamSensorPlugin : public plugin::AcflyPositionSensorBase,
+                              private plugin::TF2ListenerMixin<AcflySlamSensorPlugin> {
 public:
     AcflySlamSensorPlugin()
-        : PluginBase(), ass_nh("~acfly_slam_sensor"), tf_rate(10.0), reset_counter(0) {}
+        : AcflyPositionSensorBase(), ass_nh("~acfly_slam_sensor"), tf_rate(10.0) {}
 
     void initialize(UAS &uas_) override {
         PluginBase::initialize(uas_);
+
+        // 注册传感器信息
+        register_position_sensor(&ass_nh);
 
         // 传感器到飞控body系的三维变换
         Eigen::Affine3d     tr_sensor_body{};
@@ -60,16 +62,6 @@ public:
                 "ASS: No translation parameter between sensor and body, set to default(0, 0, 0)");
         }
 
-        // 传感器参数
-        ass_nh.param<std::string>("sensor/name", sensor_name, "ROS");
-        ass_nh.param("sensor/index", sensor_ind, 15);                  // 最高16路
-        ass_nh.param("sensor/type", sensor_type, 1);                   // 相对定位
-        ass_nh.param("sensor/data_frame", sensor_data_frame, 4);       // SLAM坐标系下的位置
-        ass_nh.param("sensor/data_type", sensor_data_type, 2);         // 三轴位置
-        ass_nh.param<float>("sensor/delay", sensor_delay, 0.05);       // 延时(s)
-        ass_nh.param<float>("sensor/trust_xy", sensor_trust_xy, 0.01); // 方差(m^2)
-        ass_nh.param<float>("sensor/trust_z", sensor_trust_z, 0.01);
-
         // tf参数
         bool tf_listen;
         ass_nh.param("tf/listen", tf_listen, true);
@@ -81,9 +73,6 @@ public:
         std::vector<geometry_msgs::TransformStamped> transform_vector;
         m_uas->add_static_transform(sensor_id, body_id, tr_sensor_body, transform_vector);
         m_uas->tf2_static_broadcaster.sendTransform(transform_vector);
-
-        // 注册传感器信息
-        register_position_sensor();
 
         // 启动tf监听线程(详细请看TF2ListenerMixin)或订阅
         if (tf_listen) {
@@ -108,7 +97,6 @@ public:
 
 private:
     friend class TF2ListenerMixin;
-    friend class AcflyPositionSensorMixin;
     ros::NodeHandle ass_nh;
 
     ros::Subscriber pose_sub;
@@ -118,13 +106,6 @@ private:
     std::string tf_frame_id;
     std::string tf_child_frame_id;
     double      tf_rate;
-
-    std::string sensor_name;
-    int         sensor_ind, sensor_type;
-    int         sensor_data_frame, sensor_data_type;
-    float       sensor_delay;
-    float       sensor_trust_xy, sensor_trust_z;
-    uint8_t     reset_counter;
 
     /* ros callbacks */
     /* ROS回调函数 */
