@@ -28,13 +28,19 @@ namespace plugin {
 /**
  * @brief This mixin adds set_position_target_local_ned()
  */
-template <class D> class SetPositionTargetLocalNEDMixin {
+template <class D>
+class SetPositionTargetLocalNEDMixin {
 public:
     //! Message specification: @p
     //! https://mavlink.io/en/messages/common.html#SET_POSITION_TARGET_LOCAL_NED
-    void set_position_target_local_ned(uint32_t time_boot_ms, uint8_t coordinate_frame,
-                                       uint16_t type_mask, Eigen::Vector3d p, Eigen::Vector3d v,
-                                       Eigen::Vector3d af, float yaw, float yaw_rate) {
+    void set_position_target_local_ned(uint32_t        time_boot_ms,
+                                       uint8_t         coordinate_frame,
+                                       uint16_t        type_mask,
+                                       Eigen::Vector3d p,
+                                       Eigen::Vector3d v,
+                                       Eigen::Vector3d af,
+                                       float           yaw,
+                                       float           yaw_rate) {
         mavros::UAS                                        *m_uas_ = static_cast<D *>(this)->m_uas;
         mavlink::common::msg::SET_POSITION_TARGET_LOCAL_NED sp     = {};
 
@@ -70,14 +76,21 @@ public:
 /**
  * @brief This mixin adds set_position_target_global_int()
  */
-template <class D> class SetPositionTargetGlobalIntMixin {
+template <class D>
+class SetPositionTargetGlobalIntMixin {
 public:
     //! Message specification: @p
     //! https://mavlink.io/en/messages/common.html#SET_POSITION_TARGET_GLOBAL_INT
-    void set_position_target_global_int(uint32_t time_boot_ms, uint8_t coordinate_frame,
-                                        uint16_t type_mask, int32_t lat_int, int32_t lon_int,
-                                        float alt, Eigen::Vector3d v, Eigen::Vector3d af, float yaw,
-                                        float yaw_rate) {
+    void set_position_target_global_int(uint32_t        time_boot_ms,
+                                        uint8_t         coordinate_frame,
+                                        uint16_t        type_mask,
+                                        int32_t         lat_int,
+                                        int32_t         lon_int,
+                                        float           alt,
+                                        Eigen::Vector3d v,
+                                        Eigen::Vector3d af,
+                                        float           yaw,
+                                        float           yaw_rate) {
         mavros::UAS                                         *m_uas_ = static_cast<D *>(this)->m_uas;
         mavlink::common::msg::SET_POSITION_TARGET_GLOBAL_INT sp     = {};
 
@@ -114,12 +127,15 @@ public:
 /**
  * @brief This mixin adds set_attitude_target()
  */
-template <class D> class SetAttitudeTargetMixin {
+template <class D>
+class SetAttitudeTargetMixin {
 public:
     //! Message sepecification: @p https://mavlink.io/en/messages/common.html#SET_ATTITUDE_TARGET
-    void set_attitude_target(uint32_t time_boot_ms, uint8_t type_mask,
-                             Eigen::Quaterniond orientation, Eigen::Vector3d body_rate,
-                             float thrust) {
+    void set_attitude_target(uint32_t           time_boot_ms,
+                             uint8_t            type_mask,
+                             Eigen::Quaterniond orientation,
+                             Eigen::Vector3d    body_rate,
+                             float              thrust) {
         mavros::UAS                              *m_uas_ = static_cast<D *>(this)->m_uas;
         mavlink::common::msg::SET_ATTITUDE_TARGET sp     = {};
 
@@ -150,7 +166,8 @@ public:
  * It requires tf_frame_id, tf_child_frame_id strings
  * tf_rate double and uas object pointer
  */
-template <class D> class TF2ListenerMixin {
+template <class D>
+class TF2ListenerMixin {
 public:
     std::thread tf_thread;
     std::string tf_thd_name;
@@ -197,7 +214,8 @@ public:
      * @param cbp        plugin callback function
      */
     template <class T>
-    void tf2_start(const char *_thd_name, message_filters::Subscriber<T> &topic_sub,
+    void tf2_start(const char                     *_thd_name,
+                   message_filters::Subscriber<T> &topic_sub,
                    void (D::*cbp)(const geometry_msgs::TransformStamped &,
                                   const typename T::ConstPtr &)) {
         tf_thd_name = _thd_name;

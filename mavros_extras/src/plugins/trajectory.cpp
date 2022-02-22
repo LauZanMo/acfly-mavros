@@ -82,8 +82,11 @@ private:
     // outl_fill_points_ned_vector('x', 'y', 'z', 'velocity', 'Vector3', range(3, 6))
     // outl_fill_points_ned_vector('x', 'y', 'z', 'acceleration', 'Vector3', range(6, 9))
     // ]]]
-    void fill_points_position(MavPoints &x, MavPoints &y, MavPoints &z,
-                              const geometry_msgs::Point &position, const size_t i) {
+    void fill_points_position(MavPoints                  &x,
+                              MavPoints                  &y,
+                              MavPoints                  &z,
+                              const geometry_msgs::Point &position,
+                              const size_t                i) {
         auto position_ned = ftf::transform_frame_enu_ned(ftf::to_eigen(position));
 
         x[i] = position_ned.x();
@@ -91,8 +94,11 @@ private:
         z[i] = position_ned.z();
     }
 
-    void fill_points_velocity(MavPoints &x, MavPoints &y, MavPoints &z,
-                              const geometry_msgs::Vector3 &velocity, const size_t i) {
+    void fill_points_velocity(MavPoints                    &x,
+                              MavPoints                    &y,
+                              MavPoints                    &z,
+                              const geometry_msgs::Vector3 &velocity,
+                              const size_t                  i) {
         auto velocity_ned = ftf::transform_frame_enu_ned(ftf::to_eigen(velocity));
 
         x[i] = velocity_ned.x();
@@ -100,8 +106,11 @@ private:
         z[i] = velocity_ned.z();
     }
 
-    void fill_points_acceleration(MavPoints &x, MavPoints &y, MavPoints &z,
-                                  const geometry_msgs::Vector3 &acceleration, const size_t i) {
+    void fill_points_acceleration(MavPoints                    &x,
+                                  MavPoints                    &y,
+                                  MavPoints                    &z,
+                                  const geometry_msgs::Vector3 &acceleration,
+                                  const size_t                  i) {
         auto acceleration_ned = ftf::transform_frame_enu_ned(ftf::to_eigen(acceleration));
 
         x[i] = acceleration_ned.x();
@@ -119,8 +128,8 @@ private:
         yv[i] = yaw_speed;
     }
 
-    void fill_points_yaw_q(MavPoints &y, const geometry_msgs::Quaternion &orientation,
-                           const size_t i) {
+    void
+    fill_points_yaw_q(MavPoints &y, const geometry_msgs::Quaternion &orientation, const size_t i) {
         auto q_wp = ftf::transform_orientation_enu_ned(
             ftf::transform_orientation_baselink_aircraft(ftf::to_eigen(orientation)));
         auto yaw_wp = ftf::quaternion_get_yaw(q_wp);
@@ -334,7 +343,7 @@ private:
         UAS_FCU(m_uas)->send_message_ignore_drop(trajectory);
     }
 
-    void handle_trajectory(const mavlink::mavlink_message_t *                         msg,
+    void handle_trajectory(const mavlink::mavlink_message_t                          *msg,
                            mavlink::common::msg::TRAJECTORY_REPRESENTATION_WAYPOINTS &trajectory) {
         auto tr_desired = boost::make_shared<mavros_msgs::Trajectory>();
 

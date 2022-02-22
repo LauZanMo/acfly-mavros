@@ -29,9 +29,17 @@ namespace std_plugins {
 class TimeSyncStatus : public diagnostic_updater::DiagnosticTask {
 public:
     TimeSyncStatus(const std::string &name, size_t win_size)
-        : diagnostic_updater::DiagnosticTask(name), times_(win_size), seq_nums_(win_size),
-          window_size_(win_size), min_freq_(0.01), max_freq_(10), tolerance_(0.1), last_rtt_(0),
-          rtt_sum_(0), last_remote_ts_(0), offset_(0) {
+        : diagnostic_updater::DiagnosticTask(name),
+          times_(win_size),
+          seq_nums_(win_size),
+          window_size_(win_size),
+          min_freq_(0.01),
+          max_freq_(10),
+          tolerance_(0.1),
+          last_rtt_(0),
+          rtt_sum_(0),
+          last_remote_ts_(0),
+          offset_(0) {
         clear();
     }
 
@@ -119,9 +127,16 @@ private:
 class SystemTimePlugin : public plugin::PluginBase {
 public:
     SystemTimePlugin()
-        : PluginBase(), nh("~"), dt_diag("Time Sync", 10), time_offset(0.0), time_skew(0.0),
-          sequence(0), filter_alpha(0), filter_beta(0), high_rtt_count(0), high_deviation_count(0) {
-    }
+        : PluginBase(),
+          nh("~"),
+          dt_diag("Time Sync", 10),
+          time_offset(0.0),
+          time_skew(0.0),
+          sequence(0),
+          filter_alpha(0),
+          filter_beta(0),
+          high_rtt_count(0),
+          high_deviation_count(0) {}
 
     using TSM = UAS::timesync_mode;
 
@@ -135,8 +150,7 @@ public:
         ros::WallDuration conn_system_time;
         ros::WallDuration conn_timesync;
 
-        if (nh.getParam("conn/system_time_rate", conn_system_time_d) &&
-            conn_system_time_d != 0.0) {
+        if (nh.getParam("conn/system_time_rate", conn_system_time_d) && conn_system_time_d != 0.0) {
             conn_system_time = ros::WallDuration(ros::Rate(conn_system_time_d));
         }
 
@@ -352,8 +366,8 @@ private:
         UAS_FCU(m_uas)->send_message_ignore_drop(tsync);
     }
 
-    void add_timesync_observation(int64_t offset_ns, uint64_t local_time_ns,
-                                  uint64_t remote_time_ns) {
+    void
+    add_timesync_observation(int64_t offset_ns, uint64_t local_time_ns, uint64_t remote_time_ns) {
         uint64_t now_ns = ros::Time::now().toNSec();
 
         // Calculate the round trip time (RTT) it took the timesync packet to bounce back to us from

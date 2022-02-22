@@ -22,21 +22,19 @@
 namespace testsetup {
 class TestSetup {
 public:
-	TestSetup() :
-		nh("~")
-	{ };
-	~TestSetup() {};
+    TestSetup() : nh("~"){};
+    ~TestSetup(){};
 
-	ros::NodeHandle nh;
+    ros::NodeHandle nh;
 
-	bool use_pid;
-	double rate;
-	int num_of_tests;
+    bool   use_pid;
+    double rate;
+    int    num_of_tests;
 
-	void setup(const ros::NodeHandle &nh){
-		nh.param("use_pid", use_pid, true);
-		nh.param("rate", rate, 10.0);
-		nh.param("num_of_tests", num_of_tests, 10);
-	}
+    void setup(const ros::NodeHandle &nh) {
+        nh.param("use_pid", use_pid, true);
+        nh.param("rate", rate, 10.0);
+        nh.param("num_of_tests", num_of_tests, 10);
+    }
 };
-};	// namespace testsetup
+}; // namespace testsetup

@@ -46,7 +46,7 @@ private:
 
     ros::Publisher cam_imu_pub;
 
-    void handle_cam_trig(const mavlink::mavlink_message_t *    msg,
+    void handle_cam_trig(const mavlink::mavlink_message_t     *msg,
                          mavlink::common::msg::CAMERA_TRIGGER &ctrig) {
         auto sync_msg = boost::make_shared<mavros_msgs::CamIMUStamp>();
 

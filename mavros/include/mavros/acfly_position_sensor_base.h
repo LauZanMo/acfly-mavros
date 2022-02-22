@@ -48,7 +48,9 @@ public:
         UAS_FCU(m_uas)->send_message_ignore_drop(rp);
     }
 
-    void update_position_sensor(const ros::Time &stamp, Eigen::Vector3d pos, Eigen::Vector3d vel,
+    void update_position_sensor(const ros::Time   &stamp,
+                                Eigen::Vector3d    pos,
+                                Eigen::Vector3d    vel,
                                 Eigen::Quaterniond att = Eigen::Quaterniond::Identity()) {
         // 未更新则退出
         if (last_transform_stamp == stamp)

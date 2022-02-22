@@ -34,8 +34,8 @@ using mavlink::mavlink_message_t;
 #define PFX "mavconn: udp"
 #define PFXd PFX "%zu: "
 
-static bool resolve_address_udp(io_service &io, size_t chan, std::string host, unsigned short port,
-                                udp::endpoint &ep) {
+static bool resolve_address_udp(
+    io_service &io, size_t chan, std::string host, unsigned short port, udp::endpoint &ep) {
     bool          result = false;
     udp::resolver resolver(io);
     error_code    ec;
@@ -65,12 +65,21 @@ static bool resolve_address_udp(io_service &io, size_t chan, std::string host, u
     return result;
 }
 
-MAVConnUDP::MAVConnUDP(uint8_t system_id, uint8_t component_id, std::string bind_host,
-                       unsigned short bind_port, std::string remote_host,
+MAVConnUDP::MAVConnUDP(uint8_t        system_id,
+                       uint8_t        component_id,
+                       std::string    bind_host,
+                       unsigned short bind_port,
+                       std::string    remote_host,
                        unsigned short remote_port)
-    : MAVConnInterface(system_id, component_id), io_service(),
-      io_work(new io_service::work(io_service)), permanent_broadcast(false), remote_exists(false),
-      socket(io_service), tx_in_progress(false), tx_q{}, rx_buf{} {
+    : MAVConnInterface(system_id, component_id),
+      io_service(),
+      io_work(new io_service::work(io_service)),
+      permanent_broadcast(false),
+      remote_exists(false),
+      socket(io_service),
+      tx_in_progress(false),
+      tx_q{},
+      rx_buf{} {
     using udps = boost::asio::ip::udp::socket;
 
     if (!resolve_address_udp(io_service, conn_id, bind_host, bind_port, bind_ep))
@@ -115,10 +124,12 @@ MAVConnUDP::MAVConnUDP(uint8_t system_id, uint8_t component_id, std::string bind
     }
 }
 
-MAVConnUDP::~MAVConnUDP() { close(); }
+MAVConnUDP::~MAVConnUDP() {
+    close();
+}
 
 void MAVConnUDP::connect(const ReceivedCb &cb_handle_message,
-                         const ClosedCb &  cb_handle_closed_port) {
+                         const ClosedCb   &cb_handle_closed_port) {
     message_received_cb = cb_handle_message;
     port_closed_cb      = cb_handle_closed_port;
 
@@ -294,6 +305,8 @@ void MAVConnUDP::do_sendto(bool check_tx_state) {
                          });
 }
 
-std::string MAVConnUDP::get_remote_endpoint() const { return to_string_ss(remote_ep); }
+std::string MAVConnUDP::get_remote_endpoint() const {
+    return to_string_ss(remote_ep);
+}
 
 } // namespace mavconn

@@ -33,9 +33,11 @@ using utils::enum_value;
 
 MavRos::MavRos()
     : mavlink_nh("mavlink"), // allow to namespace it
-      last_message_received_from_gcs(0), fcu_link_diag("FCU connection"),
+      last_message_received_from_gcs(0),
+      fcu_link_diag("FCU connection"),
       gcs_link_diag("GCS bridge"),
-      plugin_loader("mavros", "mavros::plugin::PluginBase"), plugin_subscriptions{} {
+      plugin_loader("mavros", "mavros::plugin::PluginBase"),
+      plugin_subscriptions{} {
     std::string           fcu_url, gcs_url;
     std::string           fcu_protocol;
     int                   system_id, component_id;
@@ -278,8 +280,8 @@ static bool pattern_match(std::string &pattern, std::string &pl_name) {
  *
  * @note Issue #257.
  */
-static bool is_blacklisted(std::string &pl_name, ros::V_string &blacklist,
-                           ros::V_string &whitelist) {
+static bool
+is_blacklisted(std::string &pl_name, ros::V_string &blacklist, ros::V_string &whitelist) {
     for (auto &bl_pattern : blacklist) {
         if (pattern_match(bl_pattern, pl_name)) {
             for (auto &wl_pattern : whitelist) {

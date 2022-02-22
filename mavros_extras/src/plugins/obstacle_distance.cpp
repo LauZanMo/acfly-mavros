@@ -48,7 +48,9 @@ public:
             obstacle_nh.subscribe("send", 10, &ObstacleDistancePlugin::obstacle_cb, this);
     }
 
-    Subscriptions get_subscriptions() override { return {/* Rx disabled */}; }
+    Subscriptions get_subscriptions() override {
+        return {/* Rx disabled */};
+    }
 
 private:
     ros::NodeHandle obstacle_nh;

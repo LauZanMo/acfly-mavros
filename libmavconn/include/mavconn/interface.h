@@ -68,17 +68,24 @@ public:
     template <typename T>
     DeviceError(const char *module, T msg) : std::runtime_error(make_message(module, msg)) {}
 
-    template <typename T> static std::string make_message(const char *module, T msg) {
+    template <typename T>
+    static std::string make_message(const char *module, T msg) {
         std::ostringstream ss;
         ss << "DeviceError:" << module << ":" << msg_to_string(msg);
         return ss.str();
     }
 
-    static std::string msg_to_string(const char *description) { return description; }
+    static std::string msg_to_string(const char *description) {
+        return description;
+    }
 
-    static std::string msg_to_string(int errnum) { return ::strerror(errnum); }
+    static std::string msg_to_string(int errnum) {
+        return ::strerror(errnum);
+    }
 
-    static std::string msg_to_string(boost::system::system_error &err) { return err.what(); }
+    static std::string msg_to_string(boost::system::system_error &err) {
+        return err.what();
+    }
 };
 
 /**
@@ -113,7 +120,7 @@ public:
      * @brief Establish connection, automatically called by open_url()
      */
     virtual void connect(const ReceivedCb &cb_handle_message,
-                         const ClosedCb &  cb_handle_closed_port = ClosedCb()) = 0;
+                         const ClosedCb   &cb_handle_closed_port = ClosedCb()) = 0;
 
     /**
      * @brief Close connection.
@@ -195,10 +202,18 @@ public:
     virtual IOStat                    get_iostat();
     virtual bool                      is_open() = 0;
 
-    inline uint8_t get_system_id() { return sys_id; }
-    inline void    set_system_id(uint8_t sysid) { sys_id = sysid; }
-    inline uint8_t get_component_id() { return comp_id; }
-    inline void    set_component_id(uint8_t compid) { comp_id = compid; }
+    inline uint8_t get_system_id() {
+        return sys_id;
+    }
+    inline void set_system_id(uint8_t sysid) {
+        sys_id = sysid;
+    }
+    inline uint8_t get_component_id() {
+        return comp_id;
+    }
+    inline void set_component_id(uint8_t compid) {
+        comp_id = compid;
+    }
 
     /**
      * Set protocol used for encoding mavlink::Mavlink messages.
@@ -223,16 +238,18 @@ public:
      * @return @a Ptr to constructed interface class,
      *         or throw @a DeviceError if error occured.
      */
-    static Ptr open_url(std::string url, uint8_t system_id = 1,
+    static Ptr open_url(std::string       url,
+                        uint8_t           system_id             = 1,
                         uint8_t           component_id          = MAV_COMP_ID_UDP_BRIDGE,
                         const ReceivedCb &cb_handle_message     = ReceivedCb(),
-                        const ClosedCb &  cb_handle_closed_port = ClosedCb());
+                        const ClosedCb   &cb_handle_closed_port = ClosedCb());
 
     /**
      * @brief version of open_url() which do not perform connect()
      */
-    static Ptr open_url_no_connect(std::string url, uint8_t system_id = 1,
-                                   uint8_t component_id = MAV_COMP_ID_UDP_BRIDGE);
+    static Ptr open_url_no_connect(std::string url,
+                                   uint8_t     system_id    = 1,
+                                   uint8_t     component_id = MAV_COMP_ID_UDP_BRIDGE);
 
     static std::vector<std::string> get_known_dialects();
 
@@ -252,9 +269,13 @@ protected:
     //! Channel number used for logging.
     size_t conn_id;
 
-    inline mavlink::mavlink_status_t *get_status_p() { return &m_parse_status; }
+    inline mavlink::mavlink_status_t *get_status_p() {
+        return &m_parse_status;
+    }
 
-    inline mavlink::mavlink_message_t *get_buffer_p() { return &m_buffer; }
+    inline mavlink::mavlink_message_t *get_buffer_p() {
+        return &m_buffer;
+    }
 
     /**
      * Parse buffer and emit massage_received.

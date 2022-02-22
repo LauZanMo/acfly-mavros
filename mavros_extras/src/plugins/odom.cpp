@@ -46,8 +46,10 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW // XXX(vooon): added to try to fix #1223. Not sure that it is
                                     // needed because class do not have Eigen:: fields.
 
-                                    OdometryPlugin()
-        : PluginBase(), odom_nh("~odometry"), fcu_odom_parent_id_des("map"),
+    OdometryPlugin()
+        : PluginBase(),
+          odom_nh("~odometry"),
+          fcu_odom_parent_id_des("map"),
           fcu_odom_child_id_des("base_link") {}
 
     void initialize(UAS &uas_) override {
@@ -84,8 +86,9 @@ private:
      * @param[in] &source The child frame of the transformation you want to get
      * @param[in,out] &tf_source2target The affine transform from the source to target
      */
-    void lookup_static_transform(const std::string &target, const std::string &source,
-                                 Eigen::Affine3d &tf_source2target) {
+    void lookup_static_transform(const std::string &target,
+                                 const std::string &source,
+                                 Eigen::Affine3d   &tf_source2target) {
         try {
             // transform lookup at current time.
             tf_source2target = tf2::transformToEigen(
@@ -112,7 +115,7 @@ private:
      * @param odom_msg	ODOMETRY msg
      */
     void handle_odom(const mavlink::mavlink_message_t *msg,
-                     mavlink::common::msg::ODOMETRY &  odom_msg) {
+                     mavlink::common::msg::ODOMETRY   &odom_msg) {
         /**
          * Required rotations to transform the FCU's odometry msg tto desired parent and child frame
          */

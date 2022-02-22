@@ -41,25 +41,29 @@ public:
      * @param[id] server_addr    remote host
      * @param[id] server_port    remote port
      */
-    MAVConnTCPClient(uint8_t system_id = 1, uint8_t component_id = MAV_COMP_ID_UDP_BRIDGE,
-                     std::string    server_host = DEFAULT_SERVER_HOST,
-                     unsigned short server_port = DEFAULT_SERVER_PORT);
+    MAVConnTCPClient(uint8_t        system_id    = 1,
+                     uint8_t        component_id = MAV_COMP_ID_UDP_BRIDGE,
+                     std::string    server_host  = DEFAULT_SERVER_HOST,
+                     unsigned short server_port  = DEFAULT_SERVER_PORT);
     /**
      * Special client variation for use in MAVConnTCPServer
      */
-    explicit MAVConnTCPClient(uint8_t system_id, uint8_t component_id,
+    explicit MAVConnTCPClient(uint8_t                  system_id,
+                              uint8_t                  component_id,
                               boost::asio::io_service &server_io);
     virtual ~MAVConnTCPClient();
 
     void connect(const ReceivedCb &cb_handle_message,
-                 const ClosedCb &  cb_handle_closed_port = ClosedCb()) override;
+                 const ClosedCb   &cb_handle_closed_port = ClosedCb()) override;
     void close() override;
 
     void send_message(const mavlink::mavlink_message_t *message) override;
     void send_message(const mavlink::Message &message, const uint8_t source_compid) override;
     void send_bytes(const uint8_t *bytes, size_t length) override;
 
-    inline bool is_open() override { return socket.is_open(); }
+    inline bool is_open() override {
+        return socket.is_open();
+    }
 
 private:
     friend class MAVConnTCPServer;
@@ -101,13 +105,14 @@ public:
      * @param[id] server_addr    bind host
      * @param[id] server_port    bind port
      */
-    MAVConnTCPServer(uint8_t system_id = 1, uint8_t component_id = MAV_COMP_ID_UDP_BRIDGE,
-                     std::string    bind_host = DEFAULT_BIND_HOST,
-                     unsigned short bind_port = DEFAULT_BIND_PORT);
+    MAVConnTCPServer(uint8_t        system_id    = 1,
+                     uint8_t        component_id = MAV_COMP_ID_UDP_BRIDGE,
+                     std::string    bind_host    = DEFAULT_BIND_HOST,
+                     unsigned short bind_port    = DEFAULT_BIND_PORT);
     virtual ~MAVConnTCPServer();
 
     void connect(const ReceivedCb &cb_handle_message,
-                 const ClosedCb &  cb_handle_closed_port = ClosedCb()) override;
+                 const ClosedCb   &cb_handle_closed_port = ClosedCb()) override;
     void close() override;
 
     void send_message(const mavlink::mavlink_message_t *message) override;
@@ -116,7 +121,9 @@ public:
 
     mavlink::mavlink_status_t get_status() override;
     IOStat                    get_iostat() override;
-    inline bool               is_open() override { return acceptor.is_open(); }
+    inline bool               is_open() override {
+        return acceptor.is_open();
+    }
 
 private:
     boost::asio::io_service                        io_service;

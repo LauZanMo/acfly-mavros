@@ -44,22 +44,25 @@ public:
      * @param[id] remote_host  remote host (optional)
      * @param[id] remote_port  remote port (optional)
      */
-    MAVConnUDP(uint8_t system_id = 1, uint8_t component_id = MAV_COMP_ID_UDP_BRIDGE,
-               std::string    bind_host   = DEFAULT_BIND_HOST,
-               unsigned short bind_port   = DEFAULT_BIND_PORT,
-               std::string    remote_host = DEFAULT_REMOTE_HOST,
-               unsigned short remote_port = DEFAULT_REMOTE_PORT);
+    MAVConnUDP(uint8_t        system_id    = 1,
+               uint8_t        component_id = MAV_COMP_ID_UDP_BRIDGE,
+               std::string    bind_host    = DEFAULT_BIND_HOST,
+               unsigned short bind_port    = DEFAULT_BIND_PORT,
+               std::string    remote_host  = DEFAULT_REMOTE_HOST,
+               unsigned short remote_port  = DEFAULT_REMOTE_PORT);
     virtual ~MAVConnUDP();
 
     void connect(const ReceivedCb &cb_handle_message,
-                 const ClosedCb &  cb_handle_closed_port = ClosedCb()) override;
+                 const ClosedCb   &cb_handle_closed_port = ClosedCb()) override;
     void close() override;
 
     void send_message(const mavlink::mavlink_message_t *message) override;
     void send_message(const mavlink::Message &message, const uint8_t source_compid) override;
     void send_bytes(const uint8_t *bytes, size_t length) override;
 
-    inline bool is_open() override { return socket.is_open(); }
+    inline bool is_open() override {
+        return socket.is_open();
+    }
 
     std::string get_remote_endpoint() const;
 

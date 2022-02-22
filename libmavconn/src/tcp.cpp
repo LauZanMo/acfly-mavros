@@ -41,8 +41,8 @@ using utils::to_string_ss;
 #define PFX "mavconn: tcp"
 #define PFXd PFX "%zu: "
 
-static bool resolve_address_tcp(io_service &io, size_t chan, std::string host, unsigned short port,
-                                tcp::endpoint &ep) {
+static bool resolve_address_tcp(
+    io_service &io, size_t chan, std::string host, unsigned short port, tcp::endpoint &ep) {
     bool          result = false;
     tcp::resolver resolver(io);
     error_code    ec;
@@ -74,11 +74,18 @@ static bool resolve_address_tcp(io_service &io, size_t chan, std::string host, u
 
 /* -*- TCP client variant -*- */
 
-MAVConnTCPClient::MAVConnTCPClient(uint8_t system_id, uint8_t component_id, std::string server_host,
+MAVConnTCPClient::MAVConnTCPClient(uint8_t        system_id,
+                                   uint8_t        component_id,
+                                   std::string    server_host,
                                    unsigned short server_port)
-    : MAVConnInterface(system_id, component_id), io_service(),
-      io_work(new io_service::work(io_service)), socket(io_service), is_destroying(false),
-      tx_in_progress(false), tx_q{}, rx_buf{} {
+    : MAVConnInterface(system_id, component_id),
+      io_service(),
+      io_work(new io_service::work(io_service)),
+      socket(io_service),
+      is_destroying(false),
+      tx_in_progress(false),
+      tx_q{},
+      rx_buf{} {
     if (!resolve_address_tcp(io_service, conn_id, server_host, server_port, server_ep))
         throw DeviceError("tcp: resolve", "Bind address resolve failed");
 
@@ -92,10 +99,15 @@ MAVConnTCPClient::MAVConnTCPClient(uint8_t system_id, uint8_t component_id, std:
     }
 }
 
-MAVConnTCPClient::MAVConnTCPClient(uint8_t system_id, uint8_t component_id,
+MAVConnTCPClient::MAVConnTCPClient(uint8_t                  system_id,
+                                   uint8_t                  component_id,
                                    boost::asio::io_service &server_io)
-    : MAVConnInterface(system_id, component_id), socket(server_io), is_destroying(false),
-      tx_in_progress(false), tx_q{}, rx_buf{} {
+    : MAVConnInterface(system_id, component_id),
+      socket(server_io),
+      is_destroying(false),
+      tx_in_progress(false),
+      tx_q{},
+      rx_buf{} {
     // waiting when server call client_connected()
 }
 
@@ -113,7 +125,7 @@ MAVConnTCPClient::~MAVConnTCPClient() {
 }
 
 void MAVConnTCPClient::connect(const ReceivedCb &cb_handle_message,
-                               const ClosedCb &  cb_handle_closed_port) {
+                               const ClosedCb   &cb_handle_closed_port) {
     message_received_cb = cb_handle_message;
     port_closed_cb      = cb_handle_closed_port;
 
@@ -269,9 +281,13 @@ void MAVConnTCPClient::do_send(bool check_tx_state) {
 
 /* -*- TCP server variant -*- */
 
-MAVConnTCPServer::MAVConnTCPServer(uint8_t system_id, uint8_t component_id, std::string server_host,
+MAVConnTCPServer::MAVConnTCPServer(uint8_t        system_id,
+                                   uint8_t        component_id,
+                                   std::string    server_host,
                                    unsigned short server_port)
-    : MAVConnInterface(system_id, component_id), io_service(), acceptor(io_service),
+    : MAVConnInterface(system_id, component_id),
+      io_service(),
+      acceptor(io_service),
       is_destroying(false) {
     if (!resolve_address_tcp(io_service, conn_id, server_host, server_port, bind_ep))
         throw DeviceError("tcp-l: resolve", "Bind address resolve failed");
@@ -294,7 +310,7 @@ MAVConnTCPServer::~MAVConnTCPServer() {
 }
 
 void MAVConnTCPServer::connect(const ReceivedCb &cb_handle_message,
-                               const ClosedCb &  cb_handle_closed_port) {
+                               const ClosedCb   &cb_handle_closed_port) {
     message_received_cb = cb_handle_message;
     port_closed_cb      = cb_handle_closed_port;
 

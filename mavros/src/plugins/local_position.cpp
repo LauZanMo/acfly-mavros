@@ -38,7 +38,10 @@ namespace std_plugins {
 class LocalPositionPlugin : public plugin::PluginBase {
 public:
     LocalPositionPlugin()
-        : PluginBase(), lp_nh("~local_position"), tf_send(false), has_local_position_ned(false),
+        : PluginBase(),
+          lp_nh("~local_position"),
+          tf_send(false),
+          has_local_position_ned(false),
           has_local_position_ned_cov(false) {}
 
     void initialize(UAS &uas_) override {

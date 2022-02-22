@@ -53,7 +53,9 @@ public:
                 sp_nh.subscribe("speed_vector", 10, &VisionSpeedEstimatePlugin::vector_cb, this);
     }
 
-    Subscriptions get_subscriptions() override { return {/* Rx disabled */}; }
+    Subscriptions get_subscriptions() override {
+        return {/* Rx disabled */};
+    }
 
 private:
     ros::NodeHandle sp_nh;
@@ -63,7 +65,7 @@ private:
 
     ros::Subscriber vision_twist_sub; //!< Subscriber to geometry_msgs/TwistStamped msgs
     ros::Subscriber
-                    vision_twist_cov_sub; //!< Subscriber to geometry_msgs/TwistWithCovarianceStamped msgs
+        vision_twist_cov_sub; //!< Subscriber to geometry_msgs/TwistWithCovarianceStamped msgs
     ros::Subscriber vision_vector_sub; //!< Subscriber to geometry_msgs/Vector3Stamped msgs
 
     /* -*- low-level send -*- */
@@ -75,7 +77,8 @@ private:
      * @param v	Velocity/speed vector in the local NED frame (meters)
      * @param cov	Linear velocity covariance matrix (local NED frame)
      */
-    void send_vision_speed_estimate(const uint64_t usec, const Eigen::Vector3d &v,
+    void send_vision_speed_estimate(const uint64_t           usec,
+                                    const Eigen::Vector3d   &v,
                                     const ftf::Covariance3d &cov) {
         mavlink::common::msg::VISION_SPEED_ESTIMATE vs{};
 
@@ -103,7 +106,8 @@ private:
      * @param vel_enu	Velocity/speed vector in the ENU frame
      * @param cov_enu	Linear velocity/speed in the ENU frame
      */
-    void convert_vision_speed(const ros::Time &stamp, const Eigen::Vector3d &vel_enu,
+    void convert_vision_speed(const ros::Time         &stamp,
+                              const Eigen::Vector3d   &vel_enu,
                               const ftf::Covariance3d &cov_enu) {
         // Send transformed data from local ENU to NED frame
         send_vision_speed_estimate(stamp.toNSec() / 1000, ftf::transform_frame_enu_ned(vel_enu),

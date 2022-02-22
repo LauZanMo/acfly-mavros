@@ -156,8 +156,8 @@ static void publish_lt_marker(const geometry_msgs::PoseStamped::ConstPtr &target
 /**
  * @brief publish vehicle
  */
-static void create_vehicle_markers(int num_rotors, float arm_len, float body_width,
-                                   float body_height, int prop_direction) {
+static void create_vehicle_markers(
+    int num_rotors, float arm_len, float body_width, float body_height, int prop_direction) {
     if (num_rotors <= 0)
         num_rotors = 2;
 

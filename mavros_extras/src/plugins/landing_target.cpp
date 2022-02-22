@@ -39,9 +39,19 @@ class LandingTargetPlugin : public plugin::PluginBase,
                             private plugin::TF2ListenerMixin<LandingTargetPlugin> {
 public:
     LandingTargetPlugin()
-        : nh("~landing_target"), tf_rate(10.0), send_tf(true), listen_tf(false), listen_lt(false),
-          mav_frame("LOCAL_NED"), target_size_x(1.0), target_size_y(1.0), image_width(640),
-          image_height(480), fov_x(2.0071286398), fov_y(2.0071286398), focal_length(2.8),
+        : nh("~landing_target"),
+          tf_rate(10.0),
+          send_tf(true),
+          listen_tf(false),
+          listen_lt(false),
+          mav_frame("LOCAL_NED"),
+          target_size_x(1.0),
+          target_size_y(1.0),
+          image_width(640),
+          image_height(480),
+          fov_x(2.0071286398),
+          fov_y(2.0071286398),
+          focal_length(2.8),
           land_target_type("VISION_FIDUCIAL") {}
 
     void initialize(UAS &uas_) override {
@@ -131,10 +141,16 @@ private:
     std::string         land_target_type;
 
     /* -*- low-level send -*- */
-    void landing_target(uint64_t time_usec, uint8_t target_num, uint8_t frame,
-                        Eigen::Vector2f angle, float distance, Eigen::Vector2f size,
-                        Eigen::Vector3d pos, Eigen::Quaterniond q, uint8_t type,
-                        uint8_t position_valid) {
+    void landing_target(uint64_t           time_usec,
+                        uint8_t            target_num,
+                        uint8_t            frame,
+                        Eigen::Vector2f    angle,
+                        float              distance,
+                        Eigen::Vector2f    size,
+                        Eigen::Vector3d    pos,
+                        Eigen::Quaterniond q,
+                        uint8_t            type,
+                        uint8_t            position_valid) {
         mavlink::common::msg::LANDING_TARGET lt{};
 
         lt.time_usec      = time_usec;
@@ -274,7 +290,7 @@ private:
     /**
      * @brief Receive landing target from FCU.
      */
-    void handle_landing_target(const mavlink::mavlink_message_t *    msg,
+    void handle_landing_target(const mavlink::mavlink_message_t     *msg,
                                mavlink::common::msg::LANDING_TARGET &land_target) {
         /** @todo these transforms should be applied according to the MAV_FRAME */
         auto position = ftf::transform_frame_ned_enu(

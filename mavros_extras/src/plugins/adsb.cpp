@@ -39,7 +39,9 @@ public:
         adsb_sub = adsb_nh.subscribe("send", 10, &ADSBPlugin::adsb_cb, this);
     }
 
-    Subscriptions get_subscriptions() override { return {make_handler(&ADSBPlugin::handle_adsb)}; }
+    Subscriptions get_subscriptions() override {
+        return {make_handler(&ADSBPlugin::handle_adsb)};
+    }
 
 private:
     ros::NodeHandle adsb_nh;
@@ -47,7 +49,7 @@ private:
     ros::Publisher  adsb_pub;
     ros::Subscriber adsb_sub;
 
-    void handle_adsb(const mavlink::mavlink_message_t *  msg,
+    void handle_adsb(const mavlink::mavlink_message_t   *msg,
                      mavlink::common::msg::ADSB_VEHICLE &adsb) {
         auto adsb_msg = boost::make_shared<mavros_msgs::ADSBVehicle>();
 

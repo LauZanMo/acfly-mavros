@@ -58,7 +58,7 @@ private:
      * @param msg   the mavlink message
      * @param mo	received CAMERA_IMAGE_CAPTURED msg
      */
-    void handle_camera_image_captured(const mavlink::mavlink_message_t *           msg,
+    void handle_camera_image_captured(const mavlink::mavlink_message_t            *msg,
                                       mavlink::common::msg::CAMERA_IMAGE_CAPTURED &mo) {
         auto ic = boost::make_shared<mavros_msgs::CameraImageCaptured>();
 

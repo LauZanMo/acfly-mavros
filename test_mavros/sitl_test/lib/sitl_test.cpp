@@ -11,23 +11,20 @@
  * https://github.com/mavlink/mavros/tree/master/LICENSE.md
  */
 
-#include <test_mavros/sitl_test/sitl_test.h>
 #include <ros/console.h>
+#include <test_mavros/sitl_test/sitl_test.h>
 
 using namespace sitltest;
 using namespace testsetup;
 
-SitlTest::SitlTest()
-{}
+SitlTest::SitlTest() {}
 
-void SitlTest::spin(int argc, char *argv[])
-{
-	if (strcmp(argv[1],"offboard_control") == 0)
-	{
-		ros::init(argc, argv, "offboard_control");
-		testsetup::OffboardControl offboard_control;
-		offboard_control.spin(argc, argv);
-	}
+void SitlTest::spin(int argc, char *argv[]) {
+    if (strcmp(argv[1], "offboard_control") == 0) {
+        ros::init(argc, argv, "offboard_control");
+        testsetup::OffboardControl offboard_control;
+        offboard_control.spin(argc, argv);
+    }
 
-	/** @todo add more testing structures */
+    /** @todo add more testing structures */
 }

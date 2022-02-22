@@ -38,7 +38,9 @@ class SetpointRawPlugin : public plugin::PluginBase,
                           private plugin::SetAttitudeTargetMixin<SetpointRawPlugin> {
 public:
     SetpointRawPlugin()
-        : PluginBase(), sp_nh("~setpoint_raw"), set_attitude_support_confirmed(false),
+        : PluginBase(),
+          sp_nh("~setpoint_raw"),
+          set_attitude_support_confirmed(false),
           set_position_local_support_confirmed(false),
           set_position_global_support_confirmed(false) {}
 

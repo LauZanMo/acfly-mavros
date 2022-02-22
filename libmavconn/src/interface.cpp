@@ -38,14 +38,23 @@ std::unordered_map<mavlink::msgid_t, const mavlink::mavlink_msg_entry_t *>
 std::atomic<size_t> MAVConnInterface::conn_id_counter{0};
 
 MAVConnInterface::MAVConnInterface(uint8_t system_id, uint8_t component_id)
-    : sys_id(system_id), comp_id(component_id), m_parse_status{}, m_buffer{}, m_mavlink_status{},
-      tx_total_bytes(0), rx_total_bytes(0), last_tx_total_bytes(0), last_rx_total_bytes(0),
+    : sys_id(system_id),
+      comp_id(component_id),
+      m_parse_status{},
+      m_buffer{},
+      m_mavlink_status{},
+      tx_total_bytes(0),
+      rx_total_bytes(0),
+      last_tx_total_bytes(0),
+      last_rx_total_bytes(0),
       last_iostat(steady_clock::now()) {
     conn_id = conn_id_counter.fetch_add(1);
     std::call_once(init_flag, init_msg_entry);
 }
 
-mavlink_status_t MAVConnInterface::get_status() { return m_mavlink_status; }
+mavlink_status_t MAVConnInterface::get_status() {
+    return m_mavlink_status;
+}
 
 MAVConnInterface::IOStat MAVConnInterface::get_iostat() {
     std::lock_guard<std::recursive_mutex> lock(iostat_mutex);
@@ -71,12 +80,18 @@ MAVConnInterface::IOStat MAVConnInterface::get_iostat() {
     return stat;
 }
 
-void MAVConnInterface::iostat_tx_add(size_t bytes) { tx_total_bytes += bytes; }
+void MAVConnInterface::iostat_tx_add(size_t bytes) {
+    tx_total_bytes += bytes;
+}
 
-void MAVConnInterface::iostat_rx_add(size_t bytes) { rx_total_bytes += bytes; }
+void MAVConnInterface::iostat_rx_add(size_t bytes) {
+    rx_total_bytes += bytes;
+}
 
-void MAVConnInterface::parse_buffer(const char *pfx, uint8_t *buf, const size_t bufsize,
-                                    size_t bytes_received) {
+void MAVConnInterface::parse_buffer(const char  *pfx,
+                                    uint8_t     *buf,
+                                    const size_t bufsize,
+                                    size_t       bytes_received) {
     mavlink::mavlink_message_t message;
 
     assert(bufsize >= bytes_received);
@@ -98,11 +113,10 @@ void MAVConnInterface::parse_buffer(const char *pfx, uint8_t *buf, const size_t 
 }
 
 void MAVConnInterface::log_recv(const char *pfx, mavlink_message_t &msg, Framing framing) {
-    const char *framing_str = (framing == Framing::ok)
-                                  ? "OK"
-                                  : (framing == Framing::bad_crc)
-                                        ? "!CRC"
-                                        : (framing == Framing::bad_signature) ? "!SIG" : "ERR";
+    const char *framing_str = (framing == Framing::ok)              ? "OK"
+                              : (framing == Framing::bad_crc)       ? "!CRC"
+                              : (framing == Framing::bad_signature) ? "!SIG"
+                                                                    : "ERR";
 
     const char *proto_version_str = (msg.magic == MAVLINK_STX) ? "v2.0" : "v1.0";
 
@@ -160,8 +174,11 @@ Protocol MAVConnInterface::get_protocol_version() {
 /**
  * Parse host:port pairs
  */
-static void url_parse_host(std::string host, std::string &host_out, int &port_out,
-                           const std::string def_host, const int def_port) {
+static void url_parse_host(std::string       host,
+                           std::string      &host_out,
+                           int              &port_out,
+                           const std::string def_host,
+                           const int         def_port) {
     std::string port;
 
     auto sep_it = std::find(host.begin(), host.end(), ':');
@@ -221,9 +238,8 @@ static void url_parse_query(std::string query, uint8_t &sysid, uint8_t &compid) 
     CONSOLE_BRIDGE_logDebug(PFX "URL: found system/component id = [%u, %u]", sysid, compid);
 }
 
-static MAVConnInterface::Ptr url_parse_serial(std::string path, std::string query,
-                                              uint8_t system_id, uint8_t component_id,
-                                              bool hwflow) {
+static MAVConnInterface::Ptr url_parse_serial(
+    std::string path, std::string query, uint8_t system_id, uint8_t component_id, bool hwflow) {
     std::string file_path;
     int         baudrate;
 
@@ -235,9 +251,12 @@ static MAVConnInterface::Ptr url_parse_serial(std::string path, std::string quer
     return std::make_shared<MAVConnSerial>(system_id, component_id, file_path, baudrate, hwflow);
 }
 
-static MAVConnInterface::Ptr url_parse_udp(std::string hosts, std::string query, uint8_t system_id,
-                                           uint8_t component_id, bool is_udpb,
-                                           bool permanent_broadcast) {
+static MAVConnInterface::Ptr url_parse_udp(std::string hosts,
+                                           std::string query,
+                                           uint8_t     system_id,
+                                           uint8_t     component_id,
+                                           bool        is_udpb,
+                                           bool        permanent_broadcast) {
     std::string bind_pair, remote_pair;
     std::string bind_host, remote_host;
     int         bind_port, remote_port;
@@ -265,8 +284,8 @@ static MAVConnInterface::Ptr url_parse_udp(std::string hosts, std::string query,
                                         remote_port);
 }
 
-static MAVConnInterface::Ptr url_parse_tcp_client(std::string host, std::string query,
-                                                  uint8_t system_id, uint8_t component_id) {
+static MAVConnInterface::Ptr
+url_parse_tcp_client(std::string host, std::string query, uint8_t system_id, uint8_t component_id) {
     std::string server_host;
     int         server_port;
 
@@ -277,8 +296,8 @@ static MAVConnInterface::Ptr url_parse_tcp_client(std::string host, std::string 
     return std::make_shared<MAVConnTCPClient>(system_id, component_id, server_host, server_port);
 }
 
-static MAVConnInterface::Ptr url_parse_tcp_server(std::string host, std::string query,
-                                                  uint8_t system_id, uint8_t component_id) {
+static MAVConnInterface::Ptr
+url_parse_tcp_server(std::string host, std::string query, uint8_t system_id, uint8_t component_id) {
     std::string bind_host;
     int         bind_port;
 
@@ -289,8 +308,8 @@ static MAVConnInterface::Ptr url_parse_tcp_server(std::string host, std::string 
     return std::make_shared<MAVConnTCPServer>(system_id, component_id, bind_host, bind_port);
 }
 
-MAVConnInterface::Ptr MAVConnInterface::open_url_no_connect(std::string url, uint8_t system_id,
-                                                            uint8_t component_id) {
+MAVConnInterface::Ptr
+MAVConnInterface::open_url_no_connect(std::string url, uint8_t system_id, uint8_t component_id) {
     /* Based on code found here:
      * http://stackoverflow.com/questions/2616011/easy-way-to-parse-a-url-in-c-cross-platform
      */
@@ -349,10 +368,11 @@ MAVConnInterface::Ptr MAVConnInterface::open_url_no_connect(std::string url, uin
     return interface_ptr;
 }
 
-MAVConnInterface::Ptr MAVConnInterface::open_url(std::string url, uint8_t system_id,
+MAVConnInterface::Ptr MAVConnInterface::open_url(std::string       url,
+                                                 uint8_t           system_id,
                                                  uint8_t           component_id,
                                                  const ReceivedCb &cb_handle_message,
-                                                 const ClosedCb &  cb_handle_closed_port) {
+                                                 const ClosedCb   &cb_handle_closed_port) {
     auto interface_ptr = open_url_no_connect(url, system_id, component_id);
     if (interface_ptr) {
         if (!cb_handle_message) {

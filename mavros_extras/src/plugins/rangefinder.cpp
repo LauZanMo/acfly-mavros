@@ -44,7 +44,7 @@ private:
 
     ros::Publisher rangefinder_pub;
 
-    void handle_rangefinder(const mavlink::mavlink_message_t *        msg,
+    void handle_rangefinder(const mavlink::mavlink_message_t         *msg,
                             mavlink::ardupilotmega::msg::RANGEFINDER &rangefinder) {
         auto rangefinder_msg             = boost::make_shared<sensor_msgs::Range>();
         rangefinder_msg->header.stamp    = ros::Time::now();

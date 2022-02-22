@@ -83,7 +83,8 @@ static double waypoint_encode_factor(const uint8_t &frame) {
     }
 }
 
-template <class ITEM> mavros_msgs::Waypoint mav_to_msg(const ITEM &mav_msg) {
+template <class ITEM>
+mavros_msgs::Waypoint mav_to_msg(const ITEM &mav_msg) {
     mavros_msgs::Waypoint ret;
 
     // [[[cog:
@@ -121,7 +122,8 @@ template <class ITEM> mavros_msgs::Waypoint mav_to_msg(const ITEM &mav_msg) {
     return ret;
 }
 
-template <> inline mavros_msgs::Waypoint mav_to_msg(const WP_ITEM_INT &mav_msg) {
+template <>
+inline mavros_msgs::Waypoint mav_to_msg(const WP_ITEM_INT &mav_msg) {
     mavros_msgs::Waypoint ret;
 
     // [[[cog:
@@ -210,7 +212,8 @@ inline WP_ITEM_INT mav_from_msg(const mavros_msgs::Waypoint &wp, const uint16_t 
     return ret;
 }
 
-template <class ITEM> std::string waypoint_to_string(const ITEM &wp) {
+template <class ITEM>
+std::string waypoint_to_string(const ITEM &wp) {
     std::stringstream ss;
     ss.precision(7);
     ss << '#' << wp.seq << (wp.current ? '*' : ' ') << " F:" << +wp.frame << " C:" << std::setw(3)
@@ -228,11 +231,22 @@ template <class ITEM> std::string waypoint_to_string(const ITEM &wp) {
 class MissionBase : public plugin::PluginBase {
 public:
     MissionBase(std::string _name)
-        : PluginBase(), log_ns(_name), wp_state(WP::IDLE), wp_type(WP_TYPE::MISSION), wp_count(0),
-          wp_cur_id(0), wp_cur_active(0), wp_set_active(0), wp_retries(RETRIES_COUNT),
-          is_timedout(false), do_pull_after_gcs(false), enable_partial_push(false),
-          reschedule_pull(false), BOOTUP_TIME_DT(BOOTUP_TIME_MS / 1000.0),
-          LIST_TIMEOUT_DT(LIST_TIMEOUT_MS / 1000.0), WP_TIMEOUT_DT(WP_TIMEOUT_MS / 1000.0),
+        : PluginBase(),
+          log_ns(_name),
+          wp_state(WP::IDLE),
+          wp_type(WP_TYPE::MISSION),
+          wp_count(0),
+          wp_cur_id(0),
+          wp_cur_active(0),
+          wp_set_active(0),
+          wp_retries(RETRIES_COUNT),
+          is_timedout(false),
+          do_pull_after_gcs(false),
+          enable_partial_push(false),
+          reschedule_pull(false),
+          BOOTUP_TIME_DT(BOOTUP_TIME_MS / 1000.0),
+          LIST_TIMEOUT_DT(LIST_TIMEOUT_MS / 1000.0),
+          WP_TIMEOUT_DT(WP_TIMEOUT_MS / 1000.0),
           RESCHEDULE_DT(RESCHEDULE_MS / 1000.0) {}
 
     virtual void initialize_with_nodehandle(ros::NodeHandle *_wp_nh) {
@@ -388,7 +402,8 @@ protected:
      * @brief send a single waypoint to FCU
      * @brief 发送单个航点给飞控
      */
-    template <class ITEM> void send_waypoint(size_t seq) {
+    template <class ITEM>
+    void send_waypoint(size_t seq) {
         if (seq < send_waypoints.size()) {
             auto wp_msg = send_waypoints.at(seq);
             auto wpi    = mav_from_msg<ITEM>(wp_msg, seq, wp_type);
@@ -444,7 +459,8 @@ protected:
     /* low-level send functions */
     /* 底层发送函数 */
 
-    template <class ITEM> void mission_send(ITEM &wp) {
+    template <class ITEM>
+    void mission_send(ITEM &wp) {
         auto wpi = wp;
         m_uas->msg_set_target(wpi);
         UAS_FCU(m_uas)->send_message_ignore_drop(wpi);

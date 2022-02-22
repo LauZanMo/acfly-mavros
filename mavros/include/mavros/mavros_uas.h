@@ -216,8 +216,11 @@ public:
     /* GPS data */
 
     // Store GPS RAW data
-    void update_gps_fix_epts(sensor_msgs::NavSatFix::Ptr &fix, float eph, float epv, int fix_type,
-                             int satellites_visible);
+    void update_gps_fix_epts(sensor_msgs::NavSatFix::Ptr &fix,
+                             float                        eph,
+                             float                        epv,
+                             int                          fix_type,
+                             int                          satellites_visible);
 
     // Returns EPH, EPV, Fix type and satellites visible
     void get_gps_epts(float &eph, float &epv, int &fix_type, int &satellites_visible);
@@ -252,7 +255,8 @@ public:
      * @brief Conversion from height above geoid (AMSL)
      * to height above ellipsoid (WGS-84)
      */
-    template <class T> inline double geoid_to_ellipsoid_height(T lla) {
+    template <class T>
+    inline double geoid_to_ellipsoid_height(T lla) {
         if (egm96_5)
             return GeographicLib::Geoid::GEOIDTOELLIPSOID *
                    (*egm96_5)(lla->latitude, lla->longitude);
@@ -264,7 +268,8 @@ public:
      * @brief Conversion from height above ellipsoid (WGS-84)
      * to height above geoid (AMSL)
      */
-    template <class T> inline double ellipsoid_to_geoid_height(T lla) {
+    template <class T>
+    inline double ellipsoid_to_geoid_height(T lla) {
         if (egm96_5)
             return GeographicLib::Geoid::ELLIPSOIDTOGEOID *
                    (*egm96_5)(lla->latitude, lla->longitude);
@@ -288,7 +293,8 @@ public:
      * @param tr          transform
      * @param vector      vector of transforms
      */
-    void add_static_transform(const std::string &frame_id, const std::string &child_id,
+    void add_static_transform(const std::string                            &frame_id,
+                              const std::string                            &child_id,
                               const Eigen::Affine3d                        &tr,
                               std::vector<geometry_msgs::TransformStamped> &vector);
 
@@ -299,7 +305,8 @@ public:
      * @param child_id    child frame for transform
      * @param tr          transform
      */
-    void publish_static_transform(const std::string &frame_id, const std::string &child_id,
+    void publish_static_transform(const std::string     &frame_id,
+                                  const std::string     &child_id,
                                   const Eigen::Affine3d &tr);
 
     /* time sync */
@@ -328,7 +335,8 @@ public:
      *
      * @param capabilities can accept a multiple capability params either in enum or int from
      */
-    template <typename T> bool has_capability(T capability) {
+    template <typename T>
+    bool has_capability(T capability) {
         static_assert(std::is_enum<T>::value,
                       "Only query capabilities using the UAS::MAV_CAP enum.");
         return get_capabilities() & utils::enum_value(capability);
@@ -340,7 +348,8 @@ public:
      * @param capabilities can accept a multiple capability params either in enum or int from
      */
 
-    template <typename... Ts> bool has_capabilities(Ts... capabilities) {
+    template <typename... Ts>
+    bool has_capabilities(Ts... capabilities) {
         bool                        ret = true;
         std::initializer_list<bool> capabilities_list{has_capability<Ts>(capabilities)...};
         for (auto has_cap : capabilities_list)
@@ -393,7 +402,8 @@ public:
     /**
      * Helper template to set target id's of message.
      */
-    template <typename _T> inline void msg_set_target(_T &msg) {
+    template <typename _T>
+    inline void msg_set_target(_T &msg) {
         msg.target_system    = get_tgt_system();
         msg.target_component = get_tgt_component();
     }

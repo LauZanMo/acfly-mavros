@@ -53,13 +53,27 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     FakeGPSPlugin()
-        : PluginBase(), fp_nh("~fake_gps"), gps_rate(5.0),
+        : PluginBase(),
+          fp_nh("~fake_gps"),
+          gps_rate(5.0),
           // WGS-84 ellipsoid (a - equatorial radius, f - flattening of ellipsoid)
           earth(GeographicLib::Constants::WGS84_a(), GeographicLib::Constants::WGS84_f()),
-          use_mocap(true), use_vision(false), use_hil_gps(true), mocap_transform(true),
-          mocap_withcovariance(false), tf_listen(false), eph(2.0), epv(2.0), horiz_accuracy(0.0f),
-          vert_accuracy(0.0f), speed_accuracy(0.0f), gps_id(0), satellites_visible(5),
-          fix_type(GPS_FIX_TYPE::NO_GPS), tf_rate(10.0), map_origin(0.0, 0.0, 0.0) {}
+          use_mocap(true),
+          use_vision(false),
+          use_hil_gps(true),
+          mocap_transform(true),
+          mocap_withcovariance(false),
+          tf_listen(false),
+          eph(2.0),
+          epv(2.0),
+          horiz_accuracy(0.0f),
+          vert_accuracy(0.0f),
+          speed_accuracy(0.0f),
+          gps_id(0),
+          satellites_visible(5),
+          fix_type(GPS_FIX_TYPE::NO_GPS),
+          tf_rate(10.0),
+          map_origin(0.0, 0.0, 0.0) {}
 
     void initialize(UAS &uas_) override {
         PluginBase::initialize(uas_);
@@ -142,7 +156,9 @@ public:
         }
     }
 
-    Subscriptions get_subscriptions() override { return {/* Rx disabled */}; }
+    Subscriptions get_subscriptions() override {
+        return {/* Rx disabled */};
+    }
 
 private:
     friend class TF2ListenerMixin;

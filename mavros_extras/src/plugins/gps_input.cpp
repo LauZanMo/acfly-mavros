@@ -44,7 +44,9 @@ public:
         gps_input_sub = gps_input_nh.subscribe("gps_input", 1, &GpsInputPlugin::send_cb, this);
     }
 
-    Subscriptions get_subscriptions() { return {/* Rx disabled */}; }
+    Subscriptions get_subscriptions() {
+        return {/* Rx disabled */};
+    }
 
 private:
     ros::NodeHandle gps_input_nh;

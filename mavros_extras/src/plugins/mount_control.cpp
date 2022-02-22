@@ -69,7 +69,7 @@ private:
      * @param msg   the mavlink message
      * @param mo	received MountOrientation msg
      */
-    void handle_mount_orientation(const mavlink::mavlink_message_t *       msg,
+    void handle_mount_orientation(const mavlink::mavlink_message_t        *msg,
                                   mavlink::common::msg::MOUNT_ORIENTATION &mo) {
         auto q =
             ftf::quaternion_from_rpy(Eigen::Vector3d(mo.roll, mo.pitch, mo.yaw) * M_PI / 180.0);
@@ -128,7 +128,7 @@ private:
         UAS_FCU(m_uas)->send_message_ignore_drop(cmd);
     }
 
-    bool mount_configure_cb(mavros_msgs::MountConfigure::Request & req,
+    bool mount_configure_cb(mavros_msgs::MountConfigure::Request  &req,
                             mavros_msgs::MountConfigure::Response &res) {
         using mavlink::common::MAV_CMD;
 

@@ -15,11 +15,10 @@
 
 using namespace sitltest;
 
-int main(int argc, char *argv[])
-{
-	ROS_INFO("SITL Test node started...");
+int main(int argc, char *argv[]) {
+    ROS_INFO("SITL Test node started...");
 
-	SitlTest::spin(argc, argv);
+    SitlTest::spin(argc, argv);
 
-	return 0;
+    return 0;
 }

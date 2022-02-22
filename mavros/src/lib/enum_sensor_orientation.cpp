@@ -27,8 +27,8 @@ using mavlink::common::MAV_SENSOR_ORIENTATION;
 using OrientationPair = std::pair<const std::string, const Eigen::Quaterniond>;
 
 // internal data initializer
-static const OrientationPair make_orientation(const std::string &name, const double roll,
-                                              const double pitch, const double yaw) {
+static const OrientationPair
+make_orientation(const std::string &name, const double roll, const double pitch, const double yaw) {
     constexpr auto           DEG_TO_RAD = (M_PI / 180.0);
     const Eigen::Quaterniond rot =
         ftf::quaternion_from_rpy(Eigen::Vector3d(roll, pitch, yaw) * DEG_TO_RAD);

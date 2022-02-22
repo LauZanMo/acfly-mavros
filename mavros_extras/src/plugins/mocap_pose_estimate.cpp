@@ -54,7 +54,9 @@ public:
         }
     }
 
-    Subscriptions get_subscriptions() override { return {/* Rx disabled */}; }
+    Subscriptions get_subscriptions() override {
+        return {/* Rx disabled */};
+    }
 
 private:
     ros::NodeHandle mp_nh;

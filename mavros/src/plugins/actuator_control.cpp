@@ -53,7 +53,7 @@ private:
     /* -*- rx handlers -*- */
 
     void handle_actuator_control_target(
-        const mavlink::mavlink_message_t *             msg,
+        const mavlink::mavlink_message_t              *msg,
         mavlink::common::msg::ACTUATOR_CONTROL_TARGET &actuator_control_target) {
         auto actuator_control_target_msg = boost::make_shared<mavros_msgs::ActuatorControl>();
         actuator_control_target_msg->header.stamp =

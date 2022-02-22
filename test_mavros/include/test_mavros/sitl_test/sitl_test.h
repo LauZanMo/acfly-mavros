@@ -27,12 +27,11 @@ namespace sitltest {
  *
  * This class implements sitl_test_node
  */
-class SitlTest
-{
+class SitlTest {
 public:
-	SitlTest();
-	~SitlTest() {};
+    SitlTest();
+    ~SitlTest(){};
 
-	static void spin(int argc, char *argv[]);
+    static void spin(int argc, char *argv[]);
 };
-};	// namespace sitltest
+}; // namespace sitltest

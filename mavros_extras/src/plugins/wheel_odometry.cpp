@@ -37,9 +37,17 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     WheelOdometryPlugin()
-        : PluginBase(), wo_nh("~wheel_odometry"), count(0), odom_mode(OM::NONE), raw_send(false),
-          twist_send(false), tf_send(false), yaw_initialized(false), rpose(Eigen::Vector3d::Zero()),
-          rtwist(Eigen::Vector3d::Zero()), rpose_cov(Eigen::Matrix3d::Zero()),
+        : PluginBase(),
+          wo_nh("~wheel_odometry"),
+          count(0),
+          odom_mode(OM::NONE),
+          raw_send(false),
+          twist_send(false),
+          tf_send(false),
+          yaw_initialized(false),
+          rpose(Eigen::Vector3d::Zero()),
+          rtwist(Eigen::Vector3d::Zero()),
+          rpose_cov(Eigen::Matrix3d::Zero()),
           rtwist_cov(Eigen::Vector3d::Zero()) {}
 
     void initialize(UAS &uas_) override {
@@ -447,8 +455,10 @@ private:
      * @param time		measurement's internal time stamp (for accurate dt computations)
      * @param time_pub	measurement's time stamp for publish
      */
-    void process_measurement(std::vector<double> measurement, bool rpm, ros::Time time,
-                             ros::Time time_pub) {
+    void process_measurement(std::vector<double> measurement,
+                             bool                rpm,
+                             ros::Time           time,
+                             ros::Time           time_pub) {
         // Initial measurement
         if (time_prev == ros::Time(0)) {
             count_meas = measurement.size();
@@ -544,7 +554,7 @@ private:
      * @param msg	Received Mavlink msg
      * @param dist	WHEEL_DISTANCE msg
      */
-    void handle_wheel_distance(const mavlink::mavlink_message_t *    msg,
+    void handle_wheel_distance(const mavlink::mavlink_message_t     *msg,
                                mavlink::common::msg::WHEEL_DISTANCE &wheel_dist) {
         // Check for bad wheels count
         if (wheel_dist.count == 0)

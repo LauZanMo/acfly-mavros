@@ -99,7 +99,7 @@ private:
      */
 
     void handle_baseline_msg(const mavlink::mavlink_message_t *msg,
-                             mavlink::common::msg::GPS_RTK &   rtk_bsln) {
+                             mavlink::common::msg::GPS_RTK    &rtk_bsln) {
         /* Received a decoded packet containing mavlink's msg #127,#128 in Common.
            Simply convert to ROS and publish.
          */

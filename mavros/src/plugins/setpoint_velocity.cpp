@@ -93,8 +93,8 @@ private:
         }
     }
 
-    void send_setpoint_velocity(const ros::Time &stamp, Eigen::Vector3d &vel_req,
-                                double yaw_rate_req) {
+    void
+    send_setpoint_velocity(const ros::Time &stamp, Eigen::Vector3d &vel_req, double yaw_rate_req) {
         using mavlink::common::POSITION_TARGET_TYPEMASK;
 
         uint16_t type_mask = uint16_t(POSITION_TARGET_TYPEMASK::X_IGNORE) |

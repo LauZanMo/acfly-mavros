@@ -33,13 +33,34 @@ public:
     bool     rc_rev;
 
     ServoDescription()
-        : joint_name{}, joint_lower(-M_PI / 4), joint_upper(M_PI / 4), rc_channel(0), rc_min(1000),
-          rc_max(2000), rc_trim(1500), rc_dz(0), rc_rev(false){};
+        : joint_name{},
+          joint_lower(-M_PI / 4),
+          joint_upper(M_PI / 4),
+          rc_channel(0),
+          rc_min(1000),
+          rc_max(2000),
+          rc_trim(1500),
+          rc_dz(0),
+          rc_rev(false){};
 
-    ServoDescription(std::string joint_name_, double lower_, double upper_, int channel_, int min_,
-                     int max_, int trim_, int dz_, bool rev_)
-        : joint_name(joint_name_), joint_lower(lower_), joint_upper(upper_), rc_channel(channel_),
-          rc_min(min_), rc_max(max_), rc_trim(trim_), rc_dz(dz_), rc_rev(rev_){};
+    ServoDescription(std::string joint_name_,
+                     double      lower_,
+                     double      upper_,
+                     int         channel_,
+                     int         min_,
+                     int         max_,
+                     int         trim_,
+                     int         dz_,
+                     bool        rev_)
+        : joint_name(joint_name_),
+          joint_lower(lower_),
+          joint_upper(upper_),
+          rc_channel(channel_),
+          rc_min(min_),
+          rc_max(max_),
+          rc_trim(trim_),
+          rc_dz(dz_),
+          rc_rev(rev_){};
 
     /**
      * Normalization code taken from PX4 Firmware

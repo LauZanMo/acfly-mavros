@@ -60,7 +60,7 @@ private:
      * @brief Publish <a href="https://mavlink.io/en/messages/common.html#GPS_RAW_INT">mavlink
      * GPS_RAW_INT message</a> into the gps1/raw topic.
      */
-    void handle_gps_raw_int(const mavlink::mavlink_message_t * msg,
+    void handle_gps_raw_int(const mavlink::mavlink_message_t  *msg,
                             mavlink::common::msg::GPS_RAW_INT &mav_msg) {
         auto ros_msg                = boost::make_shared<mavros_msgs::GPSRAW>();
         ros_msg->header             = m_uas->synchronized_header("/wgs84", mav_msg.time_usec);
@@ -89,7 +89,7 @@ private:
      * message</a> into the gps2/raw topic.
      */
     void handle_gps2_raw(const mavlink::mavlink_message_t *msg,
-                         mavlink::common::msg::GPS2_RAW &  mav_msg) {
+                         mavlink::common::msg::GPS2_RAW   &mav_msg) {
         auto ros_msg                = boost::make_shared<mavros_msgs::GPSRAW>();
         ros_msg->header             = m_uas->synchronized_header("/wgs84", mav_msg.time_usec);
         ros_msg->fix_type           = mav_msg.fix_type;
@@ -117,7 +117,7 @@ private:
      * message</a> into the gps1/rtk topic.
      */
     void handle_gps_rtk(const mavlink::mavlink_message_t *msg,
-                        mavlink::common::msg::GPS_RTK &   mav_msg) {
+                        mavlink::common::msg::GPS_RTK    &mav_msg) {
         auto ros_msg = boost::make_shared<mavros_msgs::GPSRTK>();
         switch (static_cast<RTK_BASELINE_COORDINATE_SYSTEM>(mav_msg.baseline_coords_type)) {
         case RTK_BASELINE_COORDINATE_SYSTEM::ECEF:
@@ -132,7 +132,7 @@ private:
                             mav_msg.baseline_coords_type);
         }
         ros_msg->header             = m_uas->synchronized_header(ros_msg->header.frame_id,
-                                                     mav_msg.time_last_baseline_ms * 1000);
+                                                                 mav_msg.time_last_baseline_ms * 1000);
         ros_msg->rtk_receiver_id    = mav_msg.rtk_receiver_id;
         ros_msg->wn                 = mav_msg.wn;
         ros_msg->tow                = mav_msg.tow;
@@ -153,7 +153,7 @@ private:
      * message</a> into the gps2/rtk topic.
      */
     void handle_gps2_rtk(const mavlink::mavlink_message_t *msg,
-                         mavlink::common::msg::GPS2_RTK &  mav_msg) {
+                         mavlink::common::msg::GPS2_RTK   &mav_msg) {
         auto ros_msg = boost::make_shared<mavros_msgs::GPSRTK>();
         switch (static_cast<RTK_BASELINE_COORDINATE_SYSTEM>(mav_msg.baseline_coords_type)) {
         case RTK_BASELINE_COORDINATE_SYSTEM::ECEF:
@@ -168,7 +168,7 @@ private:
                             mav_msg.baseline_coords_type);
         }
         ros_msg->header             = m_uas->synchronized_header(ros_msg->header.frame_id,
-                                                     mav_msg.time_last_baseline_ms * 1000);
+                                                                 mav_msg.time_last_baseline_ms * 1000);
         ros_msg->rtk_receiver_id    = mav_msg.rtk_receiver_id;
         ros_msg->wn                 = mav_msg.wn;
         ros_msg->tow                = mav_msg.tow;

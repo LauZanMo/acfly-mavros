@@ -243,10 +243,16 @@ public:
 class ParamPlugin : public plugin::PluginBase {
 public:
     ParamPlugin()
-        : PluginBase(), param_nh("~param"), BOOTUP_TIME_DT(BOOTUP_TIME_MS / 1000.0),
-          LIST_TIMEOUT_DT(LIST_TIMEOUT_MS / 1000.0), PARAM_TIMEOUT_DT(PARAM_TIMEOUT_MS / 1000.0),
-          RETRIES_COUNT(_RETRIES_COUNT), param_count(-1), param_state(PR::IDLE),
-          param_rx_retries(RETRIES_COUNT), is_timedout(false) {}
+        : PluginBase(),
+          param_nh("~param"),
+          BOOTUP_TIME_DT(BOOTUP_TIME_MS / 1000.0),
+          LIST_TIMEOUT_DT(LIST_TIMEOUT_MS / 1000.0),
+          PARAM_TIMEOUT_DT(PARAM_TIMEOUT_MS / 1000.0),
+          RETRIES_COUNT(_RETRIES_COUNT),
+          param_count(-1),
+          param_state(PR::IDLE),
+          param_rx_retries(RETRIES_COUNT),
+          is_timedout(false) {}
 
     void initialize(UAS &uas_) override {
         PluginBase::initialize(uas_);
@@ -258,7 +264,8 @@ public:
 
         param_value_pub = param_nh.advertise<mavros_msgs::Param>("param_value", 100);
 
-        schedule_timer = param_nh.createTimer(BOOTUP_TIME_DT, &ParamPlugin::schedule_cb, this, true);
+        schedule_timer =
+            param_nh.createTimer(BOOTUP_TIME_DT, &ParamPlugin::schedule_cb, this, true);
         schedule_timer.stop();
         timeout_timer =
             param_nh.createTimer(PARAM_TIMEOUT_DT, &ParamPlugin::timeout_cb, this, true);
@@ -287,9 +294,9 @@ private:
     ros::Publisher param_value_pub;
 
     ros::Timer schedule_timer; // for startup schedule fetch
-                              // 启动时调用拉取
-    ros::Timer timeout_timer; // for timeout resend
-                              // 用于超时重发
+                               // 启动时调用拉取
+    ros::Timer timeout_timer;  // for timeout resend
+                               // 用于超时重发
 
     static constexpr int BOOTUP_TIME_MS = 10000;  // acfly boot time
                                                   // acfly启动时间

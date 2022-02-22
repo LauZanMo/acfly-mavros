@@ -94,8 +94,9 @@ inline bool convert(const mavros_msgs::Mavlink &rmsg, mavlink_message_t &mmsg) {
  * @param[in]  framing_status  framing parse result (OK, BAD_CRC or BAD_SIGNATURE)
  * @return true, this convertion can't fail
  */
-inline bool convert(const mavlink_message_t &mmsg, mavros_msgs::Mavlink &rmsg,
-                    uint8_t framing_status = mavros_msgs::Mavlink::FRAMING_OK) {
+inline bool convert(const mavlink_message_t &mmsg,
+                    mavros_msgs::Mavlink    &rmsg,
+                    uint8_t                  framing_status = mavros_msgs::Mavlink::FRAMING_OK) {
     const size_t payload64_len = (mmsg.len + 7) / 8;
 
     rmsg.framing_status = framing_status;

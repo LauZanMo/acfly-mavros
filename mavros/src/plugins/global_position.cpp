@@ -47,8 +47,13 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     GlobalPositionPlugin()
-        : PluginBase(), gp_nh("~global_position"), tf_send(false), use_relative_alt(true),
-          is_map_init(false), outdoor_switch(false), rot_cov(99999.0) {}
+        : PluginBase(),
+          gp_nh("~global_position"),
+          tf_send(false),
+          use_relative_alt(true),
+          is_map_init(false),
+          outdoor_switch(false),
+          rot_cov(99999.0) {}
 
     void initialize(UAS &uas_) override {
         PluginBase::initialize(uas_);
@@ -148,7 +153,8 @@ private:
     /* mid-level functions */
     /* 中间件函数 */
 
-    template <typename MsgT> inline void fill_lla(MsgT &msg, sensor_msgs::NavSatFix::Ptr fix) {
+    template <typename MsgT>
+    inline void fill_lla(MsgT &msg, sensor_msgs::NavSatFix::Ptr fix) {
         fix->latitude  = msg.lat / 1E7;                                         // deg 度
         fix->longitude = msg.lon / 1E7;                                         // deg 度
         fix->altitude  = msg.alt / 1E3 + m_uas->geoid_to_ellipsoid_height(fix); // meter 米

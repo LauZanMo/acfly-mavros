@@ -49,7 +49,7 @@ private:
     ros::Publisher vfr_pub;
 
     void handle_vfr_hud(const mavlink::mavlink_message_t *msg,
-                        mavlink::common::msg::VFR_HUD &   vfr_hud) {
+                        mavlink::common::msg::VFR_HUD    &vfr_hud) {
         auto vmsg          = boost::make_shared<mavros_msgs::VFR_HUD>();
         vmsg->header.stamp = ros::Time::now();
         vmsg->airspeed     = vfr_hud.airspeed;

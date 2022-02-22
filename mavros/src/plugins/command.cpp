@@ -45,7 +45,8 @@ public:
     uint8_t                 result_;
 
     explicit CommandTransaction(uint16_t command)
-        : ack_(), expected_command_(command),
+        : ack_(),
+          expected_command_(command),
           // Default result if wait ack timeout
           // 等待应答超时的缺省结果
           result_(enum_value(mavlink::common::MAV_RESULT::FAILED)) {}
@@ -203,10 +204,18 @@ private:
      * COMMAND_LONG服务的通用回调函数
      * @note 在信息中success变量为bool型，但在C++语法中为unsigned char型
      */
-    bool send_command_long_and_wait(bool broadcast, uint16_t command, uint8_t confirmation,
-                                    float param1, float param2, float param3, float param4,
-                                    float param5, float param6, float param7,
-                                    unsigned char &success, uint8_t &result) {
+    bool send_command_long_and_wait(bool           broadcast,
+                                    uint16_t       command,
+                                    uint8_t        confirmation,
+                                    float          param1,
+                                    float          param2,
+                                    float          param3,
+                                    float          param4,
+                                    float          param5,
+                                    float          param6,
+                                    float          param7,
+                                    unsigned char &success,
+                                    uint8_t       &result) {
         using mavlink::common::MAV_RESULT;
 
         unique_lock lock(mutex);
@@ -251,9 +260,19 @@ private:
 
     // Common function for COMMAND_INT service callbacks.
     // COMMAND_INT服务的通用回调函数
-    bool send_command_int(bool broadcast, uint8_t frame, uint16_t command, uint8_t current,
-                          uint8_t autocontinue, float param1, float param2, float param3,
-                          float param4, int32_t x, int32_t y, float z, unsigned char &success) {
+    bool send_command_int(bool           broadcast,
+                          uint8_t        frame,
+                          uint16_t       command,
+                          uint8_t        current,
+                          uint8_t        autocontinue,
+                          float          param1,
+                          float          param2,
+                          float          param3,
+                          float          param4,
+                          int32_t        x,
+                          int32_t        y,
+                          float          z,
+                          unsigned char &success) {
         // COMMAND_INT don't produce COMMAND_ACK, so wait don't needed.
         // COMMAND_INT不产生COMMAND_ACK，所以不等待
         command_int(broadcast, frame, command, current, autocontinue, param1, param2, param3,
@@ -263,8 +282,12 @@ private:
         return true;
     }
 
-    bool send_command_ack(uint16_t command, uint8_t req_result, uint8_t progress,
-                          int32_t result_param2, unsigned char &success, uint8_t &res_result) {
+    bool send_command_ack(uint16_t       command,
+                          uint8_t        req_result,
+                          uint8_t        progress,
+                          int32_t        result_param2,
+                          unsigned char &success,
+                          uint8_t       &res_result) {
         using mavlink::common::MAV_RESULT;
 
         command_ack(command, req_result, progress, result_param2);
@@ -278,7 +301,8 @@ private:
     /* low-level send */
     /* 底层发送 */
 
-    template <typename MsgT> inline void set_target(MsgT &cmd, bool broadcast) {
+    template <typename MsgT>
+    inline void set_target(MsgT &cmd, bool broadcast) {
         using mavlink::minimal::MAV_COMPONENT;
 
         const uint8_t tgt_sys_id  = (broadcast) ? 0 : m_uas->get_tgt_system();
@@ -291,9 +315,16 @@ private:
         cmd.target_component = tgt_comp_id;
     }
 
-    void command_long(bool broadcast, uint16_t command, uint8_t confirmation, float param1,
-                      float param2, float param3, float param4, float param5, float param6,
-                      float param7) {
+    void command_long(bool     broadcast,
+                      uint16_t command,
+                      uint8_t  confirmation,
+                      float    param1,
+                      float    param2,
+                      float    param3,
+                      float    param4,
+                      float    param5,
+                      float    param6,
+                      float    param7) {
         const uint8_t confirmation_fixed = (broadcast) ? 0 : confirmation;
 
         mavlink::common::msg::COMMAND_LONG cmd{};
@@ -312,9 +343,18 @@ private:
         UAS_FCU(m_uas)->send_message_ignore_drop(cmd);
     }
 
-    void command_int(bool broadcast, uint8_t frame, uint16_t command, uint8_t current,
-                     uint8_t autocontinue, float param1, float param2, float param3, float param4,
-                     int32_t x, int32_t y, float z) {
+    void command_int(bool     broadcast,
+                     uint8_t  frame,
+                     uint16_t command,
+                     uint8_t  current,
+                     uint8_t  autocontinue,
+                     float    param1,
+                     float    param2,
+                     float    param3,
+                     float    param4,
+                     int32_t  x,
+                     int32_t  y,
+                     float    z) {
         mavlink::common::msg::COMMAND_INT cmd{};
         set_target(cmd, broadcast);
 

@@ -23,11 +23,21 @@ using namespace mavros;
 using utils::enum_value;
 
 UAS::UAS()
-    : tf2_listener(tf2_buffer, true), type(enum_value(MAV_TYPE::GENERIC)),
-      autopilot(enum_value(MAV_AUTOPILOT::GENERIC)), base_mode(0), target_system(1),
-      target_component(1), connected(false), gps_eph(NAN), gps_epv(NAN), gps_fix_type(0),
-      gps_satellites_visible(0), time_offset(0), tsync_mode(UAS::timesync_mode::NONE),
-      fcu_caps_known(false), fcu_capabilities(0) {
+    : tf2_listener(tf2_buffer, true),
+      type(enum_value(MAV_TYPE::GENERIC)),
+      autopilot(enum_value(MAV_AUTOPILOT::GENERIC)),
+      base_mode(0),
+      target_system(1),
+      target_component(1),
+      connected(false),
+      gps_eph(NAN),
+      gps_epv(NAN),
+      gps_fix_type(0),
+      gps_satellites_visible(0),
+      time_offset(0),
+      tsync_mode(UAS::timesync_mode::NONE),
+      fcu_caps_known(false),
+      fcu_capabilities(0) {
     try {
         // Using smallest dataset with 5' grid,
         // From default location,
@@ -198,8 +208,8 @@ geometry_msgs::Vector3 UAS::get_attitude_angular_velocity_ned() {
 
 /* GPS data */
 
-void UAS::update_gps_fix_epts(sensor_msgs::NavSatFix::Ptr &fix, float eph, float epv, int fix_type,
-                              int satellites_visible) {
+void UAS::update_gps_fix_epts(
+    sensor_msgs::NavSatFix::Ptr &fix, float eph, float epv, int fix_type, int satellites_visible) {
     lock_guard lock(mutex);
 
     gps_fix                = fix;
@@ -254,7 +264,8 @@ geometry_msgs::PoseStamped::Ptr UAS::get_local_position() {
 /* transform */
 
 // Stack static transform into vector
-void UAS::add_static_transform(const std::string &frame_id, const std::string &child_id,
+void UAS::add_static_transform(const std::string                            &frame_id,
+                               const std::string                            &child_id,
                                const Eigen::Affine3d                        &tr,
                                std::vector<geometry_msgs::TransformStamped> &vector) {
     geometry_msgs::TransformStamped static_transform;
@@ -268,7 +279,8 @@ void UAS::add_static_transform(const std::string &frame_id, const std::string &c
 }
 
 // Publishes static transform
-void UAS::publish_static_transform(const std::string &frame_id, const std::string &child_id,
+void UAS::publish_static_transform(const std::string     &frame_id,
+                                   const std::string     &child_id,
                                    const Eigen::Affine3d &tr) {
     geometry_msgs::TransformStamped static_transformStamped;
 

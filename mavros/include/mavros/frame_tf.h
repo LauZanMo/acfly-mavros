@@ -160,7 +160,8 @@ Eigen::Vector3d transform_static_frame(const Eigen::Vector3d &vec,
  * @brief Transform from attitude represented WRT NED frame to attitude
  *		  represented WRT ENU frame
  */
-template <class T> inline T transform_orientation_ned_enu(const T &in) {
+template <class T>
+inline T transform_orientation_ned_enu(const T &in) {
     return detail::transform_orientation(in, StaticTF::NED_TO_ENU);
 }
 
@@ -168,7 +169,8 @@ template <class T> inline T transform_orientation_ned_enu(const T &in) {
  * @brief Transform from attitude represented WRT ENU frame to
  *		  attitude represented WRT NED frame
  */
-template <class T> inline T transform_orientation_enu_ned(const T &in) {
+template <class T>
+inline T transform_orientation_enu_ned(const T &in) {
     return detail::transform_orientation(in, StaticTF::ENU_TO_NED);
 }
 
@@ -176,7 +178,8 @@ template <class T> inline T transform_orientation_enu_ned(const T &in) {
  * @brief Transform from attitude represented WRT aircraft frame to
  *		  attitude represented WRT base_link frame
  */
-template <class T> inline T transform_orientation_aircraft_baselink(const T &in) {
+template <class T>
+inline T transform_orientation_aircraft_baselink(const T &in) {
     return detail::transform_orientation(in, StaticTF::AIRCRAFT_TO_BASELINK);
 }
 
@@ -184,7 +187,8 @@ template <class T> inline T transform_orientation_aircraft_baselink(const T &in)
  * @brief Transform from attitude represented WRT baselink frame to
  *		  attitude represented WRT body frame
  */
-template <class T> inline T transform_orientation_baselink_aircraft(const T &in) {
+template <class T>
+inline T transform_orientation_baselink_aircraft(const T &in) {
     return detail::transform_orientation(in, StaticTF::BASELINK_TO_AIRCRAFT);
 }
 
@@ -193,7 +197,8 @@ template <class T> inline T transform_orientation_baselink_aircraft(const T &in)
  *		  attitude represented WRT base_link frame, treating aircraft frame
  *		  as in an absolute frame of reference (local NED).
  */
-template <class T> inline T transform_orientation_absolute_frame_aircraft_baselink(const T &in) {
+template <class T>
+inline T transform_orientation_absolute_frame_aircraft_baselink(const T &in) {
     return detail::transform_orientation(in, StaticTF::ABSOLUTE_FRAME_AIRCRAFT_TO_BASELINK);
 }
 
@@ -202,14 +207,16 @@ template <class T> inline T transform_orientation_absolute_frame_aircraft_baseli
  *		  attitude represented WRT body frame, treating baselink frame
  *		  as in an absolute frame of reference (local NED).
  */
-template <class T> inline T transform_orientation_absolute_frame_baselink_aircraft(const T &in) {
+template <class T>
+inline T transform_orientation_absolute_frame_baselink_aircraft(const T &in) {
     return detail::transform_orientation(in, StaticTF::ABSOLUTE_FRAME_BASELINK_TO_AIRCRAFT);
 }
 
 /**
  * @brief Transform data expressed in NED to ENU frame.
  */
-template <class T> inline T transform_frame_ned_enu(const T &in) {
+template <class T>
+inline T transform_frame_ned_enu(const T &in) {
     return detail::transform_static_frame(in, StaticTF::NED_TO_ENU);
 }
 
@@ -217,7 +224,8 @@ template <class T> inline T transform_frame_ned_enu(const T &in) {
  * @brief Transform data expressed in ENU to NED frame.
  *
  */
-template <class T> inline T transform_frame_enu_ned(const T &in) {
+template <class T>
+inline T transform_frame_enu_ned(const T &in) {
     return detail::transform_static_frame(in, StaticTF::ENU_TO_NED);
 }
 
@@ -225,7 +233,8 @@ template <class T> inline T transform_frame_enu_ned(const T &in) {
  * @brief Transform data expressed in Aircraft frame to Baselink frame.
  *
  */
-template <class T> inline T transform_frame_aircraft_baselink(const T &in) {
+template <class T>
+inline T transform_frame_aircraft_baselink(const T &in) {
     return detail::transform_static_frame(in, StaticTF::AIRCRAFT_TO_BASELINK);
 }
 
@@ -233,7 +242,8 @@ template <class T> inline T transform_frame_aircraft_baselink(const T &in) {
  * @brief Transform data expressed in Baselink frame to Aircraft frame.
  *
  */
-template <class T> inline T transform_frame_baselink_aircraft(const T &in) {
+template <class T>
+inline T transform_frame_baselink_aircraft(const T &in) {
     return detail::transform_static_frame(in, StaticTF::BASELINK_TO_AIRCRAFT);
 }
 
@@ -244,7 +254,8 @@ template <class T> inline T transform_frame_baselink_aircraft(const T &in) {
  * @param map_origin  geodetic origin [lla]
  * @returns local ENU coordinates [m].
  */
-template <class T> inline T transform_frame_ecef_enu(const T &in, const T &map_origin) {
+template <class T>
+inline T transform_frame_ecef_enu(const T &in, const T &map_origin) {
     return detail::transform_static_frame(in, map_origin, StaticEcefTF::ECEF_TO_ENU);
 }
 
@@ -255,7 +266,8 @@ template <class T> inline T transform_frame_ecef_enu(const T &in, const T &map_o
  * @param map_origin  geodetic origin [lla]
  * @returns local ECEF coordinates [m].
  */
-template <class T> inline T transform_frame_enu_ecef(const T &in, const T &map_origin) {
+template <class T>
+inline T transform_frame_enu_ecef(const T &in, const T &map_origin) {
     return detail::transform_static_frame(in, map_origin, StaticEcefTF::ENU_TO_ECEF);
 }
 
@@ -263,7 +275,8 @@ template <class T> inline T transform_frame_enu_ecef(const T &in, const T &map_o
  * @brief Transform data expressed in aircraft frame to NED frame.
  * Assumes quaternion represents rotation from aircraft frame to NED frame.
  */
-template <class T> inline T transform_frame_aircraft_ned(const T &in, const Eigen::Quaterniond &q) {
+template <class T>
+inline T transform_frame_aircraft_ned(const T &in, const Eigen::Quaterniond &q) {
     return detail::transform_frame(in, q);
 }
 
@@ -271,7 +284,8 @@ template <class T> inline T transform_frame_aircraft_ned(const T &in, const Eige
  * @brief Transform data expressed in NED to aircraft frame.
  * Assumes quaternion represents rotation from NED to aircraft frame.
  */
-template <class T> inline T transform_frame_ned_aircraft(const T &in, const Eigen::Quaterniond &q) {
+template <class T>
+inline T transform_frame_ned_aircraft(const T &in, const Eigen::Quaterniond &q) {
     return detail::transform_frame(in, q);
 }
 
@@ -279,7 +293,8 @@ template <class T> inline T transform_frame_ned_aircraft(const T &in, const Eige
  * @brief Transform data expressed in aircraft frame to ENU frame.
  * Assumes quaternion represents rotation from aircraft frame to ENU frame.
  */
-template <class T> inline T transform_frame_aircraft_enu(const T &in, const Eigen::Quaterniond &q) {
+template <class T>
+inline T transform_frame_aircraft_enu(const T &in, const Eigen::Quaterniond &q) {
     return detail::transform_frame(in, q);
 }
 
@@ -287,7 +302,8 @@ template <class T> inline T transform_frame_aircraft_enu(const T &in, const Eige
  * @brief Transform data expressed in ENU to aircraft frame.
  * Assumes quaternion represents rotation from ENU to aircraft frame.
  */
-template <class T> inline T transform_frame_enu_aircraft(const T &in, const Eigen::Quaterniond &q) {
+template <class T>
+inline T transform_frame_enu_aircraft(const T &in, const Eigen::Quaterniond &q) {
     return detail::transform_frame(in, q);
 }
 
@@ -295,7 +311,8 @@ template <class T> inline T transform_frame_enu_aircraft(const T &in, const Eige
  * @brief Transform data expressed in ENU to base_link frame.
  * Assumes quaternion represents rotation from ENU to base_link frame.
  */
-template <class T> inline T transform_frame_enu_baselink(const T &in, const Eigen::Quaterniond &q) {
+template <class T>
+inline T transform_frame_enu_baselink(const T &in, const Eigen::Quaterniond &q) {
     return detail::transform_frame(in, q);
 }
 
@@ -303,7 +320,8 @@ template <class T> inline T transform_frame_enu_baselink(const T &in, const Eige
  * @brief Transform data expressed in baselink to ENU frame.
  * Assumes quaternion represents rotation from basel_link to ENU frame.
  */
-template <class T> inline T transform_frame_baselink_enu(const T &in, const Eigen::Quaterniond &q) {
+template <class T>
+inline T transform_frame_baselink_enu(const T &in, const Eigen::Quaterniond &q) {
     return detail::transform_frame(in, q);
 }
 
@@ -319,8 +337,8 @@ Eigen::Quaterniond quaternion_from_rpy(const Eigen::Vector3d &rpy);
  *
  * @return quaternion, same as @a tf::quaternionFromRPY() but in Eigen format.
  */
-inline Eigen::Quaterniond quaternion_from_rpy(const double roll, const double pitch,
-                                              const double yaw) {
+inline Eigen::Quaterniond
+quaternion_from_rpy(const double roll, const double pitch, const double yaw) {
     return quaternion_from_rpy(Eigen::Vector3d(roll, pitch, yaw));
 }
 
@@ -334,8 +352,8 @@ Eigen::Vector3d quaternion_to_rpy(const Eigen::Quaterniond &q);
 /**
  * @brief Convert quaternion to euler angles
  */
-inline void quaternion_to_rpy(const Eigen::Quaterniond &q, double &roll, double &pitch,
-                              double &yaw) {
+inline void
+quaternion_to_rpy(const Eigen::Quaterniond &q, double &roll, double &pitch, double &yaw) {
     const auto rpy = quaternion_to_rpy(q);
     roll           = rpy.x();
     pitch          = rpy.y();

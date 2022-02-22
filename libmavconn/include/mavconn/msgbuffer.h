@@ -45,8 +45,10 @@ struct MsgBuffer {
     /**
      * @brief Buffer constructor for mavlink::Message derived object.
      */
-    MsgBuffer(const mavlink::Message &obj, mavlink::mavlink_status_t *status, uint8_t sysid,
-              uint8_t compid)
+    MsgBuffer(const mavlink::Message    &obj,
+              mavlink::mavlink_status_t *status,
+              uint8_t                    sysid,
+              uint8_t                    compid)
         : pos(0) {
         mavlink::mavlink_message_t msg;
         mavlink::MsgMap            map(msg);
@@ -76,8 +78,12 @@ struct MsgBuffer {
         len = 0;
     }
 
-    uint8_t *dpos() { return data + pos; }
+    uint8_t *dpos() {
+        return data + pos;
+    }
 
-    ssize_t nbytes() { return len - pos; }
+    ssize_t nbytes() {
+        return len - pos;
+    }
 };
 } // namespace mavconn

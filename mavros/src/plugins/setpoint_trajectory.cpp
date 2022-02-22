@@ -65,7 +65,9 @@ public:
         }
     }
 
-    Subscriptions get_subscriptions() override { return {/* Rx disabled */}; }
+    Subscriptions get_subscriptions() override {
+        return {/* Rx disabled */};
+    }
 
 private:
     friend class SetPositionTargetLocalNEDMixin;
@@ -209,7 +211,7 @@ private:
         return true;
     }
 
-    bool set_mav_frame_cb(mavros_msgs::SetMavFrame::Request & req,
+    bool set_mav_frame_cb(mavros_msgs::SetMavFrame::Request  &req,
                           mavros_msgs::SetMavFrame::Response &res) {
         mav_frame                       = static_cast<MAV_FRAME>(req.mav_frame);
         const std::string mav_frame_str = utils::to_string(mav_frame);

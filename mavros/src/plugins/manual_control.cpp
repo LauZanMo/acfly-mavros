@@ -48,7 +48,7 @@ private:
 
     /* -*- rx handlers -*- */
 
-    void handle_manual_control(const mavlink::mavlink_message_t *    msg,
+    void handle_manual_control(const mavlink::mavlink_message_t     *msg,
                                mavlink::common::msg::MANUAL_CONTROL &manual_control) {
         auto manual_control_msg = boost::make_shared<mavros_msgs::ManualControl>();
 

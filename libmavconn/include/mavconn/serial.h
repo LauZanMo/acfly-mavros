@@ -37,20 +37,24 @@ public:
      * @param[in] device    TTY device path
      * @param[in] baudrate  serial baudrate
      */
-    MAVConnSerial(uint8_t system_id = 1, uint8_t component_id = MAV_COMP_ID_UDP_BRIDGE,
-                  std::string device = DEFAULT_DEVICE, unsigned baudrate = DEFAULT_BAUDRATE,
-                  bool hwflow = false);
+    MAVConnSerial(uint8_t     system_id    = 1,
+                  uint8_t     component_id = MAV_COMP_ID_UDP_BRIDGE,
+                  std::string device       = DEFAULT_DEVICE,
+                  unsigned    baudrate     = DEFAULT_BAUDRATE,
+                  bool        hwflow       = false);
     virtual ~MAVConnSerial();
 
     void connect(const ReceivedCb &cb_handle_message,
-                 const ClosedCb &  cb_handle_closed_port = ClosedCb()) override;
+                 const ClosedCb   &cb_handle_closed_port = ClosedCb()) override;
     void close() override;
 
     void send_message(const mavlink::mavlink_message_t *message) override;
     void send_message(const mavlink::Message &message, const uint8_t source_compid) override;
     void send_bytes(const uint8_t *bytes, size_t length) override;
 
-    inline bool is_open() override { return serial_dev.is_open(); }
+    inline bool is_open() override {
+        return serial_dev.is_open();
+    }
 
 private:
     boost::asio::io_service  io_service;

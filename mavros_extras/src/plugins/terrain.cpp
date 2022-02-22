@@ -44,7 +44,7 @@ private:
 
     ros::Publisher terrain_report_pub;
 
-    void handle_terrain_report(const mavlink::mavlink_message_t *    msg,
+    void handle_terrain_report(const mavlink::mavlink_message_t     *msg,
                                mavlink::common::msg::TERRAIN_REPORT &report) {
         auto terrain_report_msg = boost::make_shared<mavros_msgs::TerrainReport>();
 

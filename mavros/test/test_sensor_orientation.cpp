@@ -51,15 +51,21 @@ TEST(UTILS, sensor_orientation_matching__custom) {
     EXPECT_QUATERNION(expected, out);
 }
 
-TEST(UTILS, to_string__none) { EXPECT_EQ("NONE", utils::to_string(SO::ROTATION_NONE)); }
+TEST(UTILS, to_string__none) {
+    EXPECT_EQ("NONE", utils::to_string(SO::ROTATION_NONE));
+}
 
-TEST(UTILS, to_string__roll_180) { EXPECT_EQ("ROLL_180", utils::to_string(SO::ROTATION_ROLL_180)); }
+TEST(UTILS, to_string__roll_180) {
+    EXPECT_EQ("ROLL_180", utils::to_string(SO::ROTATION_ROLL_180));
+}
 
 TEST(UTILS, to_string__roll_180_yaw_90) {
     EXPECT_EQ("ROLL_180_YAW_90", utils::to_string(SO::ROTATION_ROLL_180_YAW_90));
 }
 
-TEST(UTILS, to_string__custom) { EXPECT_EQ("CUSTOM", utils::to_string(SO::ROTATION_CUSTOM)); }
+TEST(UTILS, to_string__custom) {
+    EXPECT_EQ("CUSTOM", utils::to_string(SO::ROTATION_CUSTOM));
+}
 
 TEST(UTILS, sensor_orientation_from_str__none) {
     EXPECT_EQ(enum_value(SO::ROTATION_NONE), utils::sensor_orientation_from_str("NONE"));

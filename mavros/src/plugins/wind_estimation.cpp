@@ -54,7 +54,7 @@ private:
     /**
      * Handle APM specific wind estimation message
      */
-    void handle_apm_wind(const mavlink::mavlink_message_t * msg,
+    void handle_apm_wind(const mavlink::mavlink_message_t  *msg,
                          mavlink::ardupilotmega::msg::WIND &wind) {
         const double speed = wind.speed;
         const double course =
@@ -78,7 +78,7 @@ private:
      * Handle PX4 specific wind estimation message
      */
     void handle_px4_wind(const mavlink::mavlink_message_t *msg,
-                         mavlink::common::msg::WIND_COV &  wind) {
+                         mavlink::common::msg::WIND_COV   &wind) {
         auto twist_cov          = boost::make_shared<geometry_msgs::TwistWithCovarianceStamped>();
         twist_cov->header.stamp = m_uas->synchronise_stamp(wind.time_usec);
 

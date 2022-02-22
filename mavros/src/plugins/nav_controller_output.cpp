@@ -46,7 +46,7 @@ private:
     ros::Publisher nco_pub;
 
     void handle_nav_controller_output(
-        const mavlink::mavlink_message_t *           msg,
+        const mavlink::mavlink_message_t            *msg,
         mavlink::common::msg::NAV_CONTROLLER_OUTPUT &nav_controller_output) {
         auto nco_msg            = boost::make_shared<mavros_msgs::NavControllerOutput>();
         nco_msg->header.stamp   = ros::Time::now();

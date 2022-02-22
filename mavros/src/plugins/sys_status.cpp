@@ -47,9 +47,15 @@ using utils::enum_value;
 class HeartbeatStatus : public diagnostic_updater::DiagnosticTask {
 public:
     HeartbeatStatus(const std::string &name, size_t win_size)
-        : diagnostic_updater::DiagnosticTask(name), times_(win_size), seq_nums_(win_size),
-          window_size_(win_size), min_freq_(0.2), max_freq_(100), tolerance_(0.1),
-          autopilot_(MAV_AUTOPILOT::GENERIC), type_(MAV_TYPE::GENERIC),
+        : diagnostic_updater::DiagnosticTask(name),
+          times_(win_size),
+          seq_nums_(win_size),
+          window_size_(win_size),
+          min_freq_(0.2),
+          max_freq_(100),
+          tolerance_(0.1),
+          autopilot_(MAV_AUTOPILOT::GENERIC),
+          type_(MAV_TYPE::GENERIC),
           system_status_(MAV_STATE::UNINIT) {
         clear();
     }
@@ -358,7 +364,10 @@ private:
 class BatteryStatusDiag : public diagnostic_updater::DiagnosticTask {
 public:
     BatteryStatusDiag(const std::string &name)
-        : diagnostic_updater::DiagnosticTask(name), voltage_(-1.0), current_(0.0), remaining_(0.0),
+        : diagnostic_updater::DiagnosticTask(name),
+          voltage_(-1.0),
+          current_(0.0),
+          remaining_(0.0),
           min_voltage_(6) {}
 
     void set_min_voltage(float volt) {
@@ -404,9 +413,16 @@ private:
 class SystemStatusPlugin : public plugin::PluginBase {
 public:
     SystemStatusPlugin()
-        : PluginBase(), nh("~"), hb_diag("Heartbeat", 10), sys_diag("System"), batt_diag("Battery"),
-          conn_heartbeat_mav_type(MAV_TYPE::ONBOARD_CONTROLLER), version_retries(RETRIES_COUNT),
-          disable_diag(false), has_battery_status(false), battery_voltage(0.0) {}
+        : PluginBase(),
+          nh("~"),
+          hb_diag("Heartbeat", 10),
+          sys_diag("System"),
+          batt_diag("Battery"),
+          conn_heartbeat_mav_type(MAV_TYPE::ONBOARD_CONTROLLER),
+          version_retries(RETRIES_COUNT),
+          disable_diag(false),
+          has_battery_status(false),
+          battery_voltage(0.0) {}
 
     // ROS插件动态加载后会执行该函数，相当于构造函数
     void initialize(UAS &uas_) override {
@@ -608,7 +624,8 @@ private:
     }
 
     void process_autopilot_version_normal(mavlink::common::msg::AUTOPILOT_VERSION &apv,
-                                          uint8_t sysid, uint8_t compid) {
+                                          uint8_t                                  sysid,
+                                          uint8_t                                  compid) {
         char prefix[16];
         std::snprintf(prefix, sizeof(prefix), "VER: %d.%d", sysid, compid);
 

@@ -72,7 +72,7 @@ private:
     ros::Publisher  safetyarea_pub;
 
     /* -*- rx handlers -*- */
-    void handle_safety_allowed_area(const mavlink::mavlink_message_t *         msg,
+    void handle_safety_allowed_area(const mavlink::mavlink_message_t          *msg,
                                     mavlink::common::msg::SAFETY_ALLOWED_AREA &saa) {
         auto saa_msg = boost::make_shared<geometry_msgs::PolygonStamped>();
 

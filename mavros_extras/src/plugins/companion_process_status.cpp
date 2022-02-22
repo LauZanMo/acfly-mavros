@@ -45,7 +45,9 @@ public:
             status_nh.subscribe("status", 10, &CompanionProcessStatusPlugin::status_cb, this);
     }
 
-    Subscriptions get_subscriptions() override { return {/* Rx disabled */}; }
+    Subscriptions get_subscriptions() override {
+        return {/* Rx disabled */};
+    }
 
 private:
     ros::NodeHandle status_nh;

@@ -35,10 +35,14 @@ using mavlink::mavlink_message_t;
 #define PFX "mavconn: serial"
 #define PFXd PFX "%zu: "
 
-MAVConnSerial::MAVConnSerial(uint8_t system_id, uint8_t component_id, std::string device,
-                             unsigned baudrate, bool hwflow)
-    : MAVConnInterface(system_id, component_id), io_service(), serial_dev(io_service),
-      tx_in_progress(false), tx_q{}, rx_buf{} {
+MAVConnSerial::MAVConnSerial(
+    uint8_t system_id, uint8_t component_id, std::string device, unsigned baudrate, bool hwflow)
+    : MAVConnInterface(system_id, component_id),
+      io_service(),
+      serial_dev(io_service),
+      tx_in_progress(false),
+      tx_q{},
+      rx_buf{} {
     using SPB = boost::asio::serial_port_base;
 
     CONSOLE_BRIDGE_logInform(PFXd "device: %s @ %d bps", conn_id, device.c_str(), baudrate);
@@ -102,10 +106,12 @@ MAVConnSerial::MAVConnSerial(uint8_t system_id, uint8_t component_id, std::strin
     }
 }
 
-MAVConnSerial::~MAVConnSerial() { close(); }
+MAVConnSerial::~MAVConnSerial() {
+    close();
+}
 
 void MAVConnSerial::connect(const ReceivedCb &cb_handle_message,
-                            const ClosedCb &  cb_handle_closed_port) {
+                            const ClosedCb   &cb_handle_closed_port) {
     message_received_cb = cb_handle_message;
     port_closed_cb      = cb_handle_closed_port;
 

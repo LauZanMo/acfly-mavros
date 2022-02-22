@@ -50,7 +50,7 @@ private:
     ros::Publisher altitude_pub;
 
     void handle_altitude(const mavlink::mavlink_message_t *msg,
-                         mavlink::common::msg::ALTITUDE &  altitude) {
+                         mavlink::common::msg::ALTITUDE   &altitude) {
         auto ros_msg    = boost::make_shared<mavros_msgs::Altitude>();
         ros_msg->header = m_uas->synchronized_header(frame_id, altitude.time_usec);
 

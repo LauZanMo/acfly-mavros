@@ -49,8 +49,12 @@ class SetpointAttitudePlugin : public plugin::PluginBase,
                                private plugin::TF2ListenerMixin<SetpointAttitudePlugin> {
 public:
     SetpointAttitudePlugin()
-        : PluginBase(), sp_nh("~setpoint_attitude"), tf_listen(false), tf_rate(50.0),
-          use_quaternion(false), reverse_thrust(false) {}
+        : PluginBase(),
+          sp_nh("~setpoint_attitude"),
+          tf_listen(false),
+          tf_rate(50.0),
+          use_quaternion(false),
+          reverse_thrust(false) {}
 
     void initialize(UAS &uas_) override {
         PluginBase::initialize(uas_);
@@ -96,7 +100,9 @@ public:
         }
     }
 
-    Subscriptions get_subscriptions() override { return {/* Rx disabled */}; }
+    Subscriptions get_subscriptions() override {
+        return {/* Rx disabled */};
+    }
 
 private:
     friend class SetAttitudeTargetMixin;
@@ -151,8 +157,9 @@ private:
     /**
      * @brief Send attitude setpoint and thrust to FCU attitude controller
      */
-    void send_attitude_quaternion(const ros::Time &stamp, const Eigen::Affine3d &tr,
-                                  const float thrust) {
+    void send_attitude_quaternion(const ros::Time       &stamp,
+                                  const Eigen::Affine3d &tr,
+                                  const float            thrust) {
         /**
          * @note RPY, also bits numbering started from 1 in docs
          */
@@ -168,8 +175,9 @@ private:
     /**
      * @brief Send angular velocity setpoint and thrust to FCU attitude controller
      */
-    void send_attitude_ang_velocity(const ros::Time &stamp, const Eigen::Vector3d &ang_vel,
-                                    const float thrust) {
+    void send_attitude_ang_velocity(const ros::Time       &stamp,
+                                    const Eigen::Vector3d &ang_vel,
+                                    const float            thrust) {
         /**
          * @note Q, also bits noumbering started from 1 in docs
          */
@@ -184,7 +192,7 @@ private:
     /* -*- callbacks -*- */
 
     void transform_cb(const geometry_msgs::TransformStamped &transform,
-                      const mavros_msgs::Thrust::ConstPtr &  thrust_msg) {
+                      const mavros_msgs::Thrust::ConstPtr   &thrust_msg) {
         Eigen::Affine3d tr;
         tf::transformMsgToEigen(transform.transform, tr);
 
@@ -192,7 +200,7 @@ private:
     }
 
     void attitude_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &pose_msg,
-                          const mavros_msgs::Thrust::ConstPtr &       thrust_msg) {
+                          const mavros_msgs::Thrust::ConstPtr        &thrust_msg) {
         Eigen::Affine3d tr;
         tf::poseMsgToEigen(pose_msg->pose, tr);
 
@@ -201,7 +209,7 @@ private:
     }
 
     void attitude_twist_cb(const geometry_msgs::TwistStamped::ConstPtr &req,
-                           const mavros_msgs::Thrust::ConstPtr &        thrust_msg) {
+                           const mavros_msgs::Thrust::ConstPtr         &thrust_msg) {
         Eigen::Vector3d ang_vel;
         tf::vectorMsgToEigen(req->twist.angular, ang_vel);
 

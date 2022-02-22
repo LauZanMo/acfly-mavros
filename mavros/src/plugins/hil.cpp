@@ -80,7 +80,7 @@ private:
 
     /* -*- rx handlers -*- */
 
-    void handle_hil_controls(const mavlink::mavlink_message_t *  msg,
+    void handle_hil_controls(const mavlink::mavlink_message_t   *msg,
                              mavlink::common::msg::HIL_CONTROLS &hil_controls) {
         auto hil_controls_msg = boost::make_shared<mavros_msgs::HilControls>();
 
@@ -107,7 +107,7 @@ private:
     }
 
     void handle_hil_actuator_controls(
-        const mavlink::mavlink_message_t *           msg,
+        const mavlink::mavlink_message_t            *msg,
         mavlink::common::msg::HIL_ACTUATOR_CONTROLS &hil_actuator_controls) {
         auto hil_actuator_controls_msg = boost::make_shared<mavros_msgs::HilActuatorControls>();
 
@@ -132,7 +132,7 @@ private:
 
         state_quat.time_usec = req->header.stamp.toNSec() / 1000;
         auto q               = ftf::transform_orientation_baselink_aircraft(
-            ftf::transform_orientation_enu_ned(ftf::to_eigen(req->orientation)));
+                          ftf::transform_orientation_enu_ned(ftf::to_eigen(req->orientation)));
         ftf::quaternion_to_mavlink(q, state_quat.attitude_quaternion);
         state_quat.lat = req->geo.latitude * 1E7;
         state_quat.lon = req->geo.longitude * 1E7;

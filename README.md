@@ -3,8 +3,8 @@
 > Author & Maintainer: LauZanMo
 >
 > 基于acfly-MAVLink的ROS扩展通信节点
-
-[TOC]
+>
+> 开源不易，请动动小手，点个小小的star和fork吧！
 
 ## 依赖
 
@@ -33,7 +33,7 @@ catkin init
 # 下载mavlink和acfly-mavros
 cd src
 git clone -b release/${ROS_DISTRO}/mavlink/2022.1.5-1 https://gitee.com/LauZanMo/mavlink
-# 将acfly-mavros工程复制到src下
+git clone -b acfly-develop https://gitee.com/LauZanMo/acfly-mavros
 
 # 安装依赖，如果rosdep update没执行则需要执行成功才能继续
 cd .. && rosdep install --from-paths src --ignore-src -y
@@ -75,3 +75,14 @@ roslaunch mavros acfly.launch
 - acfly-mavros/test_mavros/launch/acfly/multi_uav_acfly_sitl.launch
 
 需要配置好参数才能执行。
+
+## 贡献
+
+你可以通过github的pull request功能向acfly-mavros分享好的想法与代码，在此之前，请在文件夹的根路径下执行：
+
+```bash
+find . -regex '.*\.\(cpp\|cu\|cc\|c\|hpp\|h\)' -exec clang-format-13 -style=file -i {} \;
+```
+
+以格式化你的代码，方便统一风格。(建议安装clang-format-13，该版本修复了指针对齐的bug)
+

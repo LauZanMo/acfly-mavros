@@ -58,7 +58,9 @@ public:
         }
     }
 
-    Subscriptions get_subscriptions() override { return {/* Rx disabled */}; }
+    Subscriptions get_subscriptions() override {
+        return {/* Rx disabled */};
+    }
 
 private:
     friend class TF2ListenerMixin;
@@ -76,7 +78,8 @@ private:
     /**
      * @brief Send vision estimate transform to FCU position controller
      */
-    void send_vision_estimate(const ros::Time &stamp, const Eigen::Affine3d &tr,
+    void send_vision_estimate(const ros::Time                                           &stamp,
+                              const Eigen::Affine3d                                     &tr,
                               const geometry_msgs::PoseWithCovariance::_covariance_type &cov) {
         /**
          * @warning Issue #60.
@@ -91,7 +94,7 @@ private:
 
         auto position = ftf::transform_frame_enu_ned(Eigen::Vector3d(tr.translation()));
         auto rpy      = ftf::quaternion_to_rpy(ftf::transform_orientation_enu_ned(
-            ftf::transform_orientation_baselink_aircraft(Eigen::Quaterniond(tr.rotation()))));
+                 ftf::transform_orientation_baselink_aircraft(Eigen::Quaterniond(tr.rotation()))));
 
         auto                           cov_ned = ftf::transform_frame_enu_ned(cov);
         ftf::EigenMapConstCovariance6d cov_map(cov_ned.data());

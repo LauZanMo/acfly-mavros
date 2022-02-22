@@ -113,7 +113,7 @@ private:
 
     /* -*- ROS callbacks -*- */
 
-    bool pull_cb(mavros_msgs::WaypointPull::Request & req,
+    bool pull_cb(mavros_msgs::WaypointPull::Request  &req,
                  mavros_msgs::WaypointPull::Response &res) {
         unique_lock lock(mutex);
 
@@ -135,7 +135,7 @@ private:
         return true;
     }
 
-    bool push_cb(mavros_msgs::WaypointPush::Request & req,
+    bool push_cb(mavros_msgs::WaypointPush::Request  &req,
                  mavros_msgs::WaypointPush::Response &res) {
         unique_lock lock(mutex);
 
@@ -207,7 +207,7 @@ private:
         return true;
     }
 
-    bool clear_cb(mavros_msgs::WaypointClear::Request & req,
+    bool clear_cb(mavros_msgs::WaypointClear::Request  &req,
                   mavros_msgs::WaypointClear::Response &res) {
         unique_lock lock(mutex);
 

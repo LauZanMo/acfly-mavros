@@ -59,13 +59,13 @@ private:
 
     /* -*- message handlers -*- */
 
-    void handle_radio_status(const mavlink::mavlink_message_t *  msg,
+    void handle_radio_status(const mavlink::mavlink_message_t   *msg,
                              mavlink::common::msg::RADIO_STATUS &rst) {
         has_radio_status = true;
         handle_message(msg, rst);
     }
 
-    void handle_radio(const mavlink::mavlink_message_t *  msg,
+    void handle_radio(const mavlink::mavlink_message_t   *msg,
                       mavlink::ardupilotmega::msg::RADIO &rst) {
         if (has_radio_status)
             return;

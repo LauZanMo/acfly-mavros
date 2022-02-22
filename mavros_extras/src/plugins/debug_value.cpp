@@ -176,7 +176,7 @@ private:
      * @param msg	Received Mavlink msg
      * @param value	NAMED_VALUE_FLOAT msg
      */
-    void handle_named_value_float(const mavlink::mavlink_message_t *       msg,
+    void handle_named_value_float(const mavlink::mavlink_message_t        *msg,
                                   mavlink::common::msg::NAMED_VALUE_FLOAT &value) {
         // [[[cog:
         // val="value"
@@ -201,7 +201,7 @@ private:
      * @param msg	Received Mavlink msg
      * @param value	NAMED_VALUE_INT msg
      */
-    void handle_named_value_int(const mavlink::mavlink_message_t *     msg,
+    void handle_named_value_int(const mavlink::mavlink_message_t      *msg,
                                 mavlink::common::msg::NAMED_VALUE_INT &value) {
         // [[[cog:
         // common_filler("TYPE_NAMED_VALUE_INT", "time_boot_ms", -1, "name")

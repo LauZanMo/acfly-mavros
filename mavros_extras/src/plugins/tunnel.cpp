@@ -47,7 +47,8 @@ private:
         }
     }
 
-    template <typename From, typename To> static To copy_tunnel(const From &from) noexcept(false) {
+    template <typename From, typename To>
+    static To copy_tunnel(const From &from) noexcept(false) {
         static constexpr auto max_payload_length = sizeof(mavlink::common::msg::TUNNEL::payload) /
                                                    sizeof(mavlink::common::msg::TUNNEL::payload[0]);
 

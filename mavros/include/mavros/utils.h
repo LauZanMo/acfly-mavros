@@ -48,7 +48,8 @@ enum class timesync_mode {
 /**
  * Helper to get enum value from strongly typed enum (enum class).
  */
-template <typename _T> constexpr typename std::underlying_type<_T>::type enum_value(_T e) {
+template <typename _T>
+constexpr typename std::underlying_type<_T>::type enum_value(_T e) {
     return static_cast<typename std::underlying_type<_T>::type>(e);
 }
 
@@ -76,7 +77,8 @@ std::string to_string(mavlink::common::LANDING_TARGET_TYPE e);
 /**
  * Helper to call to_string() for enum _T
  */
-template <typename _T> std::string to_string_enum(int e) {
+template <typename _T>
+std::string to_string_enum(int e) {
     return to_string(static_cast<_T>(e));
 }
 

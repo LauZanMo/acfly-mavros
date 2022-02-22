@@ -26,7 +26,10 @@ namespace extra_plugins {
 class ESCStatusPlugin : public plugin::PluginBase {
 public:
     ESCStatusPlugin()
-        : PluginBase(), nh("~"), _max_esc_count(0), _max_esc_info_index(0),
+        : PluginBase(),
+          nh("~"),
+          _max_esc_count(0),
+          _max_esc_info_index(0),
           _max_esc_status_index(0) {}
 
     void initialize(UAS &uas_) override {
@@ -61,7 +64,7 @@ private:
     const uint8_t          batch_size = 4;
 
     void handle_esc_info(const mavlink::mavlink_message_t *msg,
-                         mavlink::common::msg::ESC_INFO &  esc_info) {
+                         mavlink::common::msg::ESC_INFO   &esc_info) {
         lock_guard lock(mutex);
 
         _esc_info.header.stamp = m_uas->synchronise_stamp(esc_info.time_usec);

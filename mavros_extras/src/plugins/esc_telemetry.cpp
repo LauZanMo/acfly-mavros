@@ -81,19 +81,19 @@ private:
     }
 
     void
-    handle_esc_telemetry_1_to_4(const mavlink::mavlink_message_t *                 msg,
+    handle_esc_telemetry_1_to_4(const mavlink::mavlink_message_t                  *msg,
                                 mavlink::ardupilotmega::msg::ESC_TELEMETRY_1_TO_4 &esc_telemetry) {
         handle_esc_telemetry(msg, esc_telemetry, 0);
     }
 
     void
-    handle_esc_telemetry_5_to_8(const mavlink::mavlink_message_t *                 msg,
+    handle_esc_telemetry_5_to_8(const mavlink::mavlink_message_t                  *msg,
                                 mavlink::ardupilotmega::msg::ESC_TELEMETRY_5_TO_8 &esc_telemetry) {
         handle_esc_telemetry(msg, esc_telemetry, 4);
     }
 
     void handle_esc_telemetry_9_to_12(
-        const mavlink::mavlink_message_t *                  msg,
+        const mavlink::mavlink_message_t                   *msg,
         mavlink::ardupilotmega::msg::ESC_TELEMETRY_9_TO_12 &esc_telemetry) {
         handle_esc_telemetry(msg, esc_telemetry, 8);
     }

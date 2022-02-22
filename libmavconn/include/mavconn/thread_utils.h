@@ -31,7 +31,8 @@ namespace utils {
  * @brief Make printf-formatted std::string
  *
  */
-template <typename... Args> std::string format(const std::string &fmt, Args... args) {
+template <typename... Args>
+std::string format(const std::string &fmt, Args... args) {
     // C++11 specify that string store elements continously
     std::string ret;
 
@@ -50,7 +51,8 @@ template <typename... Args> std::string format(const std::string &fmt, Args... a
  * @note Only for Linux target
  * @todo add for other posix system
  */
-template <typename... Args> bool set_this_thread_name(const std::string &name, Args &&... args) {
+template <typename... Args>
+bool set_this_thread_name(const std::string &name, Args &&...args) {
     auto new_name = format(name, std::forward<Args>(args)...);
 
 #ifdef __APPLE__
@@ -64,12 +66,15 @@ template <typename... Args> bool set_this_thread_name(const std::string &name, A
 /**
  * @brief Convert to string objects with operator <<
  */
-template <typename T> inline const std::string to_string_ss(T &obj) {
+template <typename T>
+inline const std::string to_string_ss(T &obj) {
     std::ostringstream ss;
     ss << obj;
     return ss.str();
 }
 
-constexpr size_t operator"" _KiB(unsigned long long sz) { return sz * 1024; }
+constexpr size_t operator"" _KiB(unsigned long long sz) {
+    return sz * 1024;
+}
 } // namespace utils
 } // namespace mavconn

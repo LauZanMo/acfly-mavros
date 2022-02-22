@@ -32,7 +32,10 @@ namespace extra_plugins {
 class PX4FlowPlugin : public plugin::PluginBase {
 public:
     PX4FlowPlugin()
-        : PluginBase(), flow_nh("~px4flow"), ranger_fov(0.0), ranger_min_range(0.3),
+        : PluginBase(),
+          flow_nh("~px4flow"),
+          ranger_fov(0.0),
+          ranger_min_range(0.3),
           ranger_max_range(5.0) {}
 
     void initialize(UAS &uas_) override {
@@ -76,7 +79,7 @@ private:
     ros::Publisher  temp_pub;
     ros::Subscriber flow_rad_sub;
 
-    void handle_optical_flow_rad(const mavlink::mavlink_message_t *      msg,
+    void handle_optical_flow_rad(const mavlink::mavlink_message_t       *msg,
                                  mavlink::common::msg::OPTICAL_FLOW_RAD &flow_rad) {
         auto header = m_uas->synchronized_header(frame_id, flow_rad.time_usec);
 

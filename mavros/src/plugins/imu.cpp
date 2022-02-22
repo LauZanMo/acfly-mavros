@@ -51,8 +51,13 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     IMUPlugin()
-        : PluginBase(), imu_nh("~imu"), has_hr_imu(false), has_raw_imu(false),
-          has_scaled_imu(false), has_att_quat(false), received_linear_accel(false),
+        : PluginBase(),
+          imu_nh("~imu"),
+          has_hr_imu(false),
+          has_raw_imu(false),
+          has_scaled_imu(false),
+          has_att_quat(false),
+          received_linear_accel(false),
           linear_accel_vec_flu(Eigen::Vector3d::Zero()),
           linear_accel_vec_frd(Eigen::Vector3d::Zero()) {}
 
@@ -164,9 +169,11 @@ private:
      * @param gyro_flu         FLU坐标系下的角速度
      * @param gyro_frd         FRD坐标系下的角速度
      */
-    void publish_imu_data(uint32_t time_boot_ms, Eigen::Quaterniond &orientation_enu,
-                          Eigen::Quaterniond &orientation_ned, Eigen::Vector3d &gyro_flu,
-                          Eigen::Vector3d &gyro_frd) {
+    void publish_imu_data(uint32_t            time_boot_ms,
+                          Eigen::Quaterniond &orientation_enu,
+                          Eigen::Quaterniond &orientation_ned,
+                          Eigen::Vector3d    &gyro_flu,
+                          Eigen::Vector3d    &gyro_frd) {
         auto imu_ned_msg = boost::make_shared<sensor_msgs::Imu>();
         auto imu_enu_msg = boost::make_shared<sensor_msgs::Imu>();
 
@@ -239,8 +246,10 @@ private:
      * @param accel_flu   FLU坐标系下的线加速度
      * @param accel_frd   FRD坐标系下的线加速度
      */
-    void publish_imu_data_raw(std_msgs::Header &header, Eigen::Vector3d &gyro_flu,
-                              Eigen::Vector3d &accel_flu, Eigen::Vector3d &accel_frd) {
+    void publish_imu_data_raw(std_msgs::Header &header,
+                              Eigen::Vector3d  &gyro_flu,
+                              Eigen::Vector3d  &accel_flu,
+                              Eigen::Vector3d  &accel_frd) {
         auto imu_msg = boost::make_shared<sensor_msgs::Imu>();
 
         // Fill message header

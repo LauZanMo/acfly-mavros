@@ -103,15 +103,25 @@ public:
     //! payload.size() - header bytes
     static const uint8_t DATA_MAXSZ = 251 - sizeof(PayloadHeader);
 
-    uint8_t *raw_payload() { return payload.data(); }
+    uint8_t *raw_payload() {
+        return payload.data();
+    }
 
-    inline PayloadHeader *header() { return reinterpret_cast<PayloadHeader *>(payload.data()); }
+    inline PayloadHeader *header() {
+        return reinterpret_cast<PayloadHeader *>(payload.data());
+    }
 
-    uint8_t *data() { return header()->data; }
+    uint8_t *data() {
+        return header()->data;
+    }
 
-    char *data_c() { return reinterpret_cast<char *>(header()->data); }
+    char *data_c() {
+        return reinterpret_cast<char *>(header()->data);
+    }
 
-    uint32_t *data_u32() { return reinterpret_cast<uint32_t *>(header()->data); }
+    uint32_t *data_u32() {
+        return reinterpret_cast<uint32_t *>(header()->data);
+    }
 
     /**
      * @brief Copy string to payload
@@ -128,7 +138,9 @@ public:
         header()->size = sz;
     }
 
-    uint8_t get_target_system_id() { return target_system; }
+    uint8_t get_target_system_id() {
+        return target_system;
+    }
 
     /**
      * @brief Decode and check target system
@@ -179,9 +191,20 @@ public:
 class FTPPlugin : public plugin::PluginBase {
 public:
     FTPPlugin()
-        : PluginBase(), ftp_nh("~ftp"), op_state(OP::IDLE), last_send_seqnr(0), active_session(0),
-          is_error(false), r_errno(0), list_offset(0), open_size(0), read_size(0),
-          read_offset(0), read_buffer{}, write_offset(0), checksum_crc32(0) {}
+        : PluginBase(),
+          ftp_nh("~ftp"),
+          op_state(OP::IDLE),
+          last_send_seqnr(0),
+          active_session(0),
+          is_error(false),
+          r_errno(0),
+          list_offset(0),
+          open_size(0),
+          read_size(0),
+          read_offset(0),
+          read_buffer{},
+          write_offset(0),
+          checksum_crc32(0) {}
 
     void initialize(UAS &uas_) override {
         PluginBase::initialize(uas_);
@@ -389,7 +412,7 @@ private:
         uint32_t n_list_entries = 0;
 
         while (off < hdr->size) {
-            const char * ptr        = req.data_c() + off;
+            const char  *ptr        = req.data_c() + off;
             const size_t bytes_left = hdr->size - off;
 
             size_t slen = strnlen(ptr, bytes_left);
@@ -550,8 +573,10 @@ private:
     }
 
     /// Send any command with string payload (usually file/dir path)
-    inline void send_any_path_command(FTPRequest::Opcode op, const std::string &debug_msg,
-                                      std::string &path, uint32_t offset) {
+    inline void send_any_path_command(FTPRequest::Opcode op,
+                                      const std::string &debug_msg,
+                                      std::string       &path,
+                                      uint32_t           offset) {
         ROS_DEBUG_STREAM_NAMED("ftp", "FTP:m: " << debug_msg << path << " off: " << offset);
         FTPRequest req(op);
         req.header()->offset = offset;
@@ -937,7 +962,7 @@ private:
         return true;
     }
 
-    bool truncate_cb(mavros_msgs::FileTruncate::Request & req,
+    bool truncate_cb(mavros_msgs::FileTruncate::Request  &req,
                      mavros_msgs::FileTruncate::Response &res) {
         SERVICE_IDLE_CHECK();
 
@@ -959,7 +984,7 @@ private:
         return true;
     }
 
-    bool rmdir_cb(mavros_msgs::FileRemoveDir::Request & req,
+    bool rmdir_cb(mavros_msgs::FileRemoveDir::Request  &req,
                   mavros_msgs::FileRemoveDir::Response &res) {
         SERVICE_IDLE_CHECK();
 
@@ -970,7 +995,7 @@ private:
         return true;
     }
 
-    bool checksum_cb(mavros_msgs::FileChecksum::Request & req,
+    bool checksum_cb(mavros_msgs::FileChecksum::Request  &req,
                      mavros_msgs::FileChecksum::Response &res) {
         SERVICE_IDLE_CHECK();
 

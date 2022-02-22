@@ -35,9 +35,17 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     DistanceSensorItem()
-        : is_subscriber(false), send_tf(false), sensor_id(0), field_of_view(0), orientation(-1),
-          covariance(0), horizontal_fov_ratio(1.0), vertical_fov_ratio(1.0),
-          quaternion(0.f, 0.f, 0.f, 0.f), owner(nullptr), data_index(0) {}
+        : is_subscriber(false),
+          send_tf(false),
+          sensor_id(0),
+          field_of_view(0),
+          orientation(-1),
+          covariance(0),
+          horizontal_fov_ratio(1.0),
+          vertical_fov_ratio(1.0),
+          quaternion(0.f, 0.f, 0.f, 0.f),
+          owner(nullptr),
+          data_index(0) {}
 
     // params
     bool            is_subscriber;        //!< this item is a subscriber, else is a publisher
@@ -152,9 +160,16 @@ private:
     std::unordered_map<uint8_t, DistanceSensorItem::Ptr> sensor_map;
 
     /* -*- low-level send -*- */
-    void distance_sensor(uint32_t time_boot_ms, uint32_t min_distance, uint32_t max_distance,
-                         uint32_t current_distance, uint8_t type, uint8_t id, uint8_t orientation,
-                         uint8_t covariance, float horizontal_fov, float vertical_fov,
+    void distance_sensor(uint32_t             time_boot_ms,
+                         uint32_t             min_distance,
+                         uint32_t             max_distance,
+                         uint32_t             current_distance,
+                         uint8_t              type,
+                         uint8_t              id,
+                         uint8_t              orientation,
+                         uint8_t              covariance,
+                         float                horizontal_fov,
+                         float                vertical_fov,
                          std::array<float, 4> quaternion) {
         mavlink::common::msg::DISTANCE_SENSOR ds = {};
 
@@ -193,7 +208,7 @@ private:
     /**
      * Receive distance sensor data from FCU.
      */
-    void handle_distance_sensor(const mavlink::mavlink_message_t *     msg,
+    void handle_distance_sensor(const mavlink::mavlink_message_t      *msg,
                                 mavlink::common::msg::DISTANCE_SENSOR &dist_sen) {
         using mavlink::common::MAV_DISTANCE_SENSOR;
         using mavlink::common::MAV_SENSOR_ORIENTATION;
