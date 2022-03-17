@@ -1,6 +1,6 @@
 # ACFLY MAVROS
 
-> Author & Maintainer: LauZanMo
+> Author & Maintainer: 刘正武
 >
 > 基于acfly-MAVLink的ROS扩展通信节点
 >
