@@ -7,41 +7,42 @@ startup_px4_usb_quirk: true
 
 # sys_status和sys_time的连接选项
 conn:
-  heartbeat_rate: 1.0     # 发送心跳频率(hz)
-  timeout: 10.0           # 心跳超时(s)
-  timesync_rate: 5.0      # 时间同步频率(hz)，如果设置为0则禁用
-  system_time_rate: 1.0   # 发送系统时间给飞控的频率
+  heartbeat_rate: 1.0                       # 发送心跳频率(hz)
+  timeout: 10.0                             # 心跳超时(s)
+  timesync_rate: 5.0                        # 时间同步频率(hz)，如果设置为0则禁用
+  system_time_rate: 1.0                     # 发送系统时间给飞控的频率
 
 # sys_status
 sys:
-  min_voltage: 10.0       # 诊断的最低电压
-  disable_diag: false     # 禁用所有诊断，除了心跳
+  min_voltage: 10.0                         # 诊断的最低电压
+  disable_diag: false                       # 禁用所有诊断，除了心跳
 
 # sys_time
 time:
-  time_ref_source: "fcu"  # 参考时间源
-  timesync_mode: MAVLINK  # 时间同步模式，为同步飞控与电脑的模式
-  timesync_avg_alpha: 0.6 # 时间同步平均系数
-  convergence_window: 500 # 收敛滑窗大小，可大致认为收敛时间=滑窗/时间同步频率
+  time_ref_source: "fcu"                    # 参考时间源
+  timesync_mode: MAVLINK                    # 时间同步模式，为同步飞控与电脑的模式
+  timesync_avg_alpha: 0.6                   # 时间同步平均系数
+  convergence_window: 500                   # 收敛滑窗大小，可大致认为收敛时间=滑窗/时间同步频率
+  max_rtt_sample: 20                        # 最大往返采样值(单位为ms，超过会报警告，与连接方式和线的长度有关)
 
 # --- mavros插件(首字母顺序) --- #
 
 # acfly_slam_sensor
 acfly_slam_sensor:
-  sensor_id: "camera"                       # 传感器TF名(插件将其与body_id之间建立静态tf)
+  sensor_id: "camera_link"                  # 传感器TF名(插件将其与body_id之间建立静态tf)
   body_id: "base_link"                      # 飞控body系(通常不需要修改)
   sensor_body_rotation: [0.0, 0.0, 0.0]     # 传感器与body之间的旋转，以欧拉角rpy表示(ENU-FLU)
-  sensor_body_translation: [0.0, 0.0, 0.0]  # 传感器与body之间的位移xyz(ENU-FLU)
+  sensor_body_translation: [-0.1, 0.0, 0.0] # 传感器与body之间的位移xyz(ENU-FLU)
   sensor:
     index: 15                               # 飞控注册定位传感器索引号(C9最高为16路)
     delay: 0.05                             # 默认传感器延时(s)
     trust_xy: 0.01                          # 传感器xy方向方差(m^2)
     trust_z: 0.01                           # 传感器z方向方差(m^2)
   tf:
-    listen: false                           # 通过监听tf来获取位置信息(false则通过订阅来获取tf信息)
-    frame_id: "map"                         # 传感器建图坐标系(通常为map)
+    listen: true                            # 通过监听tf来获取位置信息(false则通过订阅来获取tf信息)
+    frame_id: "camera_odom_frame"           # 传感器建图坐标系(通常为map)
     child_frame_id: "base_link"             # 飞控body系(通常不需要修改)
-    rate_limit: 10.0                        # 监听频率
+    rate_limit: 20.0                        # 监听频率
 
 # command
 cmd:
