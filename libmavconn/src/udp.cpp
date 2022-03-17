@@ -31,7 +31,7 @@ using utils::to_string_ss;
 using utils::operator"" _KiB;
 using mavlink::mavlink_message_t;
 
-#define PFX "mavconn: udp"
+#define PFX  "mavconn: udp"
 #define PFXd PFX "%zu: "
 
 static bool resolve_address_udp(

@@ -14,10 +14,10 @@ static const double epsilon_f = 1e-6;
 // gMock has ability to define array matcher, but there problems with that.
 // so trying good old for loop
 
-#define EXPECT_QUATERNION(q1, q2, epsilon)                                                         \
-    EXPECT_NEAR(q1.w(), q2.w(), epsilon);                                                          \
-    EXPECT_NEAR(q1.x(), q2.x(), epsilon);                                                          \
-    EXPECT_NEAR(q1.y(), q2.y(), epsilon);                                                          \
+#define EXPECT_QUATERNION(q1, q2, epsilon) \
+    EXPECT_NEAR(q1.w(), q2.w(), epsilon);  \
+    EXPECT_NEAR(q1.x(), q2.x(), epsilon);  \
+    EXPECT_NEAR(q1.y(), q2.y(), epsilon);  \
     EXPECT_NEAR(q1.z(), q2.z(), epsilon)
 
 /* -*- test general transform function -*- */

@@ -315,7 +315,13 @@ private:
     std::list<uint16_t>                                           parameters_missing_idx;
     std::unordered_map<std::string, std::shared_ptr<ParamSetOpt>> set_parameters;
     ssize_t                                                       param_count;
-    enum class PR { IDLE, RXLIST, RXPARAM, RXPARAM_TIMEDOUT, TXPARAM };
+    enum class PR {
+        IDLE,
+        RXLIST,
+        RXPARAM,
+        RXPARAM_TIMEDOUT,
+        TXPARAM
+    };
     PR param_state;
 
     size_t                  param_rx_retries;
@@ -377,7 +383,6 @@ private:
 
         if (param_state == PR::RXLIST || param_state == PR::RXPARAM ||
             param_state == PR::RXPARAM_TIMEDOUT) {
-
             // we received first param. setup list timeout
             // 接收到了第一个参数，设置列表超时
             if (param_state == PR::RXLIST) {

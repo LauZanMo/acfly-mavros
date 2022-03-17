@@ -89,8 +89,9 @@ TEST_F(UDP, send_message) {
 
     // create echo server
     echo = std::make_shared<MAVConnUDP>(42, 200, "0.0.0.0", 45002);
-    echo->connect(
-        [&](const mavlink_message_t *msg, const Framing framing) { echo->send_message(msg); });
+    echo->connect([&](const mavlink_message_t *msg, const Framing framing) {
+        echo->send_message(msg);
+    });
 
     // create client
     client = std::make_shared<MAVConnUDP>(44, 200, "0.0.0.0", 45003, "localhost", 45002);

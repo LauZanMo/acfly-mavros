@@ -38,7 +38,7 @@ using mavlink::mavlink_message_t;
 using mavlink::mavlink_status_t;
 using utils::to_string_ss;
 
-#define PFX "mavconn: tcp"
+#define PFX  "mavconn: tcp"
 #define PFXd PFX "%zu: "
 
 static bool resolve_address_tcp(

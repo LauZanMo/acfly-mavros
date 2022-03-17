@@ -18,16 +18,16 @@ static const double deg_to_rad = M_PI / 180.0;
 // gMock has ability to define array matcher, but there problems with that.
 // so trying good old for loop
 
-#define ASSERT_QUATERNION(q1, q2, epsilon)                                                         \
-    ASSERT_NEAR(q1.w(), q2.w(), epsilon);                                                          \
-    ASSERT_NEAR(q1.x(), q2.x(), epsilon);                                                          \
-    ASSERT_NEAR(q1.y(), q2.y(), epsilon);                                                          \
+#define ASSERT_QUATERNION(q1, q2, epsilon) \
+    ASSERT_NEAR(q1.w(), q2.w(), epsilon);  \
+    ASSERT_NEAR(q1.x(), q2.x(), epsilon);  \
+    ASSERT_NEAR(q1.y(), q2.y(), epsilon);  \
     ASSERT_NEAR(q1.z(), q2.z(), epsilon)
 
-#define EXPECT_QUATERNION(q1, q2, epsilon)                                                         \
-    EXPECT_NEAR(q1.w(), q2.w(), epsilon);                                                          \
-    EXPECT_NEAR(q1.x(), q2.x(), epsilon);                                                          \
-    EXPECT_NEAR(q1.y(), q2.y(), epsilon);                                                          \
+#define EXPECT_QUATERNION(q1, q2, epsilon) \
+    EXPECT_NEAR(q1.w(), q2.w(), epsilon);  \
+    EXPECT_NEAR(q1.x(), q2.x(), epsilon);  \
+    EXPECT_NEAR(q1.y(), q2.y(), epsilon);  \
     EXPECT_NEAR(q1.z(), q2.z(), epsilon)
 
 /* -*- quaternion_from_rpy / getYaw -*- */
@@ -74,7 +74,6 @@ TEST(FRAME_TF, quaternion_to_rpy__pm_pi) {
     for (ssize_t roll = min; roll <= max; roll += step) {
         for (ssize_t pitch = min; pitch <= max; pitch += step) {
             for (ssize_t yaw = min; yaw <= max; yaw += step) {
-
                 Eigen::Vector3d expected_deg(roll, pitch, yaw);
                 Eigen::Vector3d expected = expected_deg * deg_to_rad;
 

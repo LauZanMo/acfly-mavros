@@ -269,7 +269,18 @@ protected:
     std::vector<mavros_msgs::Waypoint> waypoints;
     std::vector<mavros_msgs::Waypoint> send_waypoints;
 
-    enum class WP { IDLE, RXLIST, RXWP, RXWPINT, TXLIST, TXPARTIAL, TXWP, TXWPINT, CLEAR, SET_CUR };
+    enum class WP {
+        IDLE,
+        RXLIST,
+        RXWP,
+        RXWPINT,
+        TXLIST,
+        TXPARTIAL,
+        TXWP,
+        TXWPINT,
+        CLEAR,
+        SET_CUR
+    };
     WP wp_state;
 
     WP_TYPE                 wp_type;

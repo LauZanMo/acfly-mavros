@@ -81,8 +81,8 @@ roslaunch mavros acfly.launch
 你可以通过github的pull request功能向acfly-mavros分享好的想法与代码，在此之前，请在文件夹的根路径下执行：
 
 ```bash
-find . -regex '.*\.\(cpp\|cu\|cc\|c\|hpp\|h\)' -exec clang-format-13 -style=file -i {} \;
+find . -regex '.*\.\(cpp\|cu\|cc\|c\|hpp\|h\)' -exec clang-format-14 -style=file -i {} \;
 ```
 
-以格式化你的代码，方便统一风格。(建议安装clang-format-13，该版本修复了指针对齐的bug)
+以格式化你的代码，方便统一风格。(建议安装clang-format-14，该版本修复了指针对齐的bug)
 

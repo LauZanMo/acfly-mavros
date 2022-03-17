@@ -28,7 +28,8 @@ namespace mavconn {
  *
  * @note IPv4 only
  */
-class MAVConnUDP : public MAVConnInterface, public std::enable_shared_from_this<MAVConnUDP> {
+class MAVConnUDP : public MAVConnInterface,
+                   public std::enable_shared_from_this<MAVConnUDP> {
 public:
     static constexpr auto DEFAULT_BIND_HOST   = "localhost";
     static constexpr auto DEFAULT_BIND_PORT   = 14555;

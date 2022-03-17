@@ -32,7 +32,7 @@
 #define GPS_LEAPSECONDS_MILLIS 18000ULL
 
 #define MSEC_PER_WEEK (7ULL * 86400ULL * 1000ULL)
-#define UNIX_OFFSET_MSEC                                                                           \
+#define UNIX_OFFSET_MSEC \
     (17000ULL * 86400ULL + 52ULL * 10ULL * MSEC_PER_WEEK - GPS_LEAPSECONDS_MILLIS)
 
 namespace mavros {
@@ -48,7 +48,8 @@ using mavlink::common::GPS_INPUT_IGNORE_FLAGS;
  * is set on PX4 Pro Autopilot Firmware; Ardupilot Firmware already supports it
  * without a flag set.
  */
-class FakeGPSPlugin : public plugin::PluginBase, private plugin::TF2ListenerMixin<FakeGPSPlugin> {
+class FakeGPSPlugin : public plugin::PluginBase,
+                      private plugin::TF2ListenerMixin<FakeGPSPlugin> {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 

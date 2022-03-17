@@ -32,7 +32,7 @@ using boost::asio::io_service;
 using boost::system::error_code;
 using mavlink::mavlink_message_t;
 
-#define PFX "mavconn: serial"
+#define PFX  "mavconn: serial"
 #define PFXd PFX "%zu: "
 
 MAVConnSerial::MAVConnSerial(

@@ -26,7 +26,8 @@ namespace mavconn {
 /**
  * @brief Serial interface
  */
-class MAVConnSerial : public MAVConnInterface, public std::enable_shared_from_this<MAVConnSerial> {
+class MAVConnSerial : public MAVConnInterface,
+                      public std::enable_shared_from_this<MAVConnSerial> {
 public:
     static constexpr auto DEFAULT_DEVICE   = "/dev/ttyACM0";
     static constexpr auto DEFAULT_BAUDRATE = 57600;

@@ -23,8 +23,8 @@
 
 // OS X compat: missing error codes
 #ifdef __APPLE__
-#define EBADE 50   /* Invalid exchange */
-#define EBADFD 81  /* File descriptor in bad state */
+#define EBADE   50 /* Invalid exchange */
+#define EBADFD  81 /* File descriptor in bad state */
 #define EBADRQC 54 /* Invalid request code */
 #define EBADSLT 55 /* Invalid slot */
 #endif

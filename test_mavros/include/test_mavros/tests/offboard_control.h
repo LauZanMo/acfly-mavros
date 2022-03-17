@@ -33,9 +33,18 @@ namespace testsetup {
  *
  */
 
-typedef enum { POSITION, VELOCITY, ACCELERATION } control_mode;
+typedef enum {
+    POSITION,
+    VELOCITY,
+    ACCELERATION
+} control_mode;
 
-typedef enum { SQUARE, CIRCLE, EIGHT, ELLIPSE } path_shape;
+typedef enum {
+    SQUARE,
+    CIRCLE,
+    EIGHT,
+    ELLIPSE
+} path_shape;
 
 class OffboardControl {
 public:

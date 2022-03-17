@@ -72,8 +72,9 @@ int main(int argc, char *argv[]) {
     updater.add(gcs_link_diag);
 
     // updater spinner
-    auto diag_timer = priv_nh.createTimer(ros::Duration(0.5),
-                                          [&](const ros::TimerEvent &evt) { updater.update(); });
+    auto diag_timer = priv_nh.createTimer(ros::Duration(0.5), [&](const ros::TimerEvent &evt) {
+        updater.update();
+    });
     diag_timer.start();
 
     ros::spin();

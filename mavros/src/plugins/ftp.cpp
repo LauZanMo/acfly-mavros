@@ -251,7 +251,15 @@ private:
     //! This type used in servicies to store 'data' fileds.
     typedef std::vector<uint8_t> V_FileData;
 
-    enum class OP { IDLE, ACK, LIST, OPEN, READ, WRITE, CHECKSUM };
+    enum class OP {
+        IDLE,
+        ACK,
+        LIST,
+        OPEN,
+        READ,
+        WRITE,
+        CHECKSUM
+    };
 
     OP       op_state;
     uint16_t last_send_seqnr; //!< seqNumber for send.
@@ -859,10 +867,10 @@ private:
     /**
      * Service handler common header code.
      */
-#define SERVICE_IDLE_CHECK()                                                                       \
-    if (op_state != OP::IDLE) {                                                                    \
-        ROS_ERROR_NAMED("ftp", "FTP: Busy");                                                       \
-        return false;                                                                              \
+#define SERVICE_IDLE_CHECK()                 \
+    if (op_state != OP::IDLE) {              \
+        ROS_ERROR_NAMED("ftp", "FTP: Busy"); \
+        return false;                        \
     }
 
     bool list_cb(mavros_msgs::FileList::Request &req, mavros_msgs::FileList::Response &res) {

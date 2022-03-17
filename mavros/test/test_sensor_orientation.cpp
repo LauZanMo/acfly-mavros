@@ -17,10 +17,10 @@ using SO = mavlink::common::MAV_SENSOR_ORIENTATION;
 
 static const double epsilon = 1e-9;
 
-#define EXPECT_QUATERNION(exp, res)                                                                \
-    EXPECT_NEAR(exp.w(), res.w(), epsilon);                                                        \
-    EXPECT_NEAR(exp.x(), res.x(), epsilon);                                                        \
-    EXPECT_NEAR(exp.y(), res.y(), epsilon);                                                        \
+#define EXPECT_QUATERNION(exp, res)         \
+    EXPECT_NEAR(exp.w(), res.w(), epsilon); \
+    EXPECT_NEAR(exp.x(), res.x(), epsilon); \
+    EXPECT_NEAR(exp.y(), res.y(), epsilon); \
     EXPECT_NEAR(exp.z(), res.z(), epsilon)
 
 TEST(UTILS, sensor_orientation_matching__none) {
