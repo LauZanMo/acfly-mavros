@@ -24,7 +24,7 @@ sudo apt-get install python-catkin-tools python-rosinstall-generator -y
 source /opt/ros/${你的ROS版本}/setup.bash
 
 # 因为acfly增加了自定义mavlink信息，若之前有通过二进制安装过mavros则需要卸载，没有则跳过
-sudo apt remove ros-${ROS_DISTRO}-mavlink ros-${ROS_DISTRO}-mavros
+sudo apt purge ros-${ROS_DISTRO}-mavlink ros-${ROS_DISTRO}-mavros
 
 # 构建ROS工作空间，可以自行修改路径
 mkdir -p ~/acfly_ws/src && cd ~/acfly_ws
