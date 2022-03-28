@@ -74,5 +74,5 @@ acfly_slam_sensor:
       rate_limit: 10.0
   ```
 
-- 对于位置传感器，推荐监听频率为10~30hz，即acfly_slam_sensor/tf/rate_limit修改为10~30
+- 对于位置传感器，推荐监听频率为10-30hz，即acfly_slam_sensor/tf/rate_limit修改为10-30
 - 其余可直接设为默认，acfly_slam_sensor/sensor/index如果需要修改，请确保与acfly本身的传感器索引没有冲突
