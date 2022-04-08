@@ -36,10 +36,12 @@ acfly_slam_sensor:
 
 该插件主要用于类SLAM的位置传感器，支持两种监听位置信息的方式：
 
-1. [TF树](http://wiki.ros.org/tf2)
+1. [TF树](http://wiki.ros.org/tf2)(推荐)
 2. pose话题
 
-如果需要使用TF树方式监听位置信息，需要执行以下操作：
+### TF树监听
+
+如果需要使用**TF树方式**监听位置信息，需要执行以下操作：
 
 - acfly_slam_sensor/tf/listen 改为 true
 
@@ -52,9 +54,9 @@ acfly_slam_sensor:
   以T265为例：
 
   1. 启动T265后，命令行输入“rqt”以打开rqt工具箱
-  2. rqt左上角找到Plugins->Visualization->TF Tree，单击打开，可以看到如下：<img src="images/T265%20TF%E6%A0%91.png" alt="T265 TF树" style="zoom:50%;" />
+  2. rqt左上角找到Plugins -> Visualization -> TF Tree，单击打开，可以看到如下：<img src="images/T265%20TF%E6%A0%91.png" alt="T265 TF树" style="zoom:50%;" />
   3. 可知传感器的相机坐标系为camera_link，里程计坐标系为camera_odom_frame(使用自己的SLAM系统需要保证这些坐标系都是FLU系)
-  4. 测量传感器->飞控的平移和旋转(FLU系)，**以飞控在T265后0.1m，且相对T265在Z轴正向旋转了180度为例**。
+  4. 测量传感器 -> 飞控的平移和旋转(FLU系)，**以飞控在T265后0.1m，且相对T265在Z轴正向旋转了180度为例**。
 
   因此可以填写
   
@@ -75,4 +77,14 @@ acfly_slam_sensor:
   ```
 
 - 对于位置传感器，推荐监听频率为10-30hz，即acfly_slam_sensor/tf/rate_limit修改为10-30
+
 - 其余可直接设为默认，acfly_slam_sensor/sensor/index如果需要修改，请确保与acfly本身的传感器索引没有冲突
+
+### pose话题监听
+
+如果需要使用**pose话题方式**监听位置信息，需要执行以下操作：
+
+- acfly_slam_sensor/tf/listen 改为 false
+- 发布[mavros/acfly_slam_sensor/pose](http://docs.ros.org/en/api/geometry_msgs/html/msg/PoseStamped.html)或[mavros/acfly_slam_sensor/pose_conv](http://docs.ros.org/en/api/geometry_msgs/html/msg/PoseWithCovarianceStamped.html)话题
+
+**注意**：发布的位置需为**里程计/地图 -> FCU的变换**，而不是地图 -> 传感器的变换
