@@ -165,9 +165,9 @@ acfly-mavros(以下简称mavros)文件夹下共有五个模块，他们的功能
 
 **实现功能**：
 
-- 以ROS信息实现上述mavlink信息的转发，具体信息内容参考上述链接
+- 以**话题形式**实现上述mavlink信息的转发，具体信息内容参考上述链接
 
-**<font color='orange'>注意</font>**：
+**注意**：
 
 - 各ROS信息的坐标系在具体定义可查询[wiki.ros.org/sensor_msgs](http://wiki.ros.org/sensor_msgs)，在MAVROS启动已有对应的静态TF发布
 - [RAW_IMU](https://mavlink.io/zh/messages/common.html#RAW_IMU)信息ACFLY未实现，且感觉没用，后续考虑删减
