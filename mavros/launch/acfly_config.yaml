@@ -46,13 +46,13 @@ acfly_slam_sensor:
 
 # command
 cmd:
-  use_comp_id_system_control: false # 有些老飞控的选项
+  use_comp_id_system_control: false         # 有些老飞控的选项
 
 # global_position
 global_position:
-  rot_covariance: 99999.0   # 角度协方差
-  gps_uere: 1.0             # GPS的用户等效测距误差(m)
-  use_relative_alt: true    # 对于局部坐标使用相对高度
+  rot_covariance: 99999.0                   # 角度协方差
+  gps_uere: 1.0                             # GPS的用户等效测距误差(m)
+  use_relative_alt: true                    # 对于局部坐标使用相对高度
   tf:
     send: false
 
@@ -60,7 +60,7 @@ global_position:
 imu:
   # 与IMU实际传感器参数有关，下面为MPU6000的实际值
   linear_acceleration_stdev: 0.0003
-  angular_velocity_stdev: 0.0003490659 # 0.02 degrees
+  angular_velocity_stdev: 0.0003490659      # 0.02 degrees
   orientation_stdev: 1.0
   magnetic_stdev: 0.0
 
@@ -77,28 +77,28 @@ local_position:
 
 # setpoint_accel
 setpoint_accel:
-  send_force: false                     # 是否发送力
+  send_force: false                         # 是否发送力
 
 # setpoint_raw
 setpoint_raw:
-  thrust_scaling: 1.0                   # 推力比例因子，应该在0~1之间
+  thrust_scaling: 1.0                       # 推力比例因子，应该在0~1之间
 
 # setpoint_position
 setpoint_position:
-  tf:                                   # 设置局部位置需要发布与ac_local_enu关联的tf
-    child_frame_id: "target_position"   # 设置局部位置的tf坐标系名
-    rate_limit: 10                      # 监听频率
-  mav_frame: GLOBAL_INT                 # 设置全球坐标的坐标系
-                                        # 合法输入为GLOBAL_INT，GLOBAL_RELATIVE_ALT_INT，GLOBAL_TERRAIN_ALT_INT
+  tf:                                       # 设置局部位置需要发布与ac_local_enu关联的tf
+    child_frame_id: "target_position"       # 设置局部位置的tf坐标系名
+    rate_limit: 10                          # 监听频率
+  mav_frame: GLOBAL_INT                     # 设置全球坐标的坐标系
+                                            # 合法输入为GLOBAL_INT，GLOBAL_RELATIVE_ALT_INT，GLOBAL_TERRAIN_ALT_INT
 
 # setpoint_velocity
 setpoint_velocity:
-  mav_frame: BODY_NED                   # 合法输入为LOCAL_NED，LOCAL_OFFSET_NED，BODY_NED，BODY_OFFSET_NED
+  mav_frame: BODY_NED                       # 合法输入为LOCAL_NED，LOCAL_OFFSET_NED，BODY_NED，BODY_OFFSET_NED
 
 # waypoint
 mission:
-  pull_after_gcs: true                  # 如果地面站更新，则更新任务
-  use_mission_item_int: true            # 使用MISSION_ITEM_INT代替MISSION_ITEM(MISSION_ITEM_INT精度更高)
+  pull_after_gcs: true                      # 如果地面站更新，则更新任务
+  use_mission_item_int: true                # 使用MISSION_ITEM_INT代替MISSION_ITEM(MISSION_ITEM_INT精度更高)
 
 # --- mavros extra插件(首字母顺序) --- #
 
