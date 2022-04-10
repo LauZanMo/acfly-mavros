@@ -11,6 +11,8 @@ acfly.launch文件会加载两个关于插件的ROS参数文件，路径分别�
 
 其中acfly_pluginlist.yaml为启动时加载的插件列表，不需要动，<strong style="color:red;">acfly_config.yaml</strong>为插件需要读取的参数，需要<strong style="color:red;">重点关注</strong>，下面讲解各插件所需参数。
 
+**注意**：参数均为国际单位
+
 ## acfly_slam_sensor
 
 该插件的参数在同名命名空间下：
@@ -78,7 +80,7 @@ acfly_slam_sensor:
 
 - 对于位置传感器，推荐监听频率为10-30hz，即acfly_slam_sensor/tf/rate_limit修改为10-30
 
-- 其余可直接设为默认，acfly_slam_sensor/sensor/index如果需要修改，请确保与acfly本身的传感器索引没有冲突
+- 其余可直接设为默认，acfly_slam_sensor/sensor下的参数请根据实际情况修改，如果索引需要修改，请确保与acfly本身的传感器索引没有冲突
 
 ### pose话题监听
 
@@ -86,5 +88,7 @@ acfly_slam_sensor:
 
 - acfly_slam_sensor/tf/listen 改为 false
 - 发布[mavros/acfly_slam_sensor/pose](http://docs.ros.org/en/api/geometry_msgs/html/msg/PoseStamped.html)或[mavros/acfly_slam_sensor/pose_conv](http://docs.ros.org/en/api/geometry_msgs/html/msg/PoseWithCovarianceStamped.html)话题
+  - **注意**：发布的位置需为**里程计/地图 -> FCU的变换**，而不是地图 -> 传感器的变换
+- acfly_slam_sensor/sensor下的参数请根据实际情况修改，如果索引需要修改，请确保与acfly本身的传感器索引没有冲突
 
-**注意**：发布的位置需为**里程计/地图 -> FCU的变换**，而不是地图 -> 传感器的变换
+### 
