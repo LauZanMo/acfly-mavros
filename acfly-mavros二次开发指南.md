@@ -50,12 +50,18 @@ acfly-mavros(以下简称mavros)文件夹下共有五个模块，他们的功能
 
 > 由于个人精力有限，没能将所有PX4官方的插件都兼容acfly，所以有些插件不一定能用，同时，我对PX4官方的一些插件做了优化，不一定能适用于PX4本身，请谅解！
 
-提示：可以使用ROS提供的rqt工具包验证插件的正确性，验证工具如下：
+提示：
+
+1. 可以使用ROS提供的rqt工具包验证插件的正确性，验证工具如下：
 
 - **topic monitor**：验证插件ROS话题的发布
 - **topic publisher**：验证插件ROS话题的接收
 - **service caller**：验证插件的服务
 - **runtime viewer**：查看飞控状态的诊断信息
+
+2. 除sys_status和sys_time插件之外，<strong style="color:red;">其他插件都有单独的命名空间</strong>，比如command插件的话题和服务都在/mavros/cmd命名空间下
+
+
 
 以下插件可查看mavlink信息来理解，<strong style="color:red;">单位全为国际单位，坐标系为ROS官方定义的坐标系(ENU-FLU)</strong>
 
@@ -140,14 +146,49 @@ acfly-mavros(以下简称mavros)文件夹下共有五个模块，他们的功能
 - [SET_POSITION_TARGET_GLOBAL_INT](https://mavlink.io/zh/messages/common.html#SET_POSITION_TARGET_GLOBAL_INT)
 - [POSITION_TARGET_GLOBAL_INT](https://mavlink.io/zh/messages/common.html#POSITION_TARGET_GLOBAL_INT)
 
-**实现功能**
+**实现功能**：
 
 - 以**话题形式**接收mavlink标准格式的ROS信息(mavros_msgs中有定义，与mavlink格式一模一样)
+- 以**话题形式**发布由飞控反馈回来的mavlink标准格式的ROS信息(与发送的一致)
 
 **注意**：
 
 - 使用mavlink标准格式的ROS信息可以实现最全面的控制，但请务必将参数输入正确，mavros不会检查
 - set attitude后续只在穿越机中支持，控制形式是否支持请参看mavros启动后输出的信息(如SPR: Set position target local command is supported.就是支持[SET_POSITION_TARGET_LOCAL_NED](https://mavlink.io/zh/messages/common.html#SET_POSITION_TARGET_LOCAL_NED))
+- acfly飞控端未实现反馈，所以不会有反馈信息
+
+#### setpoint_velocity
+
+**使用mavlink信息**：
+
+- [SET_POSITION_TARGET_LOCAL_NED](https://mavlink.io/zh/messages/common.html#SET_POSITION_TARGET_LOCAL_NED)
+
+**实现功能**：
+
+- 以**话题形式**接收ROS标准的[twist](http://docs.ros.org/en/noetic/api/geometry_msgs/html/msg/Twist.html)信息，以用于与许多开源的规划算法对接
+
+**注意**：
+
+- 有时间戳的和无时间戳的twist话题都能支持，请通过话题名来辨别
+- 默认的坐标系为**FLU系**，如有ENU系下的速度控制需求，请通过插件命名空间下的mav_frame服务设置坐标系后，再发布话题
+
+#### setpoint_position
+
+**使用mavlink信息**：
+
+- [SET_POSITION_TARGET_LOCAL_NED](https://mavlink.io/zh/messages/common.html#SET_POSITION_TARGET_LOCAL_NED)
+- [SET_POSITION_TARGET_GLOBAL_INT](https://mavlink.io/zh/messages/common.html#SET_POSITION_TARGET_GLOBAL_INT)
+
+**实现功能**：
+
+- 以**tf树形式**接收局部位置控制信息，同时以**话题形式**接收[twist](http://docs.ros.org/en/noetic/api/geometry_msgs/html/msg/Twist.html)信息，实现位置单环或位置速度双环控制
+- 以**话题形式**接收全球位置控制信息，实现全球位置单环控制
+
+**注意**：
+
+- 局部位置控制中**位置必须要有**，速度可以不给
+- 局部位置控制开始之前需要通过插件命名空间下set_tf_listen服务**开启位置监听**，结束之后也需要通过该服务**关闭位置监听**
+- 默认全球坐标系为**GLOBAL_INT系**，如有GLOBAL_RELATIVE_ALT_INT系或GLOBAL_TERRAIN_ALT_INT系下的位置控制需求，请通过插件命名空间下的global_mav_frame服务设置坐标系后，再发布话题
 
 #### IMU
 
