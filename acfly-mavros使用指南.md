@@ -69,6 +69,8 @@ mavros大部分与ROS交互的处理在插件中，我们主要讲解插件使�
 
 **注意：由于mavros不兼容中文，有时候出现一串红色的问号，通常是磁场受到干扰，FCU向OBC发送“检查航向”的中文所导致。**
 
+
+
 ### command
 
 **使用mavlink信息**：
@@ -116,6 +118,8 @@ mavros大部分与ROS交互的处理在插件中，我们主要讲解插件使�
 3. cmd插件下别的服务都是用于位置模式(POSITION CTL)，请不要与OFFBOARD混用，如需使用，请参考对应的mavlink信息
 4. **takeoff local**和**land local**在FCU端暂未实现
 
+
+
 ### set_point_raw
 
 **使用mavlink信息**：
@@ -141,10 +145,127 @@ mavros大部分与ROS交互的处理在插件中，我们主要讲解插件使�
 此插件功能比较简单，以下是控制步骤：
 
 1. 用户需要在cmake或python导入mavros_msgs功能包中的相应信息，举个例子，如果我需要控制局部位置，我需要导入mavros_msgs中的[PositionTarget信息](mavros_msgs/msg/PositionTarget.msg)
-2. 参考对应的mavlink信息[SET_POSITION_TARGET_LOCAL_NED](https://mavlink.io/zh/messages/common.html#SET_POSITION_TARGET_LOCAL_NED)填入相应的值，通过话题发送
+2. 参考对应的mavlink信息[SET_POSITION_TARGET_LOCAL_NED](https://mavlink.io/zh/messages/common.html#SET_POSITION_TARGET_LOCAL_NED)填入相应的值，通过/mavros/setpoint_raw/target_local话题发送
 
 **注意**：
 
 - 使用mavlink标准格式的ROS信息可以实现最全面的控制，但请务必将参数输入正确，mavros不会检查
 - 控制形式是否支持请参看mavros启动后输出的信息(如SPR: Set position target local command is supported.就是支持[SET_POSITION_TARGET_LOCAL_NED](https://mavlink.io/zh/messages/common.html#SET_POSITION_TARGET_LOCAL_NED))
 - FCU未实现反馈，所以不会有反馈控制信息
+
+
+
+### setpoint_velocity
+
+**使用mavlink信息**：
+
+- [SET_POSITION_TARGET_LOCAL_NED](https://mavlink.io/zh/messages/common.html#SET_POSITION_TARGET_LOCAL_NED)
+
+**实现功能**：
+
+- 以**话题形式**接收ROS标准的[twist](http://docs.ros.org/en/noetic/api/geometry_msgs/html/msg/Twist.html)信息，以用于与许多开源的规划算法对接
+
+**常用功能**：
+
+以下以和ROS的路径规划器连接为例子，浙大的ego planner对接思路类似：
+
+1. 通过/mavros/setpoint_velocity/mav_frame服务设置控制坐标系(默认为**FLU系**，使用ROS规划器不需要修改)，需要导入mavros_msgs的[SetMavFrame.srv](mavros_msgs/srv/SetMavFrame.srv)
+2. 将ROS规划器的话题重映射(remap)到/mavros/setpoint_velocity/cmd_vel_unstamped话题上，该话题消息格式为[twist](http://docs.ros.org/en/noetic/api/geometry_msgs/html/msg/Twist.html)
+3. 启动规划器，设定目标
+
+**注意**：
+
+**注意**：
+
+- 有时间戳的和无时间戳的twist话题都能支持：
+  - /mavros/setpoint_velocity/cmd_vel为有时间戳twist话题
+  - /mavros/setpoint_velocity/cmd_vel_unstamped为无时间戳twist话题
+- 默认的坐标系为**FLU系**，如有ENU系下的速度控制需求，请通过插件命名空间下的mav_frame服务设置坐标系后，再发布话题
+- 控制需要进入OFFBOARD模式并且已经解锁
+
+
+
+### setpoint_position
+
+**使用mavlink信息**：
+
+- [SET_POSITION_TARGET_LOCAL_NED](https://mavlink.io/zh/messages/common.html#SET_POSITION_TARGET_LOCAL_NED)
+- [SET_POSITION_TARGET_GLOBAL_INT](https://mavlink.io/zh/messages/common.html#SET_POSITION_TARGET_GLOBAL_INT)
+
+**实现功能**：
+
+- 以**tf树形式**接收局部位置控制信息，同时以**话题形式**接收[twist](http://docs.ros.org/en/noetic/api/geometry_msgs/html/msg/Twist.html)信息，实现位置单环或位置速度双环控制
+- 以**话题形式**接收全球位置控制信息，实现全球位置单环控制
+
+**常用功能**：
+
+如果不需要使用ROS规划器，而只是进行简单的控制，可以使用该插件，对于需要做路径规划的用户，建议使用setpoint_position，以下是插件的**局部位置控制流程**：
+
+1. 通过/mavros/setpoint_position/set_tf_listen服务设置打开tf监听(value设置为true)，需要导入mavros_msgs的[SetTFListen.srv](mavros_msgs/srv/SetTFListen.srv)
+2. 相对于ac_local_enu发布target_position的tf变换，可以是间接的，举个例子：
+   1. 假设slam地图的tf为map，slam传感器tf为sensor (如果使用了acfly_slam_sensor插件，系统会自动发布base_link(imu)与sensor的tf变换)
+   2. 那么我们的tf树通常是这样的: map->sensor->base_link->ac_local_enu
+   3. enu系下的坐标不够直观，且对于使用ROS的用户，通常是给传感器所建地图的坐标，而不是enu系。为了更加直观，可以直接以map为原点，发布target_position的tf
+3. 如果同时需要速度控制，可以通过/mavros/setpoint_position/set_twist发布[twist](http://docs.ros.org/en/noetic/api/geometry_msgs/html/msg/Twist.html)信息，但请确保输入正确，系统不会检查，速度坐标系只能是**ENU系**的
+4. 结束位置控制需要通过/mavros/setpoint_position/set_tf_listen服务设置关闭tf监听
+
+以下是插件的**全球位置控制流程**：
+
+1. 通过/mavros/setpoint_position/global_mav_frame服务设置控制坐标系(默认为**GLOBAL_INT系**)，需要导入mavros_msgs的[SetMavFrame.srv](mavros_msgs/srv/SetMavFrame.srv)
+2. 对/mavros/setpoint_position/global发布全球位置话题
+
+**注意**：
+
+**注意**：
+
+- 该插件需要有一定的ROS的tf知识，不建议给相对ac_local_enu移动的坐标系给发布target_position，这样会导致错误的控制结果
+
+**注意**：
+
+- 局部位置控制中**位置必须要有**，速度可以不给
+- 局部位置控制开始之前需要通过插件命名空间下set_tf_listen服务**开启位置监听**，结束之后也需要通过该服务**关闭位置监听**
+- 默认全球坐标系为**GLOBAL_INT系**，如有GLOBAL_RELATIVE_ALT_INT系或GLOBAL_TERRAIN_ALT_INT系下的位置控制需求，请通过插件命名空间下的global_mav_frame服务设置坐标系后，再发布话题
+
+
+
+### param
+
+**使用mavlink信息**：
+
+- [PARAM_REQUEST_READ](https://mavlink.io/zh/messages/common.html#PARAM_REQUEST_READ)
+
+- [PARAM_REQUEST_LIST](https://mavlink.io/zh/messages/common.html#PARAM_REQUEST_LIST)
+
+- [PARAM_VALUE](https://mavlink.io/zh/messages/common.html#PARAM_VALUE)
+
+- [PARAM_SET](https://mavlink.io/zh/messages/common.html#PARAM_SET)
+
+**实现功能**：
+
+- 以**服务形式**实现单个参数与参数列表的获取与设置，并对参数索引是否正确进行检测。(索引错误只会报警告，只要参数名正确不影响设置)
+
+
+
+### IMU
+
+**使用mavlink信息**：
+
+- [SCALED_IMU](https://mavlink.io/zh/messages/common.html#SCALED_IMU)
+- [RAW_IMU](https://mavlink.io/zh/messages/common.html#RAW_IMU)(可弃用)
+- [SCALED_PRESSURE](https://mavlink.io/zh/messages/common.html#SCALED_PRESSURE)
+
+- [ATTITUDE](https://mavlink.io/zh/messages/common.html#ATTITUDE)
+
+- [ATTITUDE_QUATERNION](https://mavlink.io/zh/messages/common.html#ATTITUDE_QUATERNION)
+
+- [HIGHRES_IMU](https://mavlink.io/zh/messages/common.html#HIGHRES_IMU)
+
+**实现功能**：
+
+- 以**话题形式**实现上述mavlink信息的转发，具体信息内容参考上述链接
+
+**注意**：
+
+- 各ROS信息的坐标系在具体定义可查询[wiki.ros.org/sensor_msgs](http://wiki.ros.org/sensor_msgs)，在MAVROS启动已有对应的静态TF发布
+- [RAW_IMU](https://mavlink.io/zh/messages/common.html#RAW_IMU)信息ACFLY未实现，且感觉没用，后续考虑删减
+- [HIGHRES_IMU](https://mavlink.io/zh/messages/common.html#HIGHRES_IMU)信息如果后续有高分辨率惯导可以考虑添加
