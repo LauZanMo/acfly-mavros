@@ -10,7 +10,7 @@ acfly-mavros是基于开源的mavlink官方仓库mavros，修改以适配acfly�
 
 
 
-mavros大部分与ROS交互的处理在插件中，我们主要讲解插件使用，便于理解。
+**mavros大部分与ROS交互的处理在插件中，我们主要讲解插件使用，便于理解。**
 
 **相关文件**：
 
@@ -142,11 +142,11 @@ acfly.launch文件会加载两个关于插件的ROS参数文件，分别为：
 
 **使用mavlink信息**：
 
-- ACFly_UpdatePosSensor(自定义消息)
+- ACFly_UpdatePosSensor(**自定义消息**)
 
 **实现功能**：
 
-- 以话题或tf形式监听位置传感器信息并下发至FCU
+- 以**话题或tf形式**监听位置传感器信息并下发至FCU
 
 **常用功能**：
 
@@ -253,9 +253,9 @@ acfly_slam_sensor:
 
 <strong style="color:red;">此处的代码逻辑与PX4相同，之前使用PX4的用户可以优先考虑用该插件进行控制!</strong>
 
-此插件功能比较简单，以下是控制步骤：
+此插件功能比较简单，以下是控制局部位置的步骤，其他类似：
 
-1. 用户需要在cmake或python导入mavros_msgs功能包中的相应信息，举个例子，如果我需要控制局部位置，我需要导入mavros_msgs中的[PositionTarget信息](mavros_msgs/msg/PositionTarget.msg)
+1. 用户需要在cmake或python导入mavros_msgs功能包中的[PositionTarget信息](mavros_msgs/msg/PositionTarget.msg)
 2. 参考对应的mavlink信息[SET_POSITION_TARGET_LOCAL_NED](https://mavlink.io/zh/messages/common.html#SET_POSITION_TARGET_LOCAL_NED)填入相应的值，通过/mavros/setpoint_raw/target_local话题发送
 
 **注意**：
@@ -263,6 +263,7 @@ acfly_slam_sensor:
 - 使用mavlink标准格式的ROS信息可以实现最全面的控制，但请务必将参数输入正确，mavros不会检查
 - 控制形式是否支持请参看mavros启动后输出的信息(如SPR: Set position target local command is supported.就是支持[SET_POSITION_TARGET_LOCAL_NED](https://mavlink.io/zh/messages/common.html#SET_POSITION_TARGET_LOCAL_NED))
 - FCU未实现反馈，所以不会有反馈控制信息
+- 控制需要进入**OFFBOARD模式**并且已经解锁
 
 
 
@@ -286,13 +287,11 @@ acfly_slam_sensor:
 
 **注意**：
 
-**注意**：
-
 - 有时间戳的和无时间戳的twist话题都能支持：
   - /mavros/setpoint_velocity/cmd_vel为有时间戳twist话题
   - /mavros/setpoint_velocity/cmd_vel_unstamped为无时间戳twist话题
 - 默认的坐标系为**FLU系**，如有ENU系下的速度控制需求，请通过插件命名空间下的mav_frame服务设置坐标系后，再发布话题
-- 控制需要进入OFFBOARD模式并且已经解锁
+- 控制需要进入**OFFBOARD模式**并且已经解锁
 
 
 
@@ -327,15 +326,12 @@ acfly_slam_sensor:
 
 **注意**：
 
-**注意**：
-
 - 该插件需要有一定的ROS的tf知识，不建议给相对ac_local_enu移动的坐标系给发布target_position，这样会导致错误的控制结果
-
-**注意**：
 
 - 局部位置控制中**位置必须要有**，速度可以不给
 - 局部位置控制开始之前需要通过插件命名空间下set_tf_listen服务**开启位置监听**，结束之后也需要通过该服务**关闭位置监听**
 - 默认全球坐标系为**GLOBAL_INT系**，如有GLOBAL_RELATIVE_ALT_INT系或GLOBAL_TERRAIN_ALT_INT系下的位置控制需求，请通过插件命名空间下的global_mav_frame服务设置坐标系后，再发布话题
+- 控制需要进入**OFFBOARD模式**并且已经解锁
 
 
 
