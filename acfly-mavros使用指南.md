@@ -6,27 +6,45 @@
 
 ## 介绍
 
-acfly-mavros是基于开源的mavlink官方仓库mavros，修改以适配acfly系列飞控的开源代码仓库，感谢PX4开源社区的分享！
+acfly-mavros是基于开源的mavlink官方仓库mavros，修改以适配acfly系列FCU的开源代码仓库，感谢PX4开源社区的分享！
+
+
 
 mavros大部分与ROS交互的处理在插件中，我们主要讲解插件使用，便于理解。
 
+**相关文件**：
+
+acfly.launch文件会加载两个关于插件的ROS参数文件，分别为：
+
+- [acfly_pluginlist.yaml](mavros/launch/acfly_pluginlist.yaml)
+- [acfly_config.yaml](mavros/launch/acfly_config.yaml)
+
+其中acfly_pluginlist.yaml为启动时加载的插件列表，不需要动，<strong style="color:red;">acfly_config.yaml</strong>为插件需要读取的参数，需要<strong style="color:red;">重点关注</strong>，参数均为国际单位
 
 
-提示：
+
+**提示**：
 
 1. 可以使用ROS提供的rqt工具包验证插件的正确性，验证工具如下：
 
 - **topic monitor**：验证插件ROS话题的发布
 - **topic publisher**：验证插件ROS话题的接收
 - **service caller**：验证插件的服务
-- **runtime viewer**：查看飞控状态的诊断信息
+- **runtime viewer**：查看FCU状态的诊断信息
 
 2. 除sys_status和sys_time插件之外，<strong style="color:red;">其他插件都有单独的命名空间</strong>，比如command插件的话题和服务都在/mavros/cmd命名空间下
 3. 以下插件可查看mavlink信息来理解，<strong style="color:red;">单位全为国际单位，坐标系为ROS官方定义的坐标系(ENU-FLU)</strong>
+4. 简称
+   1. 飞控： FCU
+   2. 板载电脑： OBC
+   3. 地面站： GCS
+
 
 ## acfly-mavros官方插件使用
 
 > 由于个人精力有限，没能将所有PX4官方的插件都兼容acfly，所以有些插件不一定能用，同时，我对PX4官方的一些插件做了优化，不一定能适用于PX4本身，请谅解！
+
+
 
 ### sys_status
 
@@ -88,8 +106,8 @@ mavros大部分与ROS交互的处理在插件中，我们主要讲解插件使�
 - [MAV_CMD_DO_SET_HOME](https://mavlink.io/zh/messages/common.html#MAV_CMD_DO_SET_HOME)
 - [MAV_CMD_NAV_TAKEOFF](https://mavlink.io/zh/messages/common.html#MAV_CMD_NAV_TAKEOFF)
 - [MAV_CMD_NAV_LAND](https://mavlink.io/zh/messages/common.html#MAV_CMD_NAV_LAND)
-- [MAV_CMD_DO_TRIGGER_CONTROL](https://mavlink.io/zh/messages/common.html#MAV_CMD_DO_TRIGGER_CONTROL)(由于机载电脑有更完善的视觉处理，后续考虑去掉)
-- [MAV_CMD_DO_SET_CAM_TRIGG_INTERVAL](https://mavlink.io/zh/messages/common.html#MAV_CMD_DO_SET_CAM_TRIGG_INTERVAL)(由于机载电脑有更完善的视觉处理，后续考虑去掉)
+- [MAV_CMD_DO_TRIGGER_CONTROL](https://mavlink.io/zh/messages/common.html#MAV_CMD_DO_TRIGGER_CONTROL)(由于OBC有更完善的视觉处理，后续考虑去掉)
+- [MAV_CMD_DO_SET_CAM_TRIGG_INTERVAL](https://mavlink.io/zh/messages/common.html#MAV_CMD_DO_SET_CAM_TRIGG_INTERVAL)(由于OBC有更完善的视觉处理，后续考虑去掉)
 
 **实现功能**：
 
@@ -120,6 +138,99 @@ mavros大部分与ROS交互的处理在插件中，我们主要讲解插件使�
 
 
 
+### acfly_slam_sensor
+
+**使用mavlink信息**：
+
+- ACFly_UpdatePosSensor(自定义消息)
+
+**实现功能**：
+
+- 以话题或tf形式监听位置传感器信息并下发至FCU
+
+**常用功能**：
+
+该插件主要用于类SLAM的位置传感器，支持两种监听位置信息的方式：
+
+1. [TF](http://wiki.ros.org/tf2) (**推荐**)
+2. pose话题 (<strong style="color:red;">之前PX4的用户可优先考虑</strong>)
+
+该插件的参数在同名命名空间下：
+
+```yaml
+# acfly_slam_sensor
+acfly_slam_sensor:
+  sensor_id: "camera"                       # 传感器TF名(插件将其与body_id之间建立静态tf)
+  body_id: "base_link"                      # 飞控body系(通常不需要修改)
+  sensor_body_rotation: [0.0, 0.0, 0.0]     # 传感器与body之间的旋转，以欧拉角rpy表示(ENU-FLU)
+  sensor_body_translation: [0.0, 0.0, 0.0]  # 传感器与body之间的位移xyz(ENU-FLU)
+  sensor:
+    index: 15                               # 飞控注册定位传感器索引号(C9最高为16路)
+    delay: 0.05                             # 默认传感器延时(s)
+    trust_xy: 0.01                          # 传感器xy方向方差(m^2)
+    trust_z: 0.01                           # 传感器z方向方差(m^2)
+  tf:
+    listen: false                           # 通过监听tf来获取位置信息(false则通过订阅来获取tf信息)
+    frame_id: "map"                         # 传感器建图坐标系(通常为map)
+    child_frame_id: "base_link"             # 飞控body系(通常不需要修改)
+    rate_limit: 10.0                        # 监听频率
+```
+
+以下是tf监听流程：
+
+如果需要使用**TF方式**监听位置信息，需要执行以下操作：
+
+- 插件参数acfly_slam_sensor/tf/listen 改为 true
+
+- 通过查询TF**正确填写**
+
+  - acfly_slam_sensor/sensor_id
+
+  - acfly_slam_sensor/tf/frame_id
+
+  - acfly_slam_sensor/sensor_body_rotation和acfly_slam_sensor/sensor_body_translation
+
+
+以T265为例：
+
+1. 启动T265后，命令行输入“rqt”以打开rqt工具箱
+2. rqt左上角找到Plugins -> Visualization -> TF Tree，单击打开，可以看到如下：<img src="images/T265%20TF%E6%A0%91.png" alt="T265 TF树" style="zoom:50%;" />
+3. 可知传感器坐标系为camera_link，里程计/地图坐标系为camera_odom_frame(使用自己的SLAM系统需要保证这些坐标系都是右手系) **注意：realsense-ros不同版本tf名字可能不同**
+4. 测量传感器 -> 飞控的平移和旋转(FLU系)，**以飞控在T265后0.1m，且相对T265在Z轴正向旋转了180度为例**。
+
+最后可填写得：
+
+```yaml
+# acfly_slam_sensor
+acfly_slam_sensor:
+  sensor_id: "camera_link"
+  body_id: "base_link"
+  sensor_body_rotation: [0.0, 0.0, 3.1415926535]
+  sensor_body_translation: [-0.1, 0.0, 0.0]
+  tf:
+    listen: true
+    frame_id: "camera_odom_frame"
+    child_frame_id: "base_link"
+    rate_limit: 10.0
+```
+
+- 对于位置传感器，推荐监听频率为10-30hz，即acfly_slam_sensor/tf/rate_limit修改为10-30
+
+- 其余可直接设为默认
+
+以下是pose话题监听流程：
+
+- 插件参数acfly_slam_sensor/tf/listen 改为 false
+- 发布[mavros/acfly_slam_sensor/pose](http://docs.ros.org/en/api/geometry_msgs/html/msg/PoseStamped.html)或[mavros/acfly_slam_sensor/pose_conv](http://docs.ros.org/en/api/geometry_msgs/html/msg/PoseWithCovarianceStamped.html)话题，任意选一个即可，仅仅是有无协方差矩阵的区别
+  - **注意**：发布的位置需为**里程计/地图 -> FCU的变换**，而不是里程计/地图 -> 传感器的变换
+
+**注意**：
+
+- acfly_slam_sensor/sensor下的参数请根据实际情况修改，如果索引需要修改，请确保与acfly本身的传感器索引没有冲突
+- 如果使用了pose话题监听，则**setpoint_position**的**局部位置设置**(也是通过tf实现)不可用
+
+
+
 ### set_point_raw
 
 **使用mavlink信息**：
@@ -134,7 +245,7 @@ mavros大部分与ROS交互的处理在插件中，我们主要讲解插件使�
 **实现功能**：
 
 - 以**话题形式**接收mavlink标准格式的ROS信息(mavros_msgs中有定义，与mavlink格式一模一样)
-- 以**话题形式**发布由飞控反馈回来的mavlink标准格式的ROS信息(与发送的一致)
+- 以**话题形式**发布由FCU反馈回来的mavlink标准格式的ROS信息(与发送的一致)
 
 **常用功能**：
 
@@ -204,7 +315,7 @@ mavros大部分与ROS交互的处理在插件中，我们主要讲解插件使�
 1. 通过/mavros/setpoint_position/set_tf_listen服务设置打开tf监听(value设置为true)，需要导入mavros_msgs的[SetTFListen.srv](mavros_msgs/srv/SetTFListen.srv)
 2. 相对于ac_local_enu发布target_position的tf变换，可以是间接的，举个例子：
    1. 假设slam地图的tf为map，slam传感器tf为sensor (如果使用了acfly_slam_sensor插件，系统会自动发布base_link(imu)与sensor的tf变换)
-   2. 那么我们的tf树通常是这样的: map->sensor->base_link->ac_local_enu
+   2. 那么我们的tf树通常是这样的: map -> sensor -> base_link -> ac_local_enu
    3. enu系下的坐标不够直观，且对于使用ROS的用户，通常是给传感器所建地图的坐标，而不是enu系。为了更加直观，可以直接以map为原点，发布target_position的tf
 3. 如果同时需要速度控制，可以通过/mavros/setpoint_position/set_twist发布[twist](http://docs.ros.org/en/noetic/api/geometry_msgs/html/msg/Twist.html)信息，但请确保输入正确，系统不会检查，速度坐标系只能是**ENU系**的
 4. 结束位置控制需要通过/mavros/setpoint_position/set_tf_listen服务设置关闭tf监听
