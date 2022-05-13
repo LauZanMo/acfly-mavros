@@ -24,11 +24,7 @@ acfly-mavros(以下简称mavros)文件夹下共有五个模块，他们的功能
 
 也就是说，<strong style="color:red;">我们只需要按照mavros指定的方式写ROS的插件，就能实现mavlink信息与ROS信息的转换！</strong>
 
-## acfly-mavros插件的使用
-
-> 这里先介绍mavros的插件的框架，再具体介绍我修改的一些插件的使用
-
-### mavros插件框架
+## mavros插件框架
 
 不懂ROS插件的同学请先看看[ROS官方介绍](http://wiki.ros.org/pluginlib)
 
@@ -46,78 +42,7 @@ acfly-mavros(以下简称mavros)文件夹下共有五个模块，他们的功能
 - 该类connection_cb函数需要重写，当FCU或GCS连接上时会调用该函数，启用该函数需要在初始化(initialize函数)时调用enable_connection_cb函数进行使能
 - 该类capabilities_cb需要重写，当FCU或GCS的兼容性(具体定义可查看[mavlink官方介绍](https://mavlink.io/zh/messages/common.html#MAV_PROTOCOL_CAPABILITY))发生改变时会调用该函数(刚连接上也算兼容性改变)，启用该函数需要在初始化(initialize函数)时调用enable_capabilities_cb函数进行使能
 
-### acfly-mavros官方插件
-
-> 由于个人精力有限，没能将所有PX4官方的插件都兼容acfly，所以有些插件不一定能用，同时，我对PX4官方的一些插件做了优化，不一定能适用于PX4本身，请谅解！
-
-提示：
-
-1. 可以使用ROS提供的rqt工具包验证插件的正确性，验证工具如下：
-
-- **topic monitor**：验证插件ROS话题的发布
-- **topic publisher**：验证插件ROS话题的接收
-- **service caller**：验证插件的服务
-- **runtime viewer**：查看飞控状态的诊断信息
-
-2. 除sys_status和sys_time插件之外，<strong style="color:red;">其他插件都有单独的命名空间</strong>，比如command插件的话题和服务都在/mavros/cmd命名空间下
-
-
-
-以下插件可查看mavlink信息来理解，<strong style="color:red;">单位全为国际单位，坐标系为ROS官方定义的坐标系(ENU-FLU)</strong>
-
-#### sys_status
-
-**使用mavlink信息**：
-
-- [HEARTBEAT](https://mavlink.io/zh/messages/common.html#HEARTBEAT)
-- [SYS_STATUS](https://mavlink.io/zh/messages/common.html#SYS_STATUS)
-
-- [EXTENDED_SYS_STATE](https://mavlink.io/zh/messages/common.html#EXTENDED_SYS_STATE)
-
-- [STATUSTEXT](https://mavlink.io/zh/messages/common.html#STATUSTEXT)
-
-- [AUTOPILOT_VERSION](https://mavlink.io/zh/messages/common.html#AUTOPILOT_VERSION)
-
-- [BATTERY_STATUS](https://mavlink.io/zh/messages/common.html#BATTERY_STATUS)
-
-**实现功能**：
-
-- 以**话题形式**实现上述mavlink信息的转发，具体信息内容参考上述链接
-- 以**话题形式**接收[STATUSTEXT](https://mavlink.io/zh/messages/common.html#STATUSTEXT)信息并以mavlink格式转发
-- 以**服务形式**实现信息速率设置与载具信息的获取
-- 对mavlink心跳、系统状态、电池状态进行可视化诊断
-
-#### command
-
-**使用mavlink信息**：
-
-- [COMMAND_LONG](https://mavlink.io/zh/messages/common.html#COMMAND_LONG)
-
-- [COMMAND_INT](https://mavlink.io/zh/messages/common.html#COMMAND_INT)
-
-- [COMMAND_ACK](https://mavlink.io/zh/messages/common.html#COMMAND_ACK)
-
-**使用mavlink指令**：
-
-- [MAV_CMD_DO_SET_MODE](https://mavlink.io/zh/messages/common.html#MAV_CMD_DO_SET_MODE)
-- [MAV_CMD_COMPONENT_ARM_DISARM](https://mavlink.io/zh/messages/common.html#MAV_CMD_COMPONENT_ARM_DISARM)
-- [MAV_CMD_DO_SET_HOME](https://mavlink.io/zh/messages/common.html#MAV_CMD_DO_SET_HOME)
-- [MAV_CMD_NAV_TAKEOFF](https://mavlink.io/zh/messages/common.html#MAV_CMD_NAV_TAKEOFF)
-- [MAV_CMD_NAV_LAND](https://mavlink.io/zh/messages/common.html#MAV_CMD_NAV_LAND)
-- [MAV_CMD_DO_TRIGGER_CONTROL](https://mavlink.io/zh/messages/common.html#MAV_CMD_DO_TRIGGER_CONTROL)(由于机载电脑有更完善的视觉处理，后续考虑去掉)
-- [MAV_CMD_DO_SET_CAM_TRIGG_INTERVAL](https://mavlink.io/zh/messages/common.html#MAV_CMD_DO_SET_CAM_TRIGG_INTERVAL)(由于机载电脑有更完善的视觉处理，后续考虑去掉)
-
-**实现功能**：
-
-- 以**服务形式**实现短指令和长指令信息的下发与回应检测。
-- 以**服务形式**实现控制ACFLY主控完成以下动作：
-  - 设置模式(/mavros/cmd/do_set_mode)
-  - 解锁(/mavros/cmd/arming)
-  - 起降(全球坐标系)(/mavros/cmd/takeoff和/mavros/cmd/land)
-  - 起降(局部坐标系)(/mavros/cmd/takeoff_local和/mavros/cmd/land_local)
-  - 拍照与设置触发间隔
-
-**注意**：原版mavros的**set_mode**是放在**sys_status**插件中的，我修改到了command插件中，使用的信息也不一样，但是PX4仿真可用
+### 
 
 #### param
 
@@ -134,28 +59,6 @@ acfly-mavros(以下简称mavros)文件夹下共有五个模块，他们的功能
 **实现功能**：
 
 - 以**服务形式**实现单个参数与参数列表的获取与设置，并对参数索引是否正确进行检测。(索引错误只会报警告，只要参数名正确不影响设置)
-
-#### set_point_raw
-
-**使用mavlink信息**：
-
-- [SET_ATTITUDE_TARGET](https://mavlink.io/zh/messages/common.html#SET_ATTITUDE_TARGET)
-- [ATTITUDE_TARGET](https://mavlink.io/zh/messages/common.html#ATTITUDE_TARGET)
-- [SET_POSITION_TARGET_LOCAL_NED](https://mavlink.io/zh/messages/common.html#SET_POSITION_TARGET_LOCAL_NED)
-- [POSITION_TARGET_LOCAL_NED](https://mavlink.io/zh/messages/common.html#POSITION_TARGET_LOCAL_NED)
-- [SET_POSITION_TARGET_GLOBAL_INT](https://mavlink.io/zh/messages/common.html#SET_POSITION_TARGET_GLOBAL_INT)
-- [POSITION_TARGET_GLOBAL_INT](https://mavlink.io/zh/messages/common.html#POSITION_TARGET_GLOBAL_INT)
-
-**实现功能**：
-
-- 以**话题形式**接收mavlink标准格式的ROS信息(mavros_msgs中有定义，与mavlink格式一模一样)
-- 以**话题形式**发布由飞控反馈回来的mavlink标准格式的ROS信息(与发送的一致)
-
-**注意**：
-
-- 使用mavlink标准格式的ROS信息可以实现最全面的控制，但请务必将参数输入正确，mavros不会检查
-- set attitude后续只在穿越机中支持，控制形式是否支持请参看mavros启动后输出的信息(如SPR: Set position target local command is supported.就是支持[SET_POSITION_TARGET_LOCAL_NED](https://mavlink.io/zh/messages/common.html#SET_POSITION_TARGET_LOCAL_NED))
-- acfly飞控端未实现反馈，所以不会有反馈信息
 
 #### setpoint_velocity
 

@@ -51,7 +51,7 @@ source devel/setup.bash
 
 ## 启动
 
-提供官方的launch文件为acfly-mavros/mavros/launch/acfly.launch
+提供官方的launch文件为[acfly-mavros/mavros/launch/acfly.launch](mavros/launch/acfly.launch)
 
 启动前请连上飞控串口，将mavlink连接参数中的fcu_url参数修改成实际参数(串口名称，波特率)，再执行：
 
@@ -59,9 +59,9 @@ source devel/setup.bash
 roslaunch mavros acfly.launch
 ```
 
-配置插件文件为acfly-mavros/mavros/launch/acfly_pluginlist.yaml，其中白名单中的插件名为正在使用的插件(黑名单不用管)。
+配置插件文件为[acfly-mavros/mavros/launch/acfly_pluginlist.yaml](mavros/launch/acfly_pluginlist.yaml)，其中白名单中的插件名为正在使用的插件(黑名单不用管)。
 
-插件参数文件为acfly-mavros/mavros/launch/acfly_config.yaml，可根据自己需要进行修改，后续出参数讲解。
+插件参数文件为[acfly-mavros/mavros/launch/acfly_config.yaml](mavros/launch/acfly_config.yaml)，可根据自己需要进行修改，后续出参数讲解。
 
 还可以通过udp形式连接acfly地面站(具体请参考mavros与QGC连接)
 
@@ -75,6 +75,12 @@ roslaunch mavros acfly.launch
 - acfly-mavros/test_mavros/launch/acfly/multi_uav_acfly_sitl.launch
 
 需要配置好参数才能执行。
+
+## 使用与二次开发
+
+如果只是为了使用请先参考[使用指南](acfly-mavros使用指南.md)
+
+需要进行二次开发请参考[二次开发指南](acfly-mavros二次开发指南.md)
 
 ## 贡献
 
