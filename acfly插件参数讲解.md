@@ -90,5 +90,3 @@ acfly_slam_sensor:
 - 发布[mavros/acfly_slam_sensor/pose](http://docs.ros.org/en/api/geometry_msgs/html/msg/PoseStamped.html)或[mavros/acfly_slam_sensor/pose_conv](http://docs.ros.org/en/api/geometry_msgs/html/msg/PoseWithCovarianceStamped.html)话题
   - **注意**：发布的位置需为**里程计/地图 -> FCU的变换**，而不是地图 -> 传感器的变换
 - acfly_slam_sensor/sensor下的参数请根据实际情况修改，如果索引需要修改，请确保与acfly本身的传感器索引没有冲突
-
-### 

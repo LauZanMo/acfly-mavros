@@ -26,7 +26,7 @@ acfly-mavros(以下简称mavros)文件夹下共有五个模块，他们的功能
 
 ## mavros插件框架
 
-不懂ROS插件的同学请先看看[ROS官方介绍](http://wiki.ros.org/pluginlib)
+不懂ROS插件的用户请先看看[ROS官方介绍](http://wiki.ros.org/pluginlib)
 
 所有mavros插件都继承于mavros自定义的pluginbase类，文件为[mavros_plugin.h](mavros/include/mavros/mavros_plugin.h)中，该类提供了所有mavros插件都需要的一些基础方法，同时留下了一些接口供我们重写(virtual开头的函数)，以下做详细讲解：
 
