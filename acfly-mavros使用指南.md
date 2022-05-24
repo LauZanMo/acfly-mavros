@@ -2,7 +2,7 @@
 
 >Author & Maintainer 刘正武
 >
->开源不易，请动动小手，点个小小的star和fork吧！
+>开源不易，请点个star和fork吧！
 
 ## 介绍
 
@@ -35,15 +35,26 @@ acfly.launch文件会加载两个关于插件的ROS参数文件，分别为：
 2. 除sys_status和sys_time插件之外，<strong style="color:red;">其他插件都有单独的命名空间</strong>，比如command插件的话题和服务都在/mavros/cmd命名空间下
 3. 以下插件可查看mavlink信息来理解，<strong style="color:red;">单位全为国际单位，坐标系为ROS官方定义的坐标系(ENU-FLU)</strong>
 4. 简称
-   1. 飞控： FCU
-   2. 板载电脑： OBC
-   3. 地面站： GCS
+   1. 飞控：FCU
+   2. 板载电脑：OBC
+   3. 地面站：GCS
 
 
 ## acfly-mavros官方插件使用
 
 > 由于个人精力有限，没能将所有PX4官方的插件都兼容acfly，所以有些插件不一定能用，同时，我对PX4官方的一些插件做了优化，不一定能适用于PX4本身，请谅解！
 
+### 快速导航
+
+- 设置FCU飞行模式、接收和发送mavlink指令，请看[command](#command)插件
+- 通过OBC发送slam类传感器信息，请看[acfly_slam_sensor](#acfly_slam_sensor)插件
+- 之前使用PX4用户，需要快速通过指令控制FCU，请看[set_point_raw](#set_point_raw)插件
+- 与ROS规划器或ego_planner对接，请看[set_point_velocity](#set_point_velocity)插件
+- 无规划器，且需要飞相对或绝对位置的航点，请看[set_point_position](#set_point_position)插件
+- 监听FCU传感器信息：
+  - IMU信息：[IMU](#IMU)插件
+  - 局部位置：[local_position](#local_position)插件
+  - 全球位置：[global_position](#global_position)插件
 
 
 ### sys_status
@@ -70,24 +81,56 @@ acfly.launch文件会加载两个关于插件的ROS参数文件，分别为：
 
 **常用功能**：
 
-可以通过以下话题接收FCU信息：
+- 可以通过以下话题接收FCU信息：
 
-- /mavros/state：FCU状态，包含传感器健康信息
-- /mavros/extended_state： FCU扩展状态
-- /mavros/battery: FCU检测电池状态
+  - /mavros/state：FCU状态，包含传感器健康信息
 
-以上可以通过rqt的runtime viewer来监视，更加直观
+  - /mavros/extended_state： FCU扩展状态
 
-同时，可以通过
-
-- /mavros/statustext/send
-- /mavros/statustext/recv
-
-向FCU发送与接收信息状态文本信息。
-
-**注意：由于mavros不兼容中文，有时候出现一串红色的问号，通常是磁场受到干扰，FCU向OBC发送“检查航向”的中文所导致。**
+  - /mavros/battery: FCU检测电池状态
 
 
+​	以上可以通过rqt的runtime viewer来监视，更加直观
+
+- 可以通过
+
+  - /mavros/statustext/send
+
+  - /mavros/statustext/recv
+
+
+​	向FCU发送与接收信息状态文本信息。
+
+- 可以通过
+  - /mavros/set_stream_rate 调整FCU发送消息的速率
+  - /mavros/vehicle_info_get 获取载具信息
+  - /mavros/set_message_interval 设置消息间隔
+
+**注意：由于mavros不兼容中文，有时候出现一串红色的问号，通常是磁场受到干扰，FCU向OBC发送“检查航向”的中文所导致，重新标定磁力计即可**
+
+
+
+### sys_time
+
+**使用mavlink信息**：
+
+- [TIMESYNC](https://mavlink.io/zh/messages/common.html#TIMESYNC)
+
+- [SYSTEM_TIME](https://mavlink.io/zh/messages/common.html#SYSTEM_TIME)(FCU暂未实现)
+
+**实现功能**：
+
+- 检测FCU和OBC之间的延迟，即RTT(往返时间 round-trip time)，并补偿到FCU发送的传感器信息中(如IMU，GPS)
+
+- 检测FCU端的系统时间(FCU暂未实现)
+
+**常用功能**：
+
+- 可以通过rqt的runtime viewer来监视RTT
+
+**注意**：
+
+- RTT跟连接方式关系较大，如果启动后一直输出"high RTT"，则可以稍微调大[配置文件](mavros\launch\acfly_config.yaml)的time/max_rtt_sample参数，单位为ms
 
 ### command
 
@@ -182,7 +225,7 @@ acfly_slam_sensor:
 
 - 插件参数acfly_slam_sensor/tf/listen 改为 true
 
-- 通过查询TF**正确填写**
+- 通过查询TF**正确填写**(插件会在启动时发布sensor到base_link的tf)
 
   - acfly_slam_sensor/sensor_id
 
@@ -351,6 +394,8 @@ acfly_slam_sensor:
 
 - 以**服务形式**实现单个参数与参数列表的获取与设置，并对参数索引是否正确进行检测。(索引错误只会报警告，只要参数名正确不影响设置)
 
+**由于该插件功能都不怎么常用(可直接用地面站代替)，故不作具体讲解**
+
 
 
 ### IMU
@@ -371,8 +416,94 @@ acfly_slam_sensor:
 
 - 以**话题形式**实现上述mavlink信息的转发，具体信息内容参考上述链接
 
+**常用功能**：
+
+可以通过以下话题监听FCU发送的几个主要信息(ROS标准格式)：
+
+- /mavros/imu/data：ROS格式的IMU信息，与FCU发送的[SCALED_IMU](https://mavlink.io/zh/messages/common.html#SCALED_IMU)、[ATTITUDE](https://mavlink.io/zh/messages/common.html#ATTITUDE)或[ATTITUDE_QUATERNION](https://mavlink.io/zh/messages/common.html#ATTITUDE_QUATERNION)(角度有任意一个即可，优先四元数)有关
+- /mavros/imu/static_pressure：绝对气压
+- /mavros/imu/diff_pressure：相对气压(相对起飞点)
+
+目前FCU固件(20220304)中[SCALED_IMU](https://mavlink.io/zh/messages/common.html#SCALED_IMU)和[ATTITUDE](https://mavlink.io/zh/messages/common.html#ATTITUDE)的发送频率分别为2Hz和15Hz，如果需要使用IMU信息，建议在Commulink.cpp的CommuPortRegister函数中修改这两个信息的发送频率为20Hz(或更高)
+
 **注意**：
 
 - 各ROS信息的坐标系在具体定义可查询[wiki.ros.org/sensor_msgs](http://wiki.ros.org/sensor_msgs)，在MAVROS启动已有对应的静态TF发布
 - [RAW_IMU](https://mavlink.io/zh/messages/common.html#RAW_IMU)信息ACFLY未实现，且感觉没用，后续考虑删减
 - [HIGHRES_IMU](https://mavlink.io/zh/messages/common.html#HIGHRES_IMU)信息如果后续有高分辨率惯导可以考虑添加
+- 不修改固件的调节发送频率的方法：通过sys_status的/mavros/set_stream_rate修改对应信息的频率
+
+
+
+### local_position
+
+**使用mavlink信息**：
+
+- [LOCAL_POSITION_NED](https://mavlink.io/zh/messages/common.html#LOCAL_POSITION_NED)
+- [LOCAL_POSITION_NED_COV](https://mavlink.io/zh/messages/common.html#LOCAL_POSITION_NED_COV)(FCU未实现)
+
+**实现功能**：
+
+- 以**话题形式**实现上述mavlink信息的转发，具体信息内容参考上述链接
+- 以**tf树形式**发布局部位置变换(base_link -> ac_local_enu)
+
+**常用功能**：
+
+可以通过以下话题监听FCU发送的信息(ROS标准格式)：
+
+- /mavros/local_position/pose：局部位置(ENU)
+- /mavros/local_position/velocity_local：局部速度(ENU)
+- /mavros/local_position/velocity_body：机体速度(FLU)
+- /mavros/local_position/odom：里程计数据
+
+具体定义需要参考ROS标准格式(可在运行时通过命令行输入rostopic info xxx查询)
+
+也可以通过tf树直接监听base_link与ac_local_enu的变换(与话题一个效果)
+
+**注意**：
+
+- 使用到的ROS标准格式信息链接：
+  - [geometry_msgs/PoseStamped](https://docs.ros.org/en/noetic/api/geometry_msgs/html/msg/PoseStamped.html)
+  - [geometry_msgs/TwistStamped](https://docs.ros.org/en/noetic/api/geometry_msgs/html/msg/TwistStamped.html)
+  - [nav_msgs/Odometry](https://docs.ros.org/en/noetic/api/nav_msgs/html/msg/Odometry.html)
+
+- 默认tf树开启(与global_position相斥)
+- 不修改固件的调节发送频率的方法：通过sys_status的/mavros/set_stream_rate修改对应信息的频率
+
+
+
+### global_position
+
+**使用mavlink信息**：
+
+- [GPS_RAW_INT](https://mavlink.io/zh/messages/common.html#GPS_RAW_INT)
+- [GPS_GLOBAL_ORIGIN](https://mavlink.io/zh/messages/common.html#GPS_GLOBAL_ORIGIN)(FCU未实现)
+- [GLOBAL_POSITION_INT](https://mavlink.io/zh/messages/common.html#GLOBAL_POSITION_INT)
+- [LOCAL_POSITION_NED_SYSTEM_GLOBAL_OFFSET](https://mavlink.io/zh/messages/common.html#LOCAL_POSITION_NED_SYSTEM_GLOBAL_OFFSET)(FCU未实现)
+- [HOME_POSITION](https://mavlink.io/zh/messages/common.html#HOME_POSITION)
+
+**实现功能**：
+
+- 以**话题形式**实现上述mavlink信息的转发，具体信息内容参考上述链接
+- 以**tf树形式**发布全球转局部的位置变换(base_link -> ac_local_enu)
+
+**常用功能**：
+
+- 可以通过以下话题监听FCU发送的信息(ROS标准格式)：
+  - /mavros/global_position/raw/fix：GPS原始观测位置
+  - /mavros/global_position/raw/gps_vel：GPS原始观测速度
+  - /mavros/global_position/raw/satellites：GPS原始观测卫星数
+  - /mavros/global_position/global：FCU解算系统的全球位置
+  - /mavros/global_position/local：FCU解算系统的全球位置换算成局部位置
+  - /mavros/global_position/rel_alt：FCU解算系统的全球位置换算成相对高度
+  - /mavros/global_position/compass_hdg：FCU解算系统的罗盘航向
+
+也可以通过tf树直接监听base_link与ac_local_enu的变换(与local话题一个效果)
+
+**注意**：
+
+- 上述消息需要GPS搜到星方能使用
+
+- 默认tf树关闭(与local_position相斥)
+- 不修改固件的调节发送频率的方法：通过sys_status的/mavros/set_stream_rate修改对应信息的频率
+
