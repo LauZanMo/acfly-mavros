@@ -13,13 +13,13 @@
   <arg name="respawn_mavros" default="false" />
 
   <!-- mavros参数文件 -->
-  <arg name="pluginlists_yaml" value="$(find mavros)/launch/acfly_pluginlist.yaml" />
-  <arg name="config_yaml" value="$(find mavros)/launch/acfly_config.yaml" />
+  <arg name="pluginlists_yaml" default="$(find mavros)/launch/acfly_pluginlist.yaml" />
+  <arg name="config_yaml" default="$(find mavros)/launch/acfly_config.yaml" />
 
   <!-- 启动mavlink通信 -->
   <include file="$(find mavros)/launch/node.launch">
-    <arg name="pluginlists_yaml" default="$(arg pluginlists_yaml)"/>
-    <arg name="config_yaml" default="$(arg config_yaml)"/>
+    <arg name="pluginlists_yaml" value="$(arg pluginlists_yaml)"/>
+    <arg name="config_yaml" value="$(arg config_yaml)"/>
 
     <arg name="fcu_url" value="$(arg fcu_url)"/>
     <arg name="gcs_url" value="$(arg gcs_url)"/>
