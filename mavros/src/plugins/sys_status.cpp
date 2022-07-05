@@ -21,6 +21,7 @@
 #include <mavros_msgs/State.h>
 #include <mavros_msgs/StatusText.h>
 #include <mavros_msgs/StreamRate.h>
+#include <mavros_msgs/SetMode.h>
 #include <mavros_msgs/VehicleInfo.h>
 #include <mavros_msgs/VehicleInfoGet.h>
 
@@ -486,6 +487,7 @@ public:
         statustext_sub =
             nh.subscribe("statustext/send", 10, &SystemStatusPlugin::statustext_cb, this);
         rate_srv = nh.advertiseService("set_stream_rate", &SystemStatusPlugin::set_rate_cb, this);
+        mode_srv = nh.advertiseService("set_mode", &SystemStatusPlugin::set_mode_cb, this);
         vehicle_info_get_srv =
             nh.advertiseService("vehicle_info_get", &SystemStatusPlugin::vehicle_info_get_cb, this);
         message_interval_srv = nh.advertiseService(
@@ -529,6 +531,7 @@ private:
     ros::Publisher     statustext_pub;
     ros::Subscriber    statustext_sub;
     ros::ServiceServer rate_srv;
+    ros::ServiceServer mode_srv;
     ros::ServiceServer vehicle_info_get_srv;
     ros::ServiceServer message_interval_srv;
 
@@ -1058,6 +1061,33 @@ private:
         rq.start_stop       = (req.on_off) ? 1 : 0;
 
         UAS_FCU(m_uas)->send_message_ignore_drop(rq);
+        return true;
+    }
+
+    bool set_mode_cb(mavros_msgs::SetMode::Request &req, mavros_msgs::SetMode::Response &res) {
+        using mavlink::minimal::MAV_MODE_FLAG;
+
+        uint8_t  base_mode   = req.base_mode;
+        uint32_t custom_mode = 0;
+
+        if (req.custom_mode != "") {
+            if (!m_uas->cmode_from_str(req.custom_mode, custom_mode)) {
+                res.mode_sent = false;
+                return true;
+            }
+
+            base_mode |= (m_uas->get_armed()) ? enum_value(MAV_MODE_FLAG::SAFETY_ARMED) : 0;
+            base_mode |= (m_uas->get_hil_state()) ? enum_value(MAV_MODE_FLAG::HIL_ENABLED) : 0;
+            base_mode |= enum_value(MAV_MODE_FLAG::CUSTOM_MODE_ENABLED);
+        }
+
+        mavlink::common::msg::SET_MODE sm = {};
+        sm.target_system                  = m_uas->get_tgt_system();
+        sm.base_mode                      = base_mode;
+        sm.custom_mode                    = custom_mode;
+
+        UAS_FCU(m_uas)->send_message_ignore_drop(sm);
+        res.mode_sent = true;
         return true;
     }
 
