@@ -26,7 +26,7 @@ public:
     void register_position_sensor(ros::NodeHandle *nh) {
         // 传感器参数
         nh->param<std::string>("sensor/name", sensor_name, "ROS");
-        nh->param("sensor/index", sensor_ind, 15);                  // 最高16路
+        nh->param("sensor/index", sensor_ind, 15);                  // 最高16路，数组形式，0~15
         nh->param("sensor/type", sensor_type, 1);                   // 相对定位
         nh->param("sensor/data_frame", sensor_data_frame, 4);       // SLAM坐标系下的位置
         nh->param("sensor/data_type", sensor_data_type, 2);         // 三轴位置
