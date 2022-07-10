@@ -445,19 +445,19 @@ private:
             transform.header.frame_id = tf_frame_id;
             transform.child_frame_id  = tf_child_frame_id;
 
-            // set rotation
-            // 设置旋转
-            Eigen::Quaterniond        q;
-            geometry_msgs::Quaternion q_msg;
+            // set rotation and origin
+            // 设置旋转与原点
+            Eigen::Quaterniond q, q_inv;
+            transform.header.stamp    = odom->header.stamp;
+            transform.header.frame_id = tf_frame_id;
+            transform.child_frame_id  = tf_child_frame_id;
             tf::quaternionMsgToEigen(odom->pose.pose.orientation, q);
-            tf::quaternionEigenToMsg(q.inverse(), q_msg);
-            transform.transform.rotation = q_msg;
-
-            // set origin
-            // 设置原点
-            transform.transform.translation.x = -odom->pose.pose.position.x;
-            transform.transform.translation.y = -odom->pose.pose.position.y;
-            transform.transform.translation.z = -odom->pose.pose.position.z;
+            q_inv               = q.inverse();
+            Eigen::Vector3d pos = -q_inv.matrix() * Eigen::Vector3d(odom->pose.pose.position.x,
+                                                                    odom->pose.pose.position.y,
+                                                                    odom->pose.pose.position.z);
+            tf::vectorEigenToMsg(pos, transform.transform.translation);
+            tf::quaternionEigenToMsg(q_inv, transform.transform.rotation);
 
             m_uas->tf2_broadcaster.sendTransform(transform);
         }
