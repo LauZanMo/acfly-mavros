@@ -134,6 +134,19 @@ void UAS::add_capabilities_change_handler(UAS::CapabilitiesCb cb) {
     capabilities_cb_vec.push_back(cb);
 }
 
+/* Position sensor data */
+
+void UAS::update_pos_sensor_connection_status(uint32_t &flags) {
+    lock_guard lock(mutex);
+    if (flags != pos_sensor_connection_status)
+        pos_sensor_connection_status = flags;
+}
+
+bool UAS::get_pos_sensor_connection_status(int &index){
+    lock_guard lock(mutex);
+    return pos_sensor_connection_status & (1 << index);
+}
+
 /* IMU data */
 
 void UAS::update_attitude_imu_enu(sensor_msgs::Imu::Ptr &imu) {

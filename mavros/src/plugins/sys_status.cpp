@@ -739,6 +739,7 @@ private:
         battery_voltage = volt;
         sys_diag.set(stat);
         batt_diag.set(volt, curr, rem);
+        m_uas->update_pos_sensor_connection_status(stat.pos_Cflags);
 
         if (has_battery_status)
             return;

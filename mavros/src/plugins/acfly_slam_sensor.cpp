@@ -111,27 +111,39 @@ private:
     /* ROS回调函数 */
 
     void transform_cb(const geometry_msgs::TransformStamped &transform) {
-        Eigen::Affine3d tr;
-        tf::transformMsgToEigen(transform.transform, tr);
+        if (!m_uas->get_pos_sensor_connection_status(sensor_ind)) {
+            register_position_sensor(&ass_nh);
+        } else {
+            Eigen::Affine3d tr;
+            tf::transformMsgToEigen(transform.transform, tr);
 
-        update_position_sensor(transform.header.stamp, tr.translation(), Eigen::Vector3d::Zero(),
-                               Eigen::Quaterniond(tr.rotation()));
+            update_position_sensor(transform.header.stamp, tr.translation(),
+                                   Eigen::Vector3d::Zero(), Eigen::Quaterniond(tr.rotation()));
+        }
     }
 
     void pose_cb(const geometry_msgs::PoseStamped::ConstPtr &pose_stamp) {
-        Eigen::Affine3d tr;
-        tf::poseMsgToEigen(pose_stamp->pose, tr);
+        if (!m_uas->get_pos_sensor_connection_status(sensor_ind)) {
+            register_position_sensor(&ass_nh);
+        } else {
+            Eigen::Affine3d tr;
+            tf::poseMsgToEigen(pose_stamp->pose, tr);
 
-        update_position_sensor(pose_stamp->header.stamp, tr.translation(), Eigen::Vector3d::Zero(),
-                               Eigen::Quaterniond(tr.rotation()));
+            update_position_sensor(pose_stamp->header.stamp, tr.translation(),
+                                   Eigen::Vector3d::Zero(), Eigen::Quaterniond(tr.rotation()));
+        }
     }
 
     void pose_cov_cb(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &pose_cov_stamp) {
-        Eigen::Affine3d tr;
-        tf::poseMsgToEigen(pose_cov_stamp->pose.pose, tr);
+        if (!m_uas->get_pos_sensor_connection_status(sensor_ind)) {
+            register_position_sensor(&ass_nh);
+        } else {
+            Eigen::Affine3d tr;
+            tf::poseMsgToEigen(pose_cov_stamp->pose.pose, tr);
 
-        update_position_sensor(pose_cov_stamp->header.stamp, tr.translation(),
-                               Eigen::Vector3d::Zero(), Eigen::Quaterniond(tr.rotation()));
+            update_position_sensor(pose_cov_stamp->header.stamp, tr.translation(),
+                                   Eigen::Vector3d::Zero(), Eigen::Quaterniond(tr.rotation()));
+        }
     }
 
     void loop_cb(const std_msgs::Bool::ConstPtr &loop) {

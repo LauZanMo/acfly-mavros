@@ -167,6 +167,12 @@ public:
         target_component = comp;
     }
 
+    /* Position sensor data */
+
+    void update_pos_sensor_connection_status(uint32_t &flags);
+
+    bool get_pos_sensor_connection_status(int &index);
+
     /* IMU data */
 
     /**
@@ -475,6 +481,8 @@ private:
     std::atomic<bool>           connected;
     std::vector<ConnectionCb>   connection_cb_vec;
     std::vector<CapabilitiesCb> capabilities_cb_vec;
+
+    uint32_t pos_sensor_connection_status;
 
     sensor_msgs::Imu::Ptr imu_enu_data;
     sensor_msgs::Imu::Ptr imu_ned_data;
