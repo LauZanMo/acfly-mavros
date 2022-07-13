@@ -35,8 +35,8 @@ public:
     void initialize(UAS &uas_) override {
         PluginBase::initialize(uas_);
 
-        // 注册传感器信息
-        register_position_sensor(&ass_nh);
+        // 获取传感器信息
+        get_sensor_info(&ass_nh);
 
         // 传感器到飞控body系的三维变换
         Eigen::Affine3d     tr_sensor_body{};
@@ -87,6 +87,12 @@ public:
                 ass_nh.subscribe("pose_cov", 10, &AcflySlamSensorPlugin::pose_cov_cb, this);
         }
 
+        // 重置位置传感器
+        reset_sub = ass_nh.subscribe("reset", 10, &AcflySlamSensorPlugin::reset_cb, this);
+
+        // 设置位置传感器不可用
+        block_sub = ass_nh.subscribe("block", 10, &AcflySlamSensorPlugin::block_cb, this);
+
         // 回环检测
         loop_sub = ass_nh.subscribe("loop", 10, &AcflySlamSensorPlugin::loop_cb, this);
     }
@@ -101,6 +107,8 @@ private:
 
     ros::Subscriber pose_sub;
     ros::Subscriber pose_cov_sub;
+    ros::Subscriber reset_sub;
+    ros::Subscriber block_sub;
     ros::Subscriber loop_sub;
 
     std::string tf_frame_id;
@@ -112,7 +120,7 @@ private:
 
     void transform_cb(const geometry_msgs::TransformStamped &transform) {
         if (!m_uas->get_pos_sensor_connection_status(sensor_ind)) {
-            register_position_sensor(&ass_nh);
+            register_position_sensor();
         } else {
             Eigen::Affine3d tr;
             tf::transformMsgToEigen(transform.transform, tr);
@@ -124,7 +132,7 @@ private:
 
     void pose_cb(const geometry_msgs::PoseStamped::ConstPtr &pose_stamp) {
         if (!m_uas->get_pos_sensor_connection_status(sensor_ind)) {
-            register_position_sensor(&ass_nh);
+            register_position_sensor();
         } else {
             Eigen::Affine3d tr;
             tf::poseMsgToEigen(pose_stamp->pose, tr);
@@ -136,7 +144,7 @@ private:
 
     void pose_cov_cb(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &pose_cov_stamp) {
         if (!m_uas->get_pos_sensor_connection_status(sensor_ind)) {
-            register_position_sensor(&ass_nh);
+            register_position_sensor();
         } else {
             Eigen::Affine3d tr;
             tf::poseMsgToEigen(pose_cov_stamp->pose.pose, tr);
@@ -144,6 +152,16 @@ private:
             update_position_sensor(pose_cov_stamp->header.stamp, tr.translation(),
                                    Eigen::Vector3d::Zero(), Eigen::Quaterniond(tr.rotation()));
         }
+    }
+
+    void reset_cb(const std_msgs::Bool::ConstPtr &reset) {
+        if (reset->data)
+            unregister_position_sensor();
+    }
+
+    void block_cb(const std_msgs::Bool::ConstPtr &block) {
+        if (block->data)
+            set_position_sensor_unavailable();
     }
 
     void loop_cb(const std_msgs::Bool::ConstPtr &loop) {

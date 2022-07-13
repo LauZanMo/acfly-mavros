@@ -23,8 +23,7 @@ class AcflyPositionSensorBase : public plugin::PluginBase {
 public:
     AcflyPositionSensorBase() : PluginBase(), reset_counter(0) {}
 
-    void register_position_sensor(ros::NodeHandle *nh) {
-        // 传感器参数
+    void get_sensor_info(ros::NodeHandle *nh) {
         nh->param<std::string>("sensor/name", sensor_name, "ROS");
         nh->param("sensor/index", sensor_ind, 15);                  // 最高16路，数组形式，0~15
         nh->param("sensor/type", sensor_type, 1);                   // 相对定位
@@ -33,19 +32,33 @@ public:
         nh->param<float>("sensor/delay", sensor_delay, 0.05);       // 延时(s)
         nh->param<float>("sensor/trust_xy", sensor_trust_xy, 0.01); // xy方向方差(m^2)
         nh->param<float>("sensor/trust_z", sensor_trust_z, 0.01);   // z方向方差(m^2)
+    }
 
+    void send_register_position_sensor_frame(uint8_t data_frame) {
         mavlink::ACFly::msg::ACFly_RegeisterPosSensor rp{};
         m_uas->msg_set_target(rp);
         mavlink::set_string(rp.sensor_name, sensor_name);
         rp.ind       = static_cast<int8_t>(sensor_ind);
         rp.type      = static_cast<uint8_t>(sensor_type);
-        rp.DataFrame = static_cast<uint8_t>(sensor_data_frame);
+        rp.DataFrame = data_frame;
         rp.DataType  = static_cast<uint8_t>(sensor_data_type);
         rp.delay     = sensor_delay;
         rp.trustXY   = sensor_trust_xy;
         rp.trustZ    = sensor_trust_z;
 
         UAS_FCU(m_uas)->send_message_ignore_drop(rp);
+    }
+
+    void register_position_sensor() {
+        send_register_position_sensor_frame(static_cast<uint8_t>(sensor_data_frame) | (1 << 7));
+    }
+
+    void unregister_position_sensor() {
+        send_register_position_sensor_frame(static_cast<uint8_t>(sensor_data_frame) | (1 << 6));
+    }
+
+    void set_position_sensor_unavailable() {
+        send_register_position_sensor_frame(static_cast<uint8_t>(sensor_data_frame));
     }
 
     void update_position_sensor(const ros::Time   &stamp,
