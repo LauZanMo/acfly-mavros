@@ -299,7 +299,7 @@ acfly_slam_sensor:
 此插件功能比较简单，以下是控制局部位置的步骤，其他类似：
 
 1. 用户需要在cmake或python导入mavros_msgs功能包中的[PositionTarget信息](mavros_msgs/msg/PositionTarget.msg)
-2. 参考对应的mavlink信息[SET_POSITION_TARGET_LOCAL_NED](https://mavlink.io/zh/messages/common.html#SET_POSITION_TARGET_LOCAL_NED)填入相应的值，通过/mavros/setpoint_raw/target_local话题发送
+2. 参考对应的mavlink信息[SET_POSITION_TARGET_LOCAL_NED](https://mavlink.io/zh/messages/common.html#SET_POSITION_TARGET_LOCAL_NED)填入相应的值，通过/mavros/setpoint_raw/local话题发送
 
 **注意**：
 
