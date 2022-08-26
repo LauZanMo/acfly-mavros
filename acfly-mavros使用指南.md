@@ -214,7 +214,7 @@ acfly_slam_sensor:
     trust_z: 0.01                           # 传感器z方向方差(m^2)
   tf:
     listen: false                           # 通过监听tf来获取位置信息(false则通过订阅来获取tf信息)
-    frame_id: "map"                         # 传感器建图坐标系(通常为map)
+    frame_id: "map"                         # 传感器建图坐标系
     child_frame_id: "base_link"             # 飞控body系(通常不需要修改)
     rate_limit: 10.0                        # 监听频率
 ```
@@ -227,9 +227,11 @@ acfly_slam_sensor:
 
 - 通过查询TF**正确填写**(插件会在启动时发布sensor到base_link的tf)
 
-  - acfly_slam_sensor/sensor_id
+  - acfly_slam_sensor/sensor_id  
+    即填入所使用的slam中发布的传感器tf
 
-  - acfly_slam_sensor/tf/frame_id
+  - acfly_slam_sensor/tf/frame_id  
+    填入所使用slam中的建图坐标系tf，可通过查询tf-tree获得（如vins-fusion的建图坐标系为world，则frame_id填入world）
 
   - acfly_slam_sensor/sensor_body_rotation和acfly_slam_sensor/sensor_body_translation
 
